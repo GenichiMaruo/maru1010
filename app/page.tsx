@@ -1,103 +1,97 @@
-import Image from "next/image";
+// app/page.tsx
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { FaFacebook, FaGithub } from "react-icons/fa";
+import { FaXTwitter } from "react-icons/fa6";
 
 export default function Home() {
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
-
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+    <div
+      className="flex flex-col items-center min-h-screen bg-cover bg-center bg-no-repeat"
+      style={{ backgroundImage: `url('background.webp')` }}
+    >
+      <Card className="w-[90%] max-w-[700px] bg-white/80 my-10 hover:scale-1.05 transition-transform duration-300 ease-in-out mt-24">
+        {/* mt-20を追加して、ヘッダーの下にCardが表示されるようにマージンを設定 */}
+        <CardContent className="flex flex-col md:flex-row items-center p-4">
+          <div className="flex justify-center p-4 mb-4 md:mb-0 md:mx-6 max-w-xs">
+            <Avatar className="w-32 h-32 border-4 border-blue-500">
+              <AvatarImage src="/avatar.png" alt="Profile Picture" />
+              <AvatarFallback>GM</AvatarFallback>
+            </Avatar>
+          </div>
+          <div className="w-full">
+            <div className="text-center md:text-left">
+              <CardHeader>
+                <CardTitle className="text-2xl text-blue-800">
+                  Genichi Maruo
+                </CardTitle>
+                <CardDescription className="text-gray-600">
+                  Web Developer | Creator
+                </CardDescription>
+              </CardHeader>
+            </div>
+            <div className="text-center md:text-left my-2 mx-6">
+              <p className="text-blue-800 font-bold">
+                所属: 大阪工業大学 / 情報科学研究科情報科学専攻 / M1
+              </p>
+            </div>
+            <div className="text-center md:text-left my-2 mx-6">
+              <p className="text-gray-700">
+                カメラで認識した人物間の関係推定技術に関する研究を行っている大学院生。趣味でウェブ開発をしており、フロントエンド・バックエンド問わず学習中。ハッカソンにも積極的に参加。
+              </p>
+            </div>
+            <CardFooter className="flex flex-wrap justify-center md:justify-start gap-2 mt-4">
+              <Button
+                asChild
+                variant="link"
+                className="bg-blue-500 hover:bg-blue-600 text-white"
+              >
+                <a
+                  href="https://github.com/GenichiMaruo"
+                  target="_blank"
+                  className="flex items-center gap-2"
+                >
+                  <FaGithub /> GitHub {/* アイコンとテキスト */}
+                </a>
+              </Button>
+              <Button
+                asChild
+                variant="link"
+                className="bg-blue-500 hover:bg-blue-600 text-white"
+              >
+                <a
+                  href="https://x.com/maru1010robo16"
+                  target="_blank"
+                  className="flex items-center gap-2"
+                >
+                  <FaXTwitter /> X {/* アイコンとテキスト */}
+                </a>
+              </Button>
+              <Button
+                asChild
+                variant="link"
+                className="bg-blue-500 hover:bg-blue-600 text-white"
+              >
+                <a
+                  href="https://www.facebook.com/profile.php?id=100029838533241"
+                  target="_blank"
+                  className="flex items-center gap-2"
+                >
+                  <FaFacebook /> Facebook {/* アイコンとテキスト */}
+                </a>
+              </Button>
+            </CardFooter>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }

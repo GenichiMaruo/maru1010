@@ -1,0 +1,91 @@
+[
+  {
+    "title": "Portfolio Website",
+    "description": "Next.jsとTailwind CSSを使用して作成したポートフォリオサイト",
+    "technologies": ["Next.js", "Tailwind CSS", "TypeScript", "Shadcn UI"],
+    "imageUrl": "/portfolio/portfolio-site.png",
+    "link": "/",
+    "github": ""
+  },
+  {
+    "title": "58ハッカソン (2025年2月)",
+    "description": "動画を送るだけで、最高のベストショットが手に入る！ 詳しくはTopazにて",
+    "technologies": ["Next.js", "Python", "TypeScript"],
+    "imageUrl": "/portfolio/happy-shot.png",
+    "link": "https://topaz.dev/projects/5ba3d6d5f2818f64236f",
+    "github": "https://github.com/yashikota/happy-shot",
+    "details": "\n**関わったプロダクトの概要**\n\n動画を送るだけで、最高のベストショットが手に入る！ 詳しくはTopazにて\n\n**チーム体制と役割**\n\nフロントエンド開発1名とバックエンド開発2名で行った。\n\n**やったこと**\n\nバックエンド開発で表情分析以外を担当。顔の向き検出、瞬き検出、各動画フレームのスコア化、動画全体におけるスコアの推移のグラフ化、スコアグラフから良いと思われるフレームの抽出、表情分析との連携、フロントエンドとの通信用APIの整備などを行った。\n\n**成長したこと**\n\n久しぶりのバックエンド担当でうまく実装できないことが多かったが時間内にできる別の方法を模索することで最初に設定した課題を達成することができた。一つの方法に固執せず、柔軟に別の解決策を模索することで、たとえ途中でつまずいても、最終的には大きな課題を乗り越えられることを学んだ。\n\n**実績**\n\nハッカソンでは優秀賞を受賞した。\n",
+    "duration": "2025年2月",
+    "award": "優秀賞"
+  },
+  {
+    "title": "ソーシャル・オープンイノベーションチャレンジ2024",
+    "description": "「占いと年齢性別推定を用いたパーソナライズド広告の最適化」と題して昨年行った実験の追加検証や、切り口を変えた方法での有効性の検証などを行った。",
+    "technologies": ["Python", "React"],
+    "imageUrl": "/portfolio/smile-sindan.png",
+    "link": "https://www.oit.ac.jp/is/msl/soichalle/award.html",
+    "github": "",
+    "details": "\n**関わったプロダクトの概要**\n\n「占いと年齢性別推定を用いたパーソナライズド広告の最適化」と題して昨年行った実験の追加検証や、切り口を変えた方法での有効性の検証などを行った。\n\n**チーム体制と役割**\n\n2人チームで、開発担当とアイディア出し、発表担当に分かれた。\n\n**やったこと**\n\n去年のプログラムをベースに追加開発を行い前年度より精度を高めた。\n\n**実績**\n\nアイデアコンテストでは優秀賞、チャレンジコンテストではソイチャレ大賞を受賞した。\n",
+    "duration": "2024年",
+    "award": "優秀賞, ソイチャレ大賞"
+  },
+  {
+    "title": "58ハッカソン (2024年9月)",
+    "description": "毎日の活動や作業履歴などを自分で書くのは面倒くさい。 そんな作業をAIによって全自動化できる。",
+    "technologies": [
+      "Go",
+      "Next.js",
+      "TypeScript",
+      "Tailwind CSS",
+      "Shadcn UI"
+    ],
+    "imageUrl": "/portfolio/chronotes.png",
+    "link": "https://topaz.dev/projects/9752f502380d2cc00f7c",
+    "github": "https://github.com/GenichiMaruo/chronotes-front",
+    "details": "\n**関わったプロダクトの概要**\n\n毎日の活動や作業履歴などを自分で書くのは面倒くさい。 そんな作業をAIによって全自動化できる。\n\n**チーム体制と役割**\n\nバックエンド2名、フロントエンド2名で行った。\n\n**やったこと**\n\n自分の担当はフロントエンドの作成とデプロイ、バックエンドとのAPI通信関連の整備、ウェブ上でのメモの編集機能の実装など。キックオフ直後から細かいタスクを設定し、着実に開発を進めた。バックエンドとの連携の実装が直前になってしまったが発表までには完成し、すべての機能の実装に成功した。\n\n**成長したこと**\n4人でのチーム開発を経験し、チーム内での役割分担や円滑なコミュニケーションの重要性を学んだ。特に、フロントエンドとバックエンドの連携を進める中で、仕様のすり合わせや調整の大切さを実感した。また、限られた時間の中で優先順位をつけながら開発を進めるスキルや、発表までに機能を完成させるためのタスク管理力も向上した。\n\n**実績**\n\nハッカソンでは優秀賞を受賞した。\n",
+    "duration": "2024年9月",
+    "award": "優秀賞"
+  },
+  {
+    "title": "U-22 プログラミング・コンテスト2024",
+    "description": "ゲームマスターが撮影した写真のヒントを元に、プレイヤーは同じ場所や構図を探し出しす。そしてゲームマスターの写真に最も似た写真を撮影したプレイヤーが勝利する。",
+    "technologies": ["Vite", "React"],
+    "imageUrl": "/portfolio/scene-hunter.png",
+    "link": "https://protopedia.net/prototype/private/76e77efd-35c5-43b3-921b-279979c9eaf1",
+    "github": "https://github.com/GenichiMaruo/SceneHunter-front",
+    "details": "\n**関わったプロダクトの概要**\n\nゲームマスターが撮影した写真のヒントを元に、プレイヤーは同じ場所や構図を探し出しす。そしてゲームマスターの写真に最も似た写真を撮影したプレイヤーが勝利する。\n\n**チーム体制と役割**\n\n自分の役割はフロントエンド全般を担当した。Vite+Reactでの開発は初めての技術スタックだったため、公式ドキュメントやオンラインチュートリアルを参考にしながら学習を進めた。\n",
+    "duration": "2024年8月"
+  },
+  {
+    "title": "Minecraft Server Discord Bot",
+    "description": "Minecraftサーバーの情報を取得し、Discordに通知したり、Discordからコマンドを受け取ってサーバーを操作するBot。",
+    "technologies": ["Python"],
+    "imageUrl": "/portfolio/mcserverbot.png",
+    "link": "",
+    "github": "https://github.com/GenichiMaruo/MinecraftServerDiscordBot",
+    "details": "Minecraftサーバーの情報を取得し、Discordに通知したり、Discordからコマンドを受け取ってサーバーを操作するBot。その他サーバー参加ポイントシステムがあり、ポイントを貯めることでゲーム内でのアイテム購入がDiscord上で可能。",
+    "duration": "2024年2月"
+  },
+  {
+    "title": "ソーシャル・オープンイノベーションチャレンジ 2023",
+    "description": "「革新的な次世代技術によるパーソナライズド広告の瞬時展開システム」と題して、デジタルサイネージ前の人物をカメラで認識して年齢、性別推定を行い、その判断によって適切な広告を表示するシステムを開発。",
+    "technologies": ["Python", "React"],
+    "imageUrl": "/portfolio/soityare1.png",
+    "link": "https://www.oit.ac.jp/is/msl/soichalle/award.html",
+    "github": "",
+    "details": "\n**関わったプロダクトの概要**\n\n「革新的な次世代技術によるパーソナライズド広告の瞬時展開システム」と題して、デジタルサイネージ前の人物をカメラで認識して年齢、性別推定を行い、その判断によって適切な広告を表示するシステムを開発し、大阪工業大学枚方キャンパスの学園祭で実証実験を行い、その有効性を評価した。\n\n**チーム体制と役割**\n\nチームでアイディア出し、プログラム作成、資料作成、学園祭準備、実証実験、発表などをそれぞれ分担しながら進めた。数ヶ月にわたり、何度も会議や進捗確認を行った。\n\n**やったこと**\n\nアイディア出し、プログラム作成全般と学園祭準備など。\n\n**成長したこと**\n\nチームでのアイディア出しや方向性の決定を通じて、個人開発では得られない協調性や意思決定のスキルを身につけた。また、メンバーと役割を分担しながら開発を進める中で、タスク管理や効果的なコミュニケーションの重要性を実感した。さらに、学園祭での実証実験を経て、ユーザー視点でのシステムの検証や改善の大切さを学ぶことができた。\n\n**実績**\n\n2023年度チャレンジコンテストにて最優秀賞を受賞した。\n",
+    "duration": "2023年6月~2023年12月",
+    "award": "最優秀賞"
+  },
+  {
+    "title": "Minecraft Bot Contest 2021 (学内コンテスト)",
+    "description": "Minecraftの敵モブであるゾンビを自動で倒すBotを作成し、その性能を競うコンテスト。",
+    "technologies": ["Python"],
+    "imageUrl": "/portfolio/mc-bot-contest.png",
+    "link": "",
+    "github": "https://github.com/GenichiMaruo/MinecraftBot_MESTeam",
+    "details": "\n**関わったプロダクトの概要**\n\nMinecraftの敵モブであるゾンビを自動で倒すBotを作成し、その性能を競うコンテスト。\n\n**チーム体制と役割**\n\n自分の役割はプログラミング全般。ゲーム画面のキャプチャ映像をリアルタイムにカスケード分類器にかけてゾンビを判定し攻撃するためマウスカーソルの移動とキーボード入力命令を実行する。\n",
+    "duration": "2022年3月",
+    "award": "2位"
+  }
+]
