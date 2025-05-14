@@ -8,6 +8,22 @@
     "github": ""
   },
   {
+    "title": "通信ネットワーク構成論A(2024年)制作物 OnlineOthello",
+    "description": "OnlineOthello は、オンラインでオセロをプレイできるアプリケーション。Node.js (Next.js) によるフロントエンドと、C言語で開発されたクライアントおよびサーバーアプリケーションで構成した。Docker を利用することで、必要な環境を簡単に構築・実行できる。",
+    "technologies": [
+      "Node.js",
+      "Next.js",
+      "TypeScript",
+      "Tailwind CSS",
+      "Shadcn UI",
+      "C",
+      "Docker"
+    ],
+    "imageUrl": "/portfolio/online-othello.png",
+    "github": "https://github.com/GenichiMaruo/OnlineOthello",
+    "duration": "2025年5月"
+  },
+  {
     "title": "58ハッカソン (2025年2月)",
     "description": "動画を送るだけで、最高のベストショットが手に入る！ 詳しくはTopazにて",
     "technologies": ["Next.js", "Python", "TypeScript"],
