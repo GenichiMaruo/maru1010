@@ -97,25 +97,27 @@ export default function Portfolio() {
         open={!!selectedProject}
         onOpenChange={() => setSelectedProject(null)}
       >
-        <DialogContent>
+        <DialogContent
+          className="max-h-[80vh] overflow-y-auto"
+        >
           {selectedProject && (
             <div>
               <DialogHeader>
                 <DialogTitle className="text-2xl font-bold mb-4">
                   {selectedProject.title}
                 </DialogTitle>
-                <DialogDescription>
-                  <p className="mb-2">
-                    <strong>期間:</strong> {selectedProject.duration}
-                  </p>
-                  <p className="mb-2">
-                    <strong>受賞歴:</strong> {selectedProject.award}
-                  </p>
-                  <div className="mb-4 whitespace-pre-wrap">
-                    <ReactMarkdown>
-                      {selectedProject.details || ""}
-                    </ReactMarkdown>
-                  </div>
+                                <DialogDescription>
+                <div className="mb-2">
+                <strong>期間:</strong> {selectedProject.duration}
+                </div>
+                <div className="mb-2">
+                <strong>受賞歴:</strong> {selectedProject.award}
+                </div>
+                <div className="mb-4 whitespace-pre-wrap">
+                <ReactMarkdown>
+                    {selectedProject.details || ""}
+                </ReactMarkdown>
+                </div>
                 </DialogDescription>
               </DialogHeader>
               <DialogClose asChild>
