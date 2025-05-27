@@ -18,7 +18,7 @@ export default function Home() {
       className="flex flex-col items-center min-h-screen bg-cover bg-center bg-no-repeat"
       style={{ backgroundImage: `url('background.webp')` }}
     >
-      <Card className="w-[90%] max-w-[700px] bg-white/80 my-10 hover:scale-1.05 transition-transform duration-300 ease-in-out mt-24">
+      <Card className="w-[90%] max-w-[700px] bg-white/80 my-10 hover:scale-1.05 transition-transform duration-300 ease-in-out mt-24 pt-6">
         {/* mt-20を追加して、ヘッダーの下にCardが表示されるようにマージンを設定 */}
         <CardContent className="flex flex-col md:flex-row items-center p-4">
           <div className="flex justify-center p-4 mb-4 md:mb-0 md:mx-6 max-w-xs">
