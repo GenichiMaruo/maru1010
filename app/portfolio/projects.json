@@ -5,7 +5,7 @@
     "technologies": ["Next.js", "Tailwind CSS", "TypeScript", "Shadcn UI"],
     "imageUrl": "/portfolio/portfolio-site.png",
     "link": "/",
-    "github": ""
+    "github": "https://github.com/GenichiMaruo/maru1010"
   },
   {
     "title": "通信ネットワーク構成論A(2025年)制作物 OnlineOthello",
@@ -110,7 +110,7 @@
     "imageUrl": "/portfolio/snakegame.png",
     "github": "https://github.com/GenichiMaruo/SnakeGame",
     "details": "\n**関わったプロダクトの概要**\n\n英語による情報技術Ⅰの授業にて、Pythonを用いたSnakeゲームを作成。Tkinterを使ってGUI上で操作可能なゲームを実装した。\n\n**チーム体制と役割**\n\n4人チームで開発を行い、自分は主にコード作成を担当した。\n\n**やったこと**\n\nゲームのロジック構築、画面描画、ユーザー操作への対応（キーボード入力）など、実装全般を担当。Tkinterを用いたGUI開発や、Pythonのクラス設計なども経験した。\n\n**成長したこと**\n\nPythonを使ったGUIアプリケーション開発の基礎を習得し、ゲームの動作やバグを確認しながら何度も改善を重ねる過程で、粘り強く開発を進める力が身についた。また、チームでの開発を通じて、コードの分担やコミュニケーションの重要性も学んだ。\n",
-    "duration": "2023年後期",
+    "duration": "2023年1月",
     "award": ""
   },
   {
