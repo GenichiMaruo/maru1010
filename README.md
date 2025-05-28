@@ -1,36 +1,70 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# maru1010.com - Frontend
 
-## Getting Started
+このリポジトリは、[maru1010.com](https://maru1010.com) のフロントエンドコードを管理しています。  
+技術スタックとして [Next.js](https://nextjs.org/)、[Tailwind CSS](https://tailwindcss.com/)、[shadcn/ui](https://ui.shadcn.com/) を使用しています。
 
-First, run the development server:
+## 🔧 使用技術スタック
+
+- **Next.js** - アプリケーションの基盤
+- **Tailwind CSS** - ユーティリティファーストなCSSフレームワーク
+- **shadcn/ui** - 再利用可能なUIコンポーネント群
+
+## 🚀 デプロイ先
+
+本アプリは以下のURLで公開されています：  
+👉 [https://maru1010.com](https://maru1010.com)
+
+## 📦 セットアップ
+
+以下の手順でローカル開発環境を構築できます。
+
+### 1. 依存関係のインストール
+
+```bash
+npm install
+```
+
+### 2. 開発サーバーの起動
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+ブラウザで <http://localhost:3000> を開いて確認できます。
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### 3. 本番ビルド
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npm run build
+```
 
-## Learn More
+### 4. 本番サーバーの起動
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+npm run start
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 📂 ディレクトリ構成（概要）
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```csharp
+.
+├── components/      # 再利用可能なUIコンポーネント
+├── pages/           # Next.jsのルーティングページ
+├── styles/          # TailwindやグローバルCSS
+├── public/          # 静的ファイル
+└── ...
+```
 
-## Deploy on Vercel
+## 🛠 開発に関するメモ
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+UIは shadcn/ui をカスタマイズして構築
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+スタイリングは Tailwind CSS をベースに構成
+
+必要に応じて tailwind.config.js を編集してユーティリティを拡張可能
+
+ご質問・不具合報告等がありましたら maru1010.com よりご連絡ください。
+
+## 📄 ライセンス
+
+このプロジェクトは [MIT License](https://opensource.org/license/mit/) の下でライセンスされています。
