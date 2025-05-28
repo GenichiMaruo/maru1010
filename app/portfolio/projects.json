@@ -83,6 +83,16 @@
     "duration": "2024年2月"
   },
   {
+    "title": "PushIt（ソフトウェア工学演習 / 2023年7月）",
+    "description": "2人対戦型のP2Pオンラインゲーム。CUIでありながらGUI風の操作感を目指し、通信遅延補正やマウス対応など高度な工夫を盛り込んだ。",
+    "technologies": ["C", "P2P通信", "独自フレーム同期処理"],
+    "imageUrl": "/portfolio/pushit.png",
+    "github": "https://github.com/GenichiMaruo/PushIt",
+    "details": "\n**関わったプロダクトの概要**\n\nソフトウェア工学演習の授業にて、2Dオンライン対戦ゲーム「PushIt」を開発した。P2P通信による対戦型ゲームで、中央の箱を相手陣地に押し込むことで勝敗が決まる。\n\n**授業内容と開発体制**\n\n仕様書（外部・内部・テスト）を作成後に実装を行う形式で、自分一人で開発を担当した。\n\n**やったこと**\n\n- プレイヤー間の通信ラグをフレーム番号で推定し、相手位置を補正\n- CUI上でも色やマウス入力に対応し、GUI風の操作体験を提供\n- メニュー画面を含む全体設計、仕様書の作成と実装のすべてを担当\n\n**成長したこと**\n\nP2P通信や予測処理といったネットワーク系の実装経験を積み、1人で仕様策定から開発、調整、完成まで一貫して行うスキルが身についた。UIの工夫により、CUIでも快適な操作性を実現した。\n\n**実績**\n\n授業内投票で100人以上の中から3位に選出。",
+    "duration": "2023年7月",
+    "award": "授業内投票 3位（100名以上中）"
+  },
+  {
     "title": "ソーシャル・オープンイノベーションチャレンジ 2023",
     "description": "「革新的な次世代技術によるパーソナライズド広告の瞬時展開システム」と題して、デジタルサイネージ前の人物をカメラで認識して年齢、性別推定を行い、その判断によって適切な広告を表示するシステムを開発。",
     "technologies": ["Python", "React"],
@@ -94,12 +104,22 @@
     "award": "最優秀賞"
   },
   {
+    "title": "SnakeGame（英語による情報技術Ⅰ / 2023年後期）",
+    "description": "PythonのGUIライブラリを用いて、クラシックなSnakeゲームをチームで作成。シンプルながらもプレイ可能なゲームを実装した。",
+    "technologies": ["Python", "Tkinter"],
+    "imageUrl": "/portfolio/snakegame.png",
+    "github": "https://github.com/GenichiMaruo/SnakeGame",
+    "details": "\n**関わったプロダクトの概要**\n\n英語による情報技術Ⅰの授業にて、Pythonを用いたSnakeゲームを作成。Tkinterを使ってGUI上で操作可能なゲームを実装した。\n\n**チーム体制と役割**\n\n4人チームで開発を行い、自分は主にコード作成を担当した。\n\n**やったこと**\n\nゲームのロジック構築、画面描画、ユーザー操作への対応（キーボード入力）など、実装全般を担当。Tkinterを用いたGUI開発や、Pythonのクラス設計なども経験した。\n\n**成長したこと**\n\nPythonを使ったGUIアプリケーション開発の基礎を習得し、ゲームの動作やバグを確認しながら何度も改善を重ねる過程で、粘り強く開発を進める力が身についた。また、チームでの開発を通じて、コードの分担やコミュニケーションの重要性も学んだ。\n",
+    "duration": "2023年後期",
+    "award": ""
+  },
+  {
     "title": "Minecraft Bot Contest 2021 (学内コンテスト)",
     "description": "Minecraftの敵モブであるゾンビを自動で倒すBotを作成し、その性能を競うコンテスト。",
     "technologies": ["Python"],
     "imageUrl": "/portfolio/mc-bot-contest.png",
     "link": "",
-    "github": "https://github.com/GenichiMaruo/MinecraftBot_MESTeam",
+    "github": "https://github.com/GenichiMaruo/MinecraftBot",
     "details": "\n**関わったプロダクトの概要**\n\nMinecraftの敵モブであるゾンビを自動で倒すBotを作成し、その性能を競うコンテスト。\n\n**チーム体制と役割**\n\n自分の役割はプログラミング全般。ゲーム画面のキャプチャ映像をリアルタイムにカスケード分類器にかけてゾンビを判定し攻撃するためマウスカーソルの移動とキーボード入力命令を実行する。\n",
     "duration": "2022年3月",
     "award": "2位"

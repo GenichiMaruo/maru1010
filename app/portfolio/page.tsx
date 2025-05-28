@@ -55,7 +55,9 @@ export default function Portfolio() {
   }, []);
 
   const backgroundStyle: React.CSSProperties = {
-    backgroundImage: `url('data:image/svg+xml;utf8,${encodeURIComponent(patternSvg)}')`,
+    backgroundImage: `url('data:image/svg+xml;utf8,${encodeURIComponent(
+      patternSvg
+    )}')`,
     backgroundColor: "#f0f4f8", // Use the first color as the base background
     position: "relative",
   };
@@ -97,27 +99,25 @@ export default function Portfolio() {
         open={!!selectedProject}
         onOpenChange={() => setSelectedProject(null)}
       >
-        <DialogContent
-          className="max-h-[80vh] overflow-y-auto"
-        >
+        <DialogContent className="max-h-[80vh] overflow-y-auto">
           {selectedProject && (
             <div>
               <DialogHeader>
                 <DialogTitle className="text-2xl font-bold mb-4">
                   {selectedProject.title}
                 </DialogTitle>
-                                <DialogDescription>
-                <div className="mb-2">
-                <strong>期間:</strong> {selectedProject.duration}
-                </div>
-                <div className="mb-2">
-                <strong>受賞歴:</strong> {selectedProject.award}
-                </div>
-                <div className="mb-4 whitespace-pre-wrap">
-                <ReactMarkdown>
-                    {selectedProject.details || ""}
-                </ReactMarkdown>
-                </div>
+                <DialogDescription>
+                  <div className="mb-2">
+                    <strong>期間:</strong> {selectedProject.duration}
+                  </div>
+                  <div className="mb-2">
+                    <strong>受賞歴:</strong> {selectedProject.award}
+                  </div>
+                  <div className="mb-4 whitespace-pre-wrap">
+                    <ReactMarkdown>
+                      {selectedProject.details || ""}
+                    </ReactMarkdown>
+                  </div>
                 </DialogDescription>
               </DialogHeader>
               <DialogClose asChild>
@@ -144,7 +144,7 @@ function ProjectCard({
       onClick={onClick}
     >
       {project.imageUrl && (
-        <div className="relative h-48">
+        <div className="relative h-65">
           <Image
             src={project.imageUrl}
             alt={project.title}
@@ -171,7 +171,8 @@ function ProjectCard({
         {project.link && (
           <Button asChild variant="link" className="mr-2">
             <Link href={project.link} target="_blank" rel="noopener noreferrer">
-              <FaLink />関連リンク
+              <FaLink />
+              関連リンク
             </Link>
           </Button>
         )}
@@ -182,7 +183,8 @@ function ProjectCard({
               target="_blank"
               rel="noopener noreferrer"
             >
-              <FaGithub />GitHub
+              <FaGithub />
+              GitHub
             </Link>
           </Button>
         )}
