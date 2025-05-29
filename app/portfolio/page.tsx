@@ -140,7 +140,7 @@ function ProjectCard({
 }) {
   return (
     <Card
-      className="hover:shadow-lg transition-shadow duration-200 cursor-pointer"
+      className="hover:shadow-lg transition-shadow duration-200 cursor-pointer pt-0"
       onClick={onClick}
     >
       {project.imageUrl && (
