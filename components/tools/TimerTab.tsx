@@ -54,7 +54,7 @@ export default function TimerTab() {
 
   useEffect(() => {
     if (typeof window !== "undefined") {
-      audioRef.current = new Audio("/sounds/timer-alarm.mp3");
+      audioRef.current = new Audio("/sounds/timer-chime.mp3");
     }
   }, []);
 
