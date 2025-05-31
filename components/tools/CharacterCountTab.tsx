@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -9,7 +9,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Textarea } from "@/components/ui/textarea";
 import {
   Tooltip,
   TooltipContent,
@@ -23,22 +22,188 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"; // Added for Tabs
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import runes from "runes2";
 import {
   FaTextHeight,
   FaParagraph,
   FaAlignLeft,
   FaRegCopy,
-  FaRegTrashCan,
   FaCheck,
   FaKeyboard,
   FaRegComments,
   FaLanguage,
-} from "react-icons/fa6";
+  FaBold,
+  FaItalic,
+  FaUnderline,
+  FaStrikethrough,
+  FaListUl,
+  FaListOl,
+  FaQuoteLeft,
+  FaCode,
+  FaMinus, // For Horizontal Rule
+  FaUndo,
+  FaRedo,
+  FaEraser, // For Clear Formatting
+  FaEye, // For Show
+  FaEyeSlash, // For Hide
+  // FaCrow, // Substitute for Paragraph mark (¶)
+  FaExpandArrowsAlt, // For Full-width space
+} from "react-icons/fa";
 import { FaSyncAlt } from "react-icons/fa";
+import { MdOutlineSubdirectoryArrowLeft } from "react-icons/md";
 
-// StatDisplay component remains the same
+// Tiptap imports
+import { useEditor, EditorContent } from "@tiptap/react";
+import StarterKit from "@tiptap/starter-kit";
+import TextStyleExtension from "@tiptap/extension-text-style";
+import HardBreak from "@tiptap/extension-hard-break";
+import Underline from "@tiptap/extension-underline";
+import { Extension, RawCommands, CommandProps } from "@tiptap/core";
+import type { Node as ProseMirrorNode } from "prosemirror-model";
+import { Decoration, DecorationSet } from "prosemirror-view";
+import { Plugin, EditorState } from "prosemirror-state";
+import { FaRegTrashCan } from "react-icons/fa6";
+
+// TypeScript module augmentation for Tiptap commands
+declare module "@tiptap/core" {
+  interface Commands<ReturnType> {
+    fontSize: {
+      setFontSize: (fontSize: string) => ReturnType;
+      unsetFontSize: () => ReturnType;
+    };
+  }
+}
+
+// Custom FontSize extension for Tiptap
+const FontSizeExtension = Extension.create<{
+  types?: string[];
+  sizes?: string[];
+}>({
+  name: "fontSize",
+  addOptions() {
+    return {
+      types: ["textStyle"],
+      sizes: ["12", "14", "16", "18", "20", "24"],
+    };
+  },
+  addGlobalAttributes() {
+    return [
+      {
+        types: this.options.types ?? [],
+        attributes: {
+          fontSize: {
+            default: null,
+            parseHTML: (element) => element.style.fontSize?.replace(/px$/, ""),
+            renderHTML: (attributes) => {
+              if (!attributes.fontSize || attributes.fontSize === "null") {
+                return {};
+              }
+              return { style: `font-size: ${attributes.fontSize}px` };
+            },
+          },
+        },
+      },
+    ];
+  },
+  addCommands() {
+    return {
+      setFontSize:
+        (fontSize: string) =>
+        ({ chain }: CommandProps): boolean => {
+          return chain().setMark("textStyle", { fontSize: fontSize }).run();
+        },
+      unsetFontSize:
+        () =>
+        ({ chain }: CommandProps): boolean => {
+          return chain().setMark("textStyle", { fontSize: null }).run();
+        },
+    } as RawCommands;
+  },
+});
+
+// Tiptap Extension to show visual cues (newline markers, full-width spaces)
+const VisualCuesExtension = (options: {
+  showNewlineMarkers: boolean;
+  showFullWidthSpaceHighlight: boolean;
+}) =>
+  Extension.create({
+    name: "visualCues",
+    addProseMirrorPlugins() {
+      return [
+        new Plugin({
+          props: {
+            decorations(state: EditorState) {
+              const decorations: Decoration[] = [];
+              const { doc } = state;
+
+              doc.descendants((node, pos) => {
+                // Full-width space highlighting
+                if (
+                  options.showFullWidthSpaceHighlight &&
+                  node.isText &&
+                  node.text
+                ) {
+                  const fullWidthSpaceRegex = /\u3000/g;
+                  let match;
+                  while (
+                    (match = fullWidthSpaceRegex.exec(node.text as string)) !==
+                    null
+                  ) {
+                    decorations.push(
+                      Decoration.inline(
+                        pos + match.index,
+                        pos + match.index + match[0].length,
+                        {
+                          class: "full-width-space-highlight",
+                        }
+                      )
+                    );
+                  }
+                }
+
+                // Newline markers
+                if (options.showNewlineMarkers) {
+                  if (node.type.name === "hardBreak") {
+                    const hardBreakMarker = document.createElement("span");
+                    hardBreakMarker.className = "hard-break-marker";
+                    hardBreakMarker.textContent = "↵";
+                    decorations.push(
+                      Decoration.widget(pos, hardBreakMarker, {
+                        side: 1,
+                        marks: [],
+                      })
+                    );
+                  } else if (
+                    node.isBlock &&
+                    node.type.name === "paragraph" &&
+                    node.content.size > 0
+                  ) {
+                    // Check if it's not the last node in the document to avoid marker after everything
+                    if (pos + node.nodeSize < doc.content.size) {
+                      const paragraphEndMarker = document.createElement("span");
+                      paragraphEndMarker.className = "paragraph-end-marker";
+                      paragraphEndMarker.textContent = "↓";
+                      // Position it at the end of the paragraph content
+                      decorations.push(
+                        Decoration.widget(
+                          pos + node.nodeSize - 1,
+                          paragraphEndMarker,
+                          { side: 1, marks: [] }
+                        )
+                      );
+                    }
+                  }
+                }
+              });
+              return DecorationSet.create(doc, decorations);
+            },
+          },
+        }),
+      ];
+    },
+  });
+
 const StatDisplay = ({
   icon,
   value,
@@ -64,248 +229,540 @@ const StatDisplay = ({
     </Tooltip>
   </TooltipProvider>
 );
-
-// Helper functions for case conversion
 const toWords = (str: string): string[] => {
   if (!str) return [];
-  // Handle various delimiters and case changes to split into words
-  str = str.replace(/([a-z])([A-Z])/g, "$1 $2"); // camelCase, PascalCase: insert space before uppercase
-  str = str.replace(/([A-Z])([A-Z][a-z])/g, "$1 $2"); // All caps followed by Pascal: NASAController -> NASA Controller
-  str = str.replace(/[\s_-]+/g, " "); // Replace spaces, underscores, hyphens with a single space
+  str = str.replace(/([a-z])([A-Z])/g, "$1 $2");
+  str = str.replace(/([A-Z])([A-Z][a-z])/g, "$1 $2");
+  str = str.replace(/[\s_-]+/g, " ");
   str = str.trim();
   if (!str) return [];
   return str.split(" ").map((word) => word.toLowerCase());
 };
-
-const toCamelCase = (words: string[]): string => {
-  return words
+const toCamelCase = (words: string[]): string =>
+  words
     .map((word, index) =>
       index === 0 ? word : word.charAt(0).toUpperCase() + word.slice(1)
     )
     .join("");
+const toPascalCase = (words: string[]): string =>
+  words.map((word) => word.charAt(0).toUpperCase() + word.slice(1)).join("");
+const toSnakeCase = (words: string[]): string => words.join("_");
+const toKebabCase = (words: string[]): string => words.join("-");
+
+const TiptapMenuBar = ({
+  editor,
+}: {
+  editor: ReturnType<typeof useEditor> | null;
+}) => {
+  if (!editor) {
+    return null;
+  }
+  const fontSizeOptions = [
+    { label: "小", value: "12" },
+    { label: "標準", value: "null" },
+    { label: "大", value: "18" },
+    { label: "特大", value: "24" },
+  ];
+  const menuButtonBaseClass = "TiptapMenuBar-button";
+  const activeClass = "is-active";
+  const hoverClass = "hover:bg-slate-700";
+  const getButtonClass = (isActive: boolean) =>
+    `${menuButtonBaseClass} ${isActive ? activeClass : ""} ${hoverClass}`;
+  return (
+    <div className="flex flex-wrap items-center gap-1 p-2 border border-slate-700 rounded-t-md bg-slate-800/80">
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={() => editor.chain().focus().toggleBold().run()}
+        disabled={!editor.can().chain().focus().toggleBold().run()}
+        className={getButtonClass(editor.isActive("bold"))}
+      >
+        <FaBold />
+      </Button>
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={() => editor.chain().focus().toggleItalic().run()}
+        disabled={!editor.can().chain().focus().toggleItalic().run()}
+        className={getButtonClass(editor.isActive("italic"))}
+      >
+        <FaItalic />
+      </Button>
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={() => editor.chain().focus().toggleUnderline().run()}
+        disabled={!editor.can().chain().focus().toggleUnderline().run()}
+        className={getButtonClass(editor.isActive("underline"))}
+      >
+        <FaUnderline />
+      </Button>
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={() => editor.chain().focus().toggleStrike().run()}
+        disabled={!editor.can().chain().focus().toggleStrike().run()}
+        className={getButtonClass(editor.isActive("strike"))}
+      >
+        <FaStrikethrough />
+      </Button>
+      <Select
+        onValueChange={(value) => {
+          if (value === "null") {
+            editor.chain().focus().unsetFontSize().run();
+          } else {
+            editor.chain().focus().setFontSize(value).run();
+          }
+        }}
+        value={editor.getAttributes("textStyle").fontSize || "null"}
+      >
+        <SelectTrigger className="w-[80px] h-8 text-xs bg-slate-700/80 border-slate-600 hover:bg-slate-600/90 focus:ring-sky-500">
+          <SelectValue placeholder="サイズ" />
+        </SelectTrigger>
+        <SelectContent className="bg-slate-800 border-slate-700 text-slate-100">
+          {fontSizeOptions.map((opt) => (
+            <SelectItem
+              key={opt.label}
+              value={opt.value}
+              className="text-xs hover:bg-slate-700 focus:bg-sky-600/30"
+            >
+              {opt.label}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={() => editor.chain().focus().toggleBulletList().run()}
+        className={getButtonClass(editor.isActive("bulletList"))}
+      >
+        <FaListUl />
+      </Button>
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={() => editor.chain().focus().toggleOrderedList().run()}
+        className={getButtonClass(editor.isActive("orderedList"))}
+      >
+        <FaListOl />
+      </Button>
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={() => editor.chain().focus().toggleBlockquote().run()}
+        className={getButtonClass(editor.isActive("blockquote"))}
+      >
+        <FaQuoteLeft />
+      </Button>
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={() => editor.chain().focus().toggleCodeBlock().run()}
+        className={getButtonClass(editor.isActive("codeBlock"))}
+      >
+        <FaCode />
+      </Button>
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={() => editor.chain().focus().setHorizontalRule().run()}
+        className={`${menuButtonBaseClass} ${hoverClass}`}
+      >
+        <FaMinus />
+      </Button>
+      <div className="flex-grow"></div>
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={() => editor.chain().focus().undo().run()}
+        disabled={!editor.can().chain().focus().undo().run()}
+        className={`${menuButtonBaseClass} ${hoverClass}`}
+      >
+        <FaUndo />
+      </Button>
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={() => editor.chain().focus().redo().run()}
+        disabled={!editor.can().chain().focus().redo().run()}
+        className={`${menuButtonBaseClass} ${hoverClass}`}
+      >
+        <FaRedo />
+      </Button>
+    </div>
+  );
 };
 
-const toPascalCase = (words: string[]): string => {
-  return words
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-    .join("");
-};
-
-const toSnakeCase = (words: string[]): string => {
-  return words.join("_");
-};
-
-const toKebabCase = (words: string[]): string => {
-  return words.join("-");
-};
+const LOCAL_STORAGE_KEY = "characterCountApp_tiptap_v2"; // Changed key to avoid conflicts with old versions
+const LOCAL_STORAGE_SETTINGS_KEY = "characterCountApp_settings_v2";
 
 export default function CharacterCountTab() {
-  const [text, setText] = useState("");
+  const [plainTextForCounts, setPlainTextForCounts] = useState("");
   const [copied, setCopied] = useState(false);
-
-  const [textareaHeight, setTextareaHeight] = useState<number | undefined>(
-    undefined
-  );
-  const [isResizing, setIsResizing] = useState(false);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const resizeStartYRef = useRef<number>(0);
-  const resizeStartHeightRef = useRef<number>(0);
-
-  const MIN_TEXTAREA_HEIGHT_PX = 220;
-
+  const [activeTab, setActiveTab] = useState<string>("general");
   const [selectedLanguage, setSelectedLanguage] = useState<string>("");
 
-  const languages = [
-    { value: "generic_block_line", label: "標準 (// と /* */)" },
-    { value: "hash_comments", label: "ハッシュ (#)" },
-    { value: "html_comments", label: "HTML ()" }, // Corrected label
-  ];
+  // States for visual cue toggles
+  const [showNewlineMarkers, setShowNewlineMarkers] = useState<boolean>(false);
+  const [showFullWidthSpaceHighlight, setShowFullWidthSpaceHighlight] =
+    useState<boolean>(false);
 
-  const handleResizeMouseDown = useCallback(
-    (e: React.MouseEvent<HTMLDivElement>) => {
-      e.preventDefault();
-      if (!textareaRef.current) return;
-      setIsResizing(true);
-      resizeStartYRef.current = e.clientY;
-      resizeStartHeightRef.current = textareaRef.current.offsetHeight;
-      document.body.style.cursor = "ns-resize";
+  const editor = useEditor(
+    {
+      extensions: [
+        StarterKit.configure({
+          hardBreak: false,
+        }),
+        VisualCuesExtension({
+          showNewlineMarkers,
+          showFullWidthSpaceHighlight,
+        }),
+        TextStyleExtension,
+        FontSizeExtension,
+        Underline,
+        HardBreak.extend({}),
+      ],
+      content:
+        typeof window !== "undefined"
+          ? localStorage.getItem(LOCAL_STORAGE_KEY) || ""
+          : "",
+      editorProps: {
+        attributes: {
+          class:
+            "prose prose-sm sm:prose lg:prose-lg xl:prose-xl focus:outline-none p-4 min-h-[200px] bg-slate-900/70 border border-slate-700 border-t-0 rounded-b-md text-slate-100 tiptap-custom-styles",
+        },
+      },
+      onUpdate: ({ editor: currentEditor }) => {
+        const html = currentEditor.getHTML();
+        const plainText = currentEditor.getText();
+        if (typeof window !== "undefined") {
+          localStorage.setItem(LOCAL_STORAGE_KEY, html);
+        }
+        setPlainTextForCounts(plainText);
+      },
     },
-    []
+    [showNewlineMarkers, showFullWidthSpaceHighlight]
   );
 
   useEffect(() => {
-    const handleResizeMouseMove = (e: MouseEvent) => {
-      if (!isResizing || !textareaRef.current) return;
-      const deltaY = e.clientY - resizeStartYRef.current;
-      let newHeight = resizeStartHeightRef.current + deltaY;
-      const currentMinHeight =
-        textareaRef.current.classList.contains("md:min-h-[250px]") &&
-        window.innerWidth >= 768
-          ? 250
-          : MIN_TEXTAREA_HEIGHT_PX;
+    if (!editor) return;
+    setPlainTextForCounts(editor.getText());
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [editor]);
 
-      if (newHeight < currentMinHeight) {
-        newHeight = currentMinHeight;
-      }
-      setTextareaHeight(newHeight);
-    };
-
-    const handleResizeMouseUp = () => {
-      setIsResizing(false);
-      document.body.style.cursor = "";
-    };
-
-    if (isResizing) {
-      document.addEventListener("mousemove", handleResizeMouseMove);
-      document.addEventListener("mouseup", handleResizeMouseUp);
+  // Load settings from local storage on mount
+  useEffect(() => {
+    const storedSettings = localStorage.getItem(LOCAL_STORAGE_SETTINGS_KEY);
+    if (storedSettings) {
+      const settings = JSON.parse(storedSettings);
+      setShowNewlineMarkers(settings.showNewlineMarkers || false);
+      setShowFullWidthSpaceHighlight(
+        settings.showFullWidthSpaceHighlight || false
+      );
     }
+  }, []);
 
-    return () => {
-      document.removeEventListener("mousemove", handleResizeMouseMove);
-      document.removeEventListener("mouseup", handleResizeMouseUp);
-      document.body.style.cursor = "";
-    };
-  }, [isResizing]);
+  // Save settings to local storage when they change
+  useEffect(() => {
+    const settings = { showNewlineMarkers, showFullWidthSpaceHighlight };
+    localStorage.setItem(LOCAL_STORAGE_SETTINGS_KEY, JSON.stringify(settings));
+  }, [showNewlineMarkers, showFullWidthSpaceHighlight]);
 
-  const textWithoutNewlines = text.replace(/\n/g, "");
-  const runeCount = runes(textWithoutNewlines).length;
-  const wordCount = text.trim() === "" ? 0 : text.trim().split(/\s+/).length;
-  const lineCount = text === "" ? 0 : text.split(/\n/).length;
+  const runeCount = runes(plainTextForCounts.replace(/\n/g, "")).length;
+  const wordCount =
+    plainTextForCounts.trim() === ""
+      ? 0
+      : plainTextForCounts.trim().split(/\s+/).length;
+  // 修正: 連続する改行も1行としてカウントし、末尾の空行も除外
+  const lineCount =
+    plainTextForCounts.trim() === ""
+      ? 0
+      : plainTextForCounts
+          .replace(/\r\n/g, "\n")
+          .replace(/\r/g, "\n")
+          .split(/\n+/)
+          .filter((line) => line.trim() !== "").length;
 
-  const handleRemoveNewlines = () => {
-    setText((prev) => prev.replace(/\r?\n/g, ""));
+  const transformTextInEditorPreservingMarks = (
+    transformFunction: (text: string) => string
+  ) => {
+    if (!editor) return;
+    const { state, view } = editor;
+    const { tr, doc, schema } = state;
+    let modified = false;
+    doc.descendants((node: ProseMirrorNode, pos: number) => {
+      if (!node.isText) {
+        return true;
+      }
+      const originalText = node.text;
+      if (!originalText) {
+        return false;
+      }
+      const newText = transformFunction(originalText);
+      if (newText !== originalText) {
+        const from = pos;
+        const to = pos + originalText.length;
+        const newNode = schema.text(newText, node.marks);
+        tr.replaceWith(from, to, newNode);
+        modified = true;
+      }
+      return false;
+    });
+    if (modified) {
+      view.dispatch(tr);
+      setPlainTextForCounts(editor.getText());
+    }
   };
 
+  const handleRemoveNewlines = () => {
+    if (!editor) return;
+
+    // 1. テキストノード内の改行や特殊改行文字をスペースに置換（既存処理）
+    transformTextInEditorPreservingMarks((text) =>
+      text.replace(/(\r?\n|\u2028|\u2029)/g, " ")
+    );
+
+    // 2. すべての hardBreak ノードをスペースに置換（既存処理）
+    editor.commands.command(({ tr, state, dispatch }) => {
+      let transactionModified = false;
+      state.doc.descendants((node, pos) => {
+        if (node.type.name === "hardBreak") {
+          if (dispatch) {
+            tr.replaceWith(
+              pos,
+              pos + node.nodeSize,
+              state.schema.text(" ", node.marks)
+            );
+          }
+          transactionModified = true;
+        }
+        return true;
+      });
+      if (transactionModified && dispatch) {
+        dispatch(tr);
+        setPlainTextForCounts(editor.getText());
+        return true;
+      }
+      return false;
+    });
+
+    // 3. セクション（段落・リスト・引用など）をすべてテキスト＋hardBreakのみに変換
+    editor.commands.command(({ tr, state, dispatch }) => {
+      const { doc, schema } = state;
+      const lines: string[] = [];
+      doc.forEach((node) => {
+        if (
+          node.type.name === "paragraph" ||
+          node.type.name === "listItem" ||
+          node.type.name === "blockquote" ||
+          node.type.name === "codeBlock"
+        ) {
+          const text = node.textContent;
+          if (text.trim() !== "") lines.push(text);
+        } else if (
+          node.type.name === "bulletList" ||
+          node.type.name === "orderedList"
+        ) {
+          node.forEach((child) => {
+            if (child.type.name === "listItem") {
+              const text = child.textContent;
+              if (text.trim() !== "") lines.push(text);
+            }
+          });
+        }
+      });
+      // 各セクションを hardBreak で連結
+      const frag = [];
+      for (let i = 0; i < lines.length; i++) {
+        if (i > 0) frag.push(schema.nodes.hardBreak.create());
+        frag.push(schema.text(lines[i]));
+      }
+      if (frag.length > 0) {
+        tr.replaceWith(0, doc.content.size, frag);
+        if (dispatch) {
+          dispatch(tr);
+          setPlainTextForCounts(editor.getText());
+        }
+        return true;
+      }
+      return false;
+    });
+  };
+
+  const handleClearFormatting = () => {
+    if (!editor) return;
+
+    // 1. すべての書式（マーク）をクリア
+    editor.chain().focus().unsetAllMarks().run();
+
+    // 2. ブロック要素（リスト・引用・コードブロックなど）をパラグラフに変換
+    editor
+      .chain()
+      .focus()
+      .setParagraph()
+      .liftListItem("listItem")
+      .liftListItem("orderedList")
+      .liftListItem("bulletList")
+      .unsetBlockquote()
+      .clearNodes()
+      .run();
+
+    // 3. パラグラフの区切りをすべて hardBreak に変換
+    // すべての段落をテキスト＋hardBreakのみにする
+    editor.commands.command(({ tr, state, dispatch }) => {
+      const { doc, schema } = state;
+      const newText: string[] = [];
+      doc.descendants((node) => {
+        if (node.isText) {
+          newText.push(node.text || "");
+        } else if (node.type.name === "hardBreak") {
+          newText.push("\n");
+        }
+        return true;
+      });
+      // 段落区切りを hardBreak に
+      const joined = newText.join("");
+      const lines = joined.split(/\r?\n/);
+      const frag = [];
+      for (let i = 0; i < lines.length; i++) {
+        if (i > 0) frag.push(schema.nodes.hardBreak.create());
+        if (lines[i]) frag.push(schema.text(lines[i]));
+      }
+      tr.replaceWith(0, doc.content.size, frag);
+      if (dispatch) dispatch(tr);
+      setPlainTextForCounts(editor.getText());
+      return true;
+    });
+  };
   const lastWhitespaceClickTimeRef = useRef(0);
   const DOUBLE_CLICK_THRESHOLD_MS = 300;
 
   const handleRemoveWhitespaces = () => {
     const now = Date.now();
     const timeSinceLastClick = now - lastWhitespaceClickTimeRef.current;
-
     if (timeSinceLastClick < DOUBLE_CLICK_THRESHOLD_MS) {
-      setText((prev) => {
-        const consolidated = prev.replace(/[ \t\u3000]+/g, " ");
-        return consolidated.trim();
-      });
+      transformTextInEditorPreservingMarks((text) =>
+        text.replace(/[ \t\u3000]+/g, " ").trim()
+      );
       lastWhitespaceClickTimeRef.current = 0;
     } else {
-      setText((prev) => prev.replace(/[ \u3000\t]/g, ""));
+      transformTextInEditorPreservingMarks((text) =>
+        text.replace(/[ \t\u3000]/g, "")
+      );
       lastWhitespaceClickTimeRef.current = now;
     }
   };
+
+  const handleJpToEnPunctuation = () =>
+    transformTextInEditorPreservingMarks((text) =>
+      text.replace(/、/g, ", ").replace(/。/g, ". ")
+    );
+  const handleEnToJpPunctuation = () =>
+    transformTextInEditorPreservingMarks((text) =>
+      text.replace(/,/g, "、").replace(/\./g, "。")
+    );
+
+  const handleRemoveComments = () => {
+    if (!selectedLanguage || !editor) return;
+    let transformFn: (text: string) => string;
+    switch (selectedLanguage) {
+      case "generic_block_line":
+        transformFn = (text) => text.replace(/\/\*[\s\S]*?\*\/|\/\/.*/g, "");
+        break;
+      case "hash_comments":
+        transformFn = (text) => text.replace(/#.*/g, "");
+        break;
+      case "html_comments":
+        transformFn = (text) => text.replace(/<!--[\s\S]*?-->/g, "");
+        break; // Corrected Regex
+      default: {
+        console.warn(
+          "Unsupported language for comment removal:",
+          selectedLanguage
+        );
+        return;
+      }
+    }
+    transformTextInEditorPreservingMarks(transformFn);
+  };
+
+  const applyCaseConversion = (conversionFunc: (words: string[]) => string) => {
+    transformTextInEditorPreservingMarks((text) => {
+      const words = toWords(text);
+      if (words.length === 0 && text.trim().length > 0) {
+        return text;
+      }
+      return conversionFunc(words);
+    });
+  };
+  const handleConvertToCamelCase = () => applyCaseConversion(toCamelCase);
+  const handleConvertToPascalCase = () => applyCaseConversion(toPascalCase);
+  const handleConvertToSnakeCase = () => applyCaseConversion(toSnakeCase);
+  const handleConvertToKebabCase = () => applyCaseConversion(toKebabCase);
 
   const [confirmClear, setConfirmClear] = useState(false);
   const clearTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const handleClearClick = () => {
+    if (!editor) return;
     if (!confirmClear) {
       setConfirmClear(true);
       clearTimeoutRef.current = setTimeout(() => setConfirmClear(false), 3000);
     } else {
-      setText("");
-      setTextareaHeight(undefined);
+      editor.commands.clearContent(true);
       setConfirmClear(false);
       if (clearTimeoutRef.current) clearTimeout(clearTimeoutRef.current);
     }
   };
 
   const handleCopyToClipboard = () => {
+    if (!editor) return;
+    const textToCopy = editor.getText();
     if (typeof navigator.clipboard?.writeText === "function") {
       navigator.clipboard
-        .writeText(text)
+        .writeText(textToCopy)
         .then(() => {
           setCopied(true);
           setTimeout(() => setCopied(false), 2000);
         })
         .catch((err) => {
-          console.error("Failed to copy text using navigator.clipboard: ", err);
-          tryCopyLegacy();
+          console.error("Clipboard API error:", err);
+          tryCopyLegacy(textToCopy);
         });
     } else {
-      tryCopyLegacy();
+      tryCopyLegacy(textToCopy);
     }
   };
 
-  const tryCopyLegacy = () => {
+  const tryCopyLegacy = (textToCopy: string) => {
     const textArea = document.createElement("textarea");
-    textArea.value = text;
+    textArea.value = textToCopy;
     textArea.style.position = "fixed";
     textArea.style.opacity = "0";
     document.body.appendChild(textArea);
     textArea.focus();
     textArea.select();
+    let successful = false;
     try {
-      const successful = document.execCommand("copy");
+      successful = document.execCommand("copy");
       if (successful) {
         setCopied(true);
         setTimeout(() => setCopied(false), 2000);
       } else {
-        console.error(
-          "Fallback: Failed to copy text using document.execCommand"
-        );
+        console.error("Fallback: Failed to copy text");
       }
     } catch (err) {
-      console.error(
-        "Fallback: Error copying text using document.execCommand",
-        err
-      );
+      console.error("Fallback: Error copying text", err);
     }
     document.body.removeChild(textArea);
   };
 
-  const handleRemoveComments = () => {
-    if (!selectedLanguage || !text) return;
-    let newText = text;
-    switch (selectedLanguage) {
-      case "generic_block_line":
-        newText = newText.replace(/\/\*[\s\S]*?\*\/|\/\/.*/g, "");
-        break;
-      case "hash_comments":
-        newText = newText.replace(/#.*/g, "");
-        break;
-      case "html_comments":
-        newText = newText.replace(/<!--[\s\S]*?-->/g, ""); // Corrected regex for HTML comments
-        break;
-      default:
-        console.warn(
-          "Unsupported language for comment removal:",
-          selectedLanguage
-        );
-        return;
-    }
-    newText = newText.replace(/^\s*[\r\n]/gm, "").trimEnd();
-    setText(newText);
-  };
-
-  const handleJpToEnPunctuation = () => {
-    setText((prev) => prev.replace(/、/g, ", ").replace(/。/g, ". "));
-  };
-
-  const handleEnToJpPunctuation = () => {
-    setText((prev) => prev.replace(/,/g, "、").replace(/\./g, "。"));
-  };
-
-  // Case conversion handlers
-  const applyCaseConversion = (conversionFunc: (words: string[]) => string) => {
-    if (!text) return;
-    const words = toWords(text);
-    if (words.length === 0 && text.trim().length > 0) {
-      // Handle cases where toWords might not split as expected for non-empty text
-      // If toWords returns empty for a non-empty, non-whitespace string, it implies no typical word pattern was found.
-      // In this scenario, we might decide to not change the text or apply a default transformation if sensible.
-      // For now, we'll leave the text as is, or you could set a message.
-      console.warn("Could not split text into words for case conversion.");
-      return;
-    }
-    setText(conversionFunc(words));
-  };
-
-  const handleConvertToCamelCase = () => applyCaseConversion(toCamelCase);
-  const handleConvertToPascalCase = () => applyCaseConversion(toPascalCase);
-  const handleConvertToSnakeCase = () => applyCaseConversion(toSnakeCase);
-  const handleConvertToKebabCase = () => applyCaseConversion(toKebabCase);
-
+  const languages = [
+    { value: "generic_block_line", label: "標準 (// と /* */)" },
+    { value: "hash_comments", label: "ハッシュ (#)" },
+    { value: "html_comments", label: "HTML ()" }, // Corrected label
+  ];
   const caseConversionOptions = [
     {
       label: "キャメル",
@@ -337,9 +794,6 @@ export default function CharacterCountTab() {
     },
   ];
 
-  // Add state for active tab
-  const [activeTab, setActiveTab] = useState<string>("general");
-
   return (
     <Card className="w-full max-w-3xl mx-auto bg-slate-800/60 backdrop-blur-xl border border-slate-700/50 shadow-2xl rounded-2xl text-slate-50 flex flex-col gap-0 py-3">
       <CardHeader className="px-6 pt-4 pb-2 flex justify-center items-center">
@@ -349,28 +803,10 @@ export default function CharacterCountTab() {
         </CardTitle>
         <FaKeyboard className="text-4xl text-sky-300/90 drop-shadow" />
       </CardHeader>
-
       <CardContent className="space-y-3 px-4 md:px-6 py-3">
-        <div>
-          <Textarea
-            ref={textareaRef}
-            value={text}
-            onChange={(e) => setText(e.target.value)}
-            placeholder="テキストを入力..."
-            className="min-h-[220px] md:min-h-[250px] text-base bg-slate-900/70 border-slate-700/80 focus:border-sky-500 ring-offset-slate-900 focus-visible:ring-sky-500 text-slate-100 placeholder:text-slate-400 rounded-xl p-4 shadow-inner resize-none"
-            style={
-              textareaHeight !== undefined
-                ? { height: `${textareaHeight}px` }
-                : {}
-            }
-          />
-          <div
-            onMouseDown={handleResizeMouseDown}
-            className="w-full h-2.5 mt-[2px] bg-slate-600/30 hover:bg-slate-600/50 cursor-ns-resize rounded-b-md transition-colors duration-150 ease-in-out"
-            title="テキストエリアの高さを調整"
-          />
-        </div>
-        <div className="grid grid-cols-3 gap-2 sm:gap-3 md:gap-4">
+        <TiptapMenuBar editor={editor} />
+        <EditorContent editor={editor} className="tiptap-editor-wrapper" />
+        <div className="grid grid-cols-3 gap-2 sm:gap-3 md:gap-4 pt-2">
           <StatDisplay
             icon={<FaTextHeight />}
             value={runeCount}
@@ -389,43 +825,246 @@ export default function CharacterCountTab() {
         </div>
       </CardContent>
 
+      <style jsx global>{`
+        .tiptap-custom-styles .ProseMirror {
+          min-height: 200px;
+        }
+        .tiptap-custom-styles p {
+          margin-top: 0.75em;
+          margin-bottom: 0.75em;
+          line-height: 1.7;
+        }
+        .tiptap-custom-styles h1,
+        .tiptap-custom-styles h2,
+        .tiptap-custom-styles h3 {
+          margin-top: 1em;
+          margin-bottom: 0.5em;
+          color: #e2e8f0;
+        }
+        .tiptap-custom-styles ul {
+          list-style: none;
+          padding-left: 0;
+        }
+        .tiptap-custom-styles ul > li {
+          padding-left: 2em;
+          position: relative;
+          margin-bottom: 0.6em;
+          line-height: 1.7;
+        }
+        .tiptap-custom-styles ul > li::before {
+          content: "•";
+          color: #38bdf8;
+          font-size: 1.3em;
+          position: absolute;
+          left: 0.6em;
+          top: -0.05em;
+          line-height: inherit;
+        }
+        .tiptap-custom-styles ul ul {
+          margin-top: 0.3em;
+          padding-left: 1.5em;
+        }
+        .tiptap-custom-styles ul ul > li::before {
+          content: "◦";
+          color: #7dd3fc;
+          font-size: 1.1em;
+          left: 0.5em;
+        }
+        .tiptap-custom-styles ul ul ul > li::before {
+          content: "▪";
+          color: #bae6fd;
+          font-size: 1em;
+          left: 0.4em;
+        }
+        .tiptap-custom-styles ol {
+          list-style: none;
+          padding-left: 0;
+          counter-reset: item;
+        }
+        .tiptap-custom-styles ol > li {
+          padding-left: 2.2em;
+          position: relative;
+          margin-bottom: 0.6em;
+          counter-increment: item;
+          line-height: 1.7;
+        }
+        .tiptap-custom-styles ol > li::before {
+          content: counter(item) ".";
+          color: #38bdf8;
+          font-weight: 600;
+          position: absolute;
+          left: 0.3em;
+          top: 0;
+          line-height: inherit;
+          min-width: 1.5em;
+          text-align: right;
+          padding-right: 0.6em;
+        }
+        .tiptap-custom-styles ol ol {
+          margin-top: 0.3em;
+          padding-left: 1.5em;
+        }
+        .tiptap-custom-styles ol ol > li::before {
+          content: counter(item, lower-alpha) ".";
+        }
+        .tiptap-custom-styles ol ol ol > li::before {
+          content: counter(item, lower-roman) ".";
+        }
+        .tiptap-custom-styles blockquote {
+          border-left: 3px solid #38bdf8;
+          color: #94a3b8;
+          padding-left: 1em;
+          margin-left: 0;
+          font-style: italic;
+        }
+        .tiptap-custom-styles pre {
+          background-color: #1e293b;
+          color: #e2e8f0;
+          border-radius: 0.375rem;
+          padding: 0.75em 1em;
+          border: 1px solid #334155;
+        }
+        .tiptap-editor-wrapper {
+          border-radius: 0.375rem;
+          overflow: hidden;
+        }
+        .tiptap-editor-wrapper > div {
+          border-top-left-radius: 0 !important;
+          border-top-right-radius: 0 !important;
+        }
+        .TiptapMenuBar-button.is-active {
+          background-color: rgba(14, 165, 233, 0.5) !important;
+          color: #e0f2fe !important;
+        }
+
+        /* Visual Cues Styles */
+        .hard-break-marker,
+        .paragraph-end-marker {
+          color: #475569; /* slate-600 */
+          font-size: 0.8em;
+          opacity: 0.7;
+          display: inline-block; /* Important for widget decorations */
+          pointer-events: none; /* So they don't interfere with selection */
+          user-select: none;
+        }
+        .hard-break-marker {
+          margin-left: 2px;
+        }
+        .paragraph-end-marker {
+          margin-left: 2px;
+        }
+
+        .full-width-space-highlight {
+          background-color: rgba(255, 235, 59, 0.15); /* Slightly more subtle */
+          /* text-decoration: underline; */
+          /* text-decoration-style: dotted; */
+          /* text-decoration-color: rgba(255, 193, 7, 0.4); */
+          outline: 1px dotted rgba(255, 193, 7, 0.4);
+          border-radius: 1px;
+        }
+      `}</style>
+
       <Tabs
         defaultValue="general"
         className="w-full px-0"
         onValueChange={setActiveTab}
         value={activeTab}
       >
-        <TabsList className="flex w-full justify-between gap-1 bg-slate-700/30 rounded-none px-2 md:px-4 py-0.5 border-y border-slate-700/50 flex-wrap">
+        <TabsList className="flex w-full justify-around gap-1 bg-slate-700/30 rounded-none px-2 md:px-4 py-0.5 border-y border-slate-700/50 flex-wrap">
           <TabsTrigger
             value="general"
-            className="data-[state=active]:bg-sky-600/30 data-[state=active]:text-sky-200 text-slate-300 hover:bg-slate-600/40 rounded-md py-1.5 text-xs sm:text-sm"
+            className="flex-1 data-[state=active]:bg-sky-600/30 data-[state=active]:text-sky-200 text-slate-300 hover:bg-slate-600/40 rounded-md py-1.5 text-xs sm:text-sm"
           >
             基本機能
           </TabsTrigger>
           <TabsTrigger
             value="formatting"
-            className="data-[state=active]:bg-sky-600/30 data-[state=active]:text-sky-200 text-slate-300 hover:bg-slate-600/40 rounded-md py-1.5 text-xs sm:text-sm"
+            className="flex-1 data-[state=active]:bg-sky-600/30 data-[state=active]:text-sky-200 text-slate-300 hover:bg-slate-600/40 rounded-md py-1.5 text-xs sm:text-sm"
           >
             テキスト整形
           </TabsTrigger>
           <TabsTrigger
             value="programming"
-            className="data-[state=active]:bg-sky-600/30 data-[state=active]:text-sky-200 text-slate-300 hover:bg-slate-600/40 rounded-md py-1.5 text-xs sm:text-sm"
+            className="flex-1 data-[state=active]:bg-sky-600/30 data-[state=active]:text-sky-200 text-slate-300 hover:bg-slate-600/40 rounded-md py-1.5 text-xs sm:text-sm"
           >
             プログラミング
           </TabsTrigger>
         </TabsList>
 
-        <CardFooter className="flex flex-col gap-3 md:px-6 px-4 pt-3 pb-4">
-          {" "}
-          {/* Added min-h to prevent layout shifts */}
-          <TabsContent value="general" className="w-full mt-0">
-            <div className="w-full flex flex-col sm:flex-row sm:justify-end gap-2 pt-1">
+        <CardFooter className="flex flex-col gap-3 md:px-6 px-4 pt-3 pb-4 min-h-[140px]">
+          <TabsContent value="general" className="w-full mt-0 space-y-3">
+            <div className="grid grid-cols-2 sm:flex sm:flex-row gap-2 pt-1">
+              <TooltipProvider delayDuration={100}>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div className="w-full">
+                      <Button
+                        onClick={() => setShowNewlineMarkers((prev) => !prev)}
+                        variant="outline"
+                        className={`w-full transition-colors duration-200 rounded-lg flex items-center justify-center px-3 py-2 ${
+                          showNewlineMarkers
+                            ? "bg-green-500/20 border-green-500/40 text-green-300 hover:bg-green-500/30"
+                            : "bg-slate-600/30 hover:bg-slate-600/50 border-slate-500/50 text-slate-300 hover:text-slate-200"
+                        }`}
+                      >
+                        {showNewlineMarkers ? (
+                          <FaEye className="mr-2 h-4 w-4" />
+                        ) : (
+                          <FaEyeSlash className="mr-2 h-4 w-4" />
+                        )}
+                        <span
+                          className="mr-1 h-3 w-3"
+                          style={{ fontSize: "1em" }}
+                        >
+                          <MdOutlineSubdirectoryArrowLeft />
+                        </span>
+                        改行マーク
+                      </Button>
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent className="bg-slate-800 text-white border-slate-700 max-w-[200px] text-sm">
+                    <p>改行記号（¶ と ↵）の表示を切り替えます。</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+
+              <TooltipProvider delayDuration={100}>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div className="w-full">
+                      <Button
+                        onClick={() =>
+                          setShowFullWidthSpaceHighlight((prev) => !prev)
+                        }
+                        variant="outline"
+                        className={`w-full transition-colors duration-200 rounded-lg flex items-center justify-center px-3 py-2 ${
+                          showFullWidthSpaceHighlight
+                            ? "bg-green-500/20 border-green-500/40 text-green-300 hover:bg-green-500/30"
+                            : "bg-slate-600/30 hover:bg-slate-600/50 border-slate-500/50 text-slate-300 hover:text-slate-200"
+                        }`}
+                      >
+                        {showFullWidthSpaceHighlight ? (
+                          <FaEye className="mr-2 h-4 w-4" />
+                        ) : (
+                          <FaEyeSlash className="mr-2 h-4 w-4" />
+                        )}
+                        <FaExpandArrowsAlt className="mr-1 h-3 w-3 transform rotate-45" />
+                        全角空白
+                      </Button>
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent className="bg-slate-800 text-white border-slate-700 max-w-[200px] text-sm">
+                    <p>全角スペースの強調表示を切り替えます。</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
+            <div className="w-full flex flex-col sm:flex-row sm:justify-end gap-2 pt-3 border-t border-slate-700/50">
               <Button
                 onClick={handleCopyToClipboard}
                 variant="outline"
                 className="w-full sm:w-auto bg-sky-500/10 hover:bg-sky-500/20 border-sky-500/30 text-sky-300 hover:text-sky-200 transition-colors duration-200 rounded-lg"
-                disabled={!text}
+                disabled={!plainTextForCounts}
               >
                 {copied ? (
                   <FaCheck className="mr-2 h-4 w-4 text-green-400" />
@@ -442,7 +1081,7 @@ export default function CharacterCountTab() {
                     ? "bg-red-500/10 hover:bg-red-500/20 border-red-500/30 text-red-300 hover:text-red-200"
                     : "bg-pink-500/10 hover:bg-pink-500/20 border-pink-500/30 text-pink-300 hover:text-pink-200"
                 }`}
-                disabled={!text}
+                disabled={!plainTextForCounts}
               >
                 {confirmClear ? (
                   <>
@@ -456,13 +1095,14 @@ export default function CharacterCountTab() {
               </Button>
             </div>
           </TabsContent>
+
           <TabsContent value="formatting" className="w-full mt-0 space-y-3">
             <div className="w-full flex flex-col sm:flex-row gap-2 items-center pt-1">
               <Button
                 onClick={handleRemoveNewlines}
                 variant="outline"
                 className="w-full sm:flex-1 bg-yellow-500/10 hover:bg-yellow-500/20 border-yellow-500/30 text-yellow-300 hover:text-yellow-200 transition-colors duration-200 rounded-lg"
-                disabled={!text}
+                disabled={!plainTextForCounts}
               >
                 改行を削除
               </Button>
@@ -470,62 +1110,81 @@ export default function CharacterCountTab() {
                 onClick={handleRemoveWhitespaces}
                 variant="outline"
                 className="w-full sm:flex-1 bg-purple-500/10 hover:bg-purple-500/20 border-purple-500/30 text-purple-300 hover:text-purple-200 transition-colors duration-200 rounded-lg"
-                disabled={!text}
+                disabled={!plainTextForCounts}
               >
                 空白を削除
               </Button>
+              <TooltipProvider delayDuration={100}>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div className="w-full sm:flex-1">
+                      <Button
+                        onClick={handleClearFormatting}
+                        variant="outline"
+                        className="w-full bg-gray-500/10 hover:bg-gray-500/20 border-gray-500/30 text-gray-300 hover:text-gray-200 transition-colors duration-200 rounded-lg"
+                        disabled={!plainTextForCounts}
+                      >
+                        <FaEraser className="mr-2 h-4 w-4 flex-shrink-0" />
+                        書式をクリア
+                      </Button>
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent className="bg-slate-800 text-white border-slate-700 max-w-[200px] text-sm">
+                    <p>
+                      全ての書式（太字、斜体、フォントサイズなど）をリセットし、プレーンテキストに戻します。
+                    </p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             </div>
             <div className="w-full flex flex-col sm:flex-row gap-2 items-center pt-2 border-t border-slate-700/50">
               <TooltipProvider delayDuration={100}>
-                {" "}
                 <Tooltip>
-                  {" "}
                   <TooltipTrigger asChild>
                     <div className="w-full sm:flex-1">
                       <Button
                         onClick={handleJpToEnPunctuation}
                         variant="outline"
                         className="w-full bg-cyan-500/10 hover:bg-cyan-500/20 border-cyan-500/30 text-cyan-300 hover:text-cyan-200 transition-colors duration-200 rounded-lg px-3 py-2 flex items-center justify-center"
-                        disabled={!text}
+                        disabled={!plainTextForCounts}
                       >
-                        <FaLanguage className="mr-2 h-4 w-4 flex-shrink-0" />{" "}
+                        <FaLanguage className="mr-2 h-4 w-4 flex-shrink-0" />
                         <span className="truncate">「、。」→「, .」</span>
                       </Button>
                     </div>
-                  </TooltipTrigger>{" "}
+                  </TooltipTrigger>
                   <TooltipContent className="bg-slate-800 text-white border-slate-700 max-w-[200px] text-sm">
                     <p>
                       日本語の句読点（、。）を英語スタイル（, .）に変換します。
                     </p>
-                  </TooltipContent>{" "}
-                </Tooltip>{" "}
+                  </TooltipContent>
+                </Tooltip>
               </TooltipProvider>
               <TooltipProvider delayDuration={100}>
-                {" "}
                 <Tooltip>
-                  {" "}
                   <TooltipTrigger asChild>
                     <div className="w-full sm:flex-1">
                       <Button
                         onClick={handleEnToJpPunctuation}
                         variant="outline"
                         className="w-full bg-lime-500/10 hover:bg-lime-500/20 border-lime-500/30 text-lime-300 hover:text-lime-200 transition-colors duration-200 rounded-lg px-3 py-2 flex items-center justify-center"
-                        disabled={!text}
+                        disabled={!plainTextForCounts}
                       >
-                        <FaLanguage className="mr-2 h-4 w-4 flex-shrink-0" />{" "}
+                        <FaLanguage className="mr-2 h-4 w-4 flex-shrink-0" />
                         <span className="truncate">「, .」→「、。」</span>
                       </Button>
                     </div>
-                  </TooltipTrigger>{" "}
+                  </TooltipTrigger>
                   <TooltipContent className="bg-slate-800 text-white border-slate-700 max-w-[200px] text-sm">
                     <p>
                       英語の句読点（, .）を日本語スタイル（、。）に変換します。
                     </p>
-                  </TooltipContent>{" "}
-                </Tooltip>{" "}
+                  </TooltipContent>
+                </Tooltip>
               </TooltipProvider>
             </div>
           </TabsContent>
+
           <TabsContent value="programming" className="w-full mt-0 space-y-3">
             <div className="w-full flex flex-col sm:flex-row gap-2 items-center pt-1">
               <div className="w-full sm:w-auto sm:flex-grow mb-2 sm:mb-0 sm:mr-2">
@@ -566,9 +1225,9 @@ export default function CharacterCountTab() {
                         onClick={handleRemoveComments}
                         variant="outline"
                         className="w-full sm:w-auto bg-teal-500/10 hover:bg-teal-500/20 border-teal-500/30 text-teal-300 hover:text-teal-200 transition-colors duration-200 rounded-lg px-4 py-2 flex items-center justify-center"
-                        disabled={!text || !selectedLanguage}
+                        disabled={!plainTextForCounts || !selectedLanguage}
                       >
-                        <FaRegComments className="mr-2 h-4 w-4" />{" "}
+                        <FaRegComments className="mr-2 h-4 w-4" />
                         コメントを削除
                       </Button>
                     </div>
@@ -581,11 +1240,9 @@ export default function CharacterCountTab() {
                 </Tooltip>
               </TooltipProvider>
             </div>
-
             <div className="w-full grid grid-cols-2 sm:grid-cols-4 gap-2 pt-2 border-t border-slate-700/50">
               {caseConversionOptions.map((c) => (
                 <TooltipProvider key={c.label} delayDuration={100}>
-                  {" "}
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <div className="w-full">
@@ -593,7 +1250,7 @@ export default function CharacterCountTab() {
                           onClick={c.handler}
                           variant="outline"
                           className={`w-full ${c.color} transition-colors duration-200 rounded-lg px-3 py-2 flex items-center justify-center`}
-                          disabled={!text}
+                          disabled={!plainTextForCounts}
                         >
                           <FaSyncAlt className="mr-1.5 h-3.5 w-3.5 sm:mr-2 sm:h-4 sm:w-4 flex-shrink-0" />
                           <span className="text-xs sm:text-sm truncate">
@@ -609,7 +1266,7 @@ export default function CharacterCountTab() {
                         {c.tooltip}
                       </p>
                     </TooltipContent>
-                  </Tooltip>{" "}
+                  </Tooltip>
                 </TooltipProvider>
               ))}
             </div>
