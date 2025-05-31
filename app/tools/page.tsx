@@ -3,11 +3,17 @@
 import { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { generateGeometricPattern } from "@/utils/generatePattern";
-import { Timer, AlarmClock, Baseline } from "lucide-react";
+import {
+  Timer,
+  AlarmClock,
+  Presentation as PresentationIcon, // "Presentation" にエイリアスを設定
+  ALargeSmall as CharCountIcon, // "ALargeSmall" にエイリアスを設定
+} from "lucide-react";
 
 import StopwatchTab from "@/components/tools/StopwatchTab";
 import TimerTab from "@/components/tools/TimerTab";
 import CharacterCountTab from "@/components/tools/CharacterCountTab";
+import PresentationTimerTab from "@/components/tools/PresentationTimerTab";
 
 export default function ToolsPage() {
   const [patternSvg, setPatternSvg] = useState<string>("");
@@ -27,10 +33,10 @@ export default function ToolsPage() {
     backgroundImage: `url('data:image/svg+xml;utf8,${encodeURIComponent(
       patternSvg
     )}')`,
-    backgroundColor: "#e0e7ff",
+    backgroundColor: "#e0e7ff", // 背景パターンがロードされるまでのフォールバック色
     position: "relative",
     minHeight: "100vh",
-    paddingTop: "6rem", // ヘッダーの高さを考慮 (適宜調整)
+    paddingTop: "6rem",
     paddingBottom: "4rem",
   };
 
@@ -40,7 +46,7 @@ export default function ToolsPage() {
     left: 0,
     width: "100%",
     height: "100%",
-    backgroundColor: "rgba(138, 161, 230, 0.3)",
+    backgroundColor: "rgba(138, 161, 230, 0.3)", // 少し薄めのオーバーレイ
     zIndex: 1,
   };
 
@@ -59,11 +65,11 @@ export default function ToolsPage() {
         >
           <div
             className="w-full max-w-sm mx-auto mb-2 
-             flex flex-col items-center space-y-3 sm:space-y-4 
-             bg-slate-800/60 backdrop-blur-xl border border-slate-700/50 
-             rounded-xl shadow-2xl p-3 sm:p-4"
+              flex flex-col items-center space-y-3 sm:space-y-4 
+              bg-slate-800/60 backdrop-blur-xl border border-slate-700/50 
+              rounded-xl shadow-2xl p-3 sm:p-4"
           >
-            <TabsList className="grid w-full max-w-[240px] sm:max-w-[280px] grid-cols-3 gap-1 p-0 bg-transparent border-none shadow-none h-full">
+            <TabsList className="grid w-full max-w-[280px] sm:max-w-xs grid-cols-4 gap-1 p-0 bg-transparent border-none shadow-none h-full">
               <TabsTrigger
                 value="stopwatch"
                 className="data-[state=active]:bg-slate-700 data-[state=active]:text-sky-300 text-slate-400 hover:bg-slate-700/50 hover:text-slate-100 rounded-md transition-all duration-150 ease-in-out px-1 py-1 h-full"
@@ -87,11 +93,22 @@ export default function ToolsPage() {
                 </div>
               </TabsTrigger>
               <TabsTrigger
+                value="presentation"
+                className="data-[state=active]:bg-slate-700 data-[state=active]:text-sky-300 text-slate-400 hover:bg-slate-700/50 hover:text-slate-100 rounded-md transition-all duration-150 ease-in-out px-1 py-1 h-full"
+              >
+                <div className="flex flex-col items-center justify-center gap-0.5">
+                  <PresentationIcon size={18} strokeWidth={2} />
+                  <span className="text-[10px] font-medium tracking-tight">
+                    Presentation
+                  </span>
+                </div>
+              </TabsTrigger>
+              <TabsTrigger
                 value="charcount"
                 className="data-[state=active]:bg-slate-700 data-[state=active]:text-sky-300 text-slate-400 hover:bg-slate-700/50 hover:text-slate-100 rounded-md transition-all duration-150 ease-in-out px-1 py-1 h-full"
               >
                 <div className="flex flex-col items-center justify-center gap-0.5">
-                  <Baseline size={18} strokeWidth={2} />
+                  <CharCountIcon size={18} strokeWidth={2} />
                   <span className="text-[10px] font-medium tracking-tight">
                     Char Count
                   </span>
@@ -104,6 +121,9 @@ export default function ToolsPage() {
           </TabsContent>
           <TabsContent value="timer" className="w-full">
             <TimerTab />
+          </TabsContent>
+          <TabsContent value="presentation" className="w-full">
+            <PresentationTimerTab />
           </TabsContent>
           <TabsContent value="charcount" className="w-full">
             <CharacterCountTab />
