@@ -129,3 +129,13 @@
   -ms-overflow-style: none; /* IE and Edge */
   scrollbar-width: none; /* Firefox */
 }
+body.timer-fullscreen-active nav {
+  display: none !important;
+}
+body,
+.timer-fullscreen-active {
+  background-color: #0f172a; /* 例: slate-900 */
+  /* セーフエリア対応 */
+  padding-top: env(safe-area-inset-top);
+  background-clip: padding-box;
+}
