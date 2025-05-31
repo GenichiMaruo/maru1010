@@ -51,7 +51,11 @@ import {
   FaExpandArrowsAlt, // For Full-width space
 } from "react-icons/fa";
 import { FaSyncAlt } from "react-icons/fa";
-import { MdOutlineSubdirectoryArrowLeft } from "react-icons/md";
+import {
+  MdOutlineSubdirectoryArrowLeft,
+  MdOutlineArrowDownward,
+} from "react-icons/md"; // Added MdOutlineArrowDownward
+import { FaRegTrashCan } from "react-icons/fa6";
 
 // Tiptap imports
 import { useEditor, EditorContent } from "@tiptap/react";
@@ -63,7 +67,9 @@ import { Extension, RawCommands, CommandProps } from "@tiptap/core";
 import type { Node as ProseMirrorNode } from "prosemirror-model";
 import { Decoration, DecorationSet } from "prosemirror-view";
 import { Plugin, EditorState } from "prosemirror-state";
-import { FaRegTrashCan } from "react-icons/fa6";
+
+// Import createRoot for rendering React components into Tiptap widgets
+import { createRoot } from "react-dom/client";
 
 // TypeScript module augmentation for Tiptap commands
 declare module "@tiptap/core" {
@@ -165,31 +171,85 @@ const VisualCuesExtension = (options: {
                 // Newline markers
                 if (options.showNewlineMarkers) {
                   if (node.type.name === "hardBreak") {
-                    const hardBreakMarker = document.createElement("span");
-                    hardBreakMarker.className = "hard-break-marker";
-                    hardBreakMarker.textContent = "↵";
                     decorations.push(
-                      Decoration.widget(pos, hardBreakMarker, {
-                        side: 1,
-                        marks: [],
-                      })
+                      Decoration.widget(
+                        pos, // Position for the widget
+                        () => {
+                          // toDOM function
+                          const markerElement = document.createElement("span");
+                          markerElement.className =
+                            "hard-break-marker tiptap-icon-widget";
+                          const reactRoot = createRoot(markerElement);
+                          reactRoot.render(<MdOutlineSubdirectoryArrowLeft />);
+                          // Store root for unmounting
+                          (
+                            markerElement as HTMLSpanElement & {
+                              pmRoot?: ReturnType<typeof createRoot>;
+                            }
+                          ).pmRoot = reactRoot;
+                          return markerElement;
+                        },
+                        {
+                          // Spec for the widget
+                          side: 1, // Render after the node
+                          marks: [],
+                          key: `hardbreak-marker-${pos}`, // Unique key
+                          destroy: (node: Node) => {
+                            // Cleanup on destroy
+                            type WithPmRoot = Node & {
+                              pmRoot?: ReturnType<typeof createRoot>;
+                            };
+                            const nodeWithPmRoot = node as WithPmRoot;
+                            if (nodeWithPmRoot.pmRoot) {
+                              nodeWithPmRoot.pmRoot.unmount();
+                            }
+                          },
+                        }
+                      )
                     );
                   } else if (
                     node.isBlock &&
                     node.type.name === "paragraph" &&
-                    node.content.size > 0
+                    node.content.size > 0 // Only for non-empty paragraphs
                   ) {
                     // Check if it's not the last node in the document to avoid marker after everything
                     if (pos + node.nodeSize < doc.content.size) {
-                      const paragraphEndMarker = document.createElement("span");
-                      paragraphEndMarker.className = "paragraph-end-marker";
-                      paragraphEndMarker.textContent = "↓";
-                      // Position it at the end of the paragraph content
                       decorations.push(
                         Decoration.widget(
-                          pos + node.nodeSize - 1,
-                          paragraphEndMarker,
-                          { side: 1, marks: [] }
+                          pos + node.nodeSize - 1, // Position at the end of paragraph content
+                          () => {
+                            // toDOM function
+                            const markerElement =
+                              document.createElement("span");
+                            markerElement.className =
+                              "paragraph-end-marker tiptap-icon-widget";
+                            const reactRoot = createRoot(markerElement);
+                            reactRoot.render(<MdOutlineArrowDownward />);
+                            // Store root for unmounting
+                            (
+                              markerElement as HTMLSpanElement & {
+                                pmRoot?: ReturnType<typeof createRoot>;
+                              }
+                            ).pmRoot = reactRoot;
+                            return markerElement;
+                          },
+                          {
+                            // Spec for the widget
+                            side: 1, // Render after the character at the position
+                            marks: [],
+                            key: `paragraph-end-marker-${
+                              pos + node.nodeSize - 1
+                            }`, // Unique key
+                            destroy: (domNode) => {
+                              // Cleanup on destroy
+                              const nodeWithPmRoot = domNode as HTMLElement & {
+                                pmRoot?: ReturnType<typeof createRoot>;
+                              };
+                              if (nodeWithPmRoot.pmRoot) {
+                                nodeWithPmRoot.pmRoot.unmount();
+                              }
+                            },
+                          }
                         )
                       );
                     }
@@ -412,16 +472,20 @@ export default function CharacterCountTab() {
     {
       extensions: [
         StarterKit.configure({
-          hardBreak: false,
+          hardBreak: false, // Keep this false if you want HardBreak extension to handle all <br>
         }),
         VisualCuesExtension({
+          // This will be reconfigured when state changes
           showNewlineMarkers,
           showFullWidthSpaceHighlight,
         }),
         TextStyleExtension,
         FontSizeExtension,
         Underline,
-        HardBreak.extend({}),
+        HardBreak.extend({
+          // Explicitly add HardBreak if not fully handled by StarterKit or for custom behavior
+          // Example: keepMarks: false, // if you want to customize
+        }),
       ],
       content:
         typeof window !== "undefined"
@@ -442,7 +506,7 @@ export default function CharacterCountTab() {
         setPlainTextForCounts(plainText);
       },
     },
-    [showNewlineMarkers, showFullWidthSpaceHighlight]
+    [showNewlineMarkers, showFullWidthSpaceHighlight] // Re-initialize editor when these change
   );
 
   useEffect(() => {
@@ -601,35 +665,88 @@ export default function CharacterCountTab() {
       .chain()
       .focus()
       .setParagraph()
-      .liftListItem("listItem")
-      .liftListItem("orderedList")
-      .liftListItem("bulletList")
-      .unsetBlockquote()
-      .clearNodes()
+      .liftListItem("listItem") // Ensure this is correct for your schema if using custom list item names
+      // .liftListItem("orderedList") // Lifting the list itself might not be what you want, usually lift items
+      // .liftListItem("bulletList")
+      .unsetBlockquote() // This should turn blockquotes into paragraphs
+      .clearNodes() // This command clears the content of selected nodes, or all nodes if a type is not specified. Be careful.
+      // If the goal is to convert all block types to paragraph, setParagraph on each relevant block might be better.
       .run();
+
+    // A more robust way to convert all block content to paragraphs:
+    editor.commands.command(({ tr, state, dispatch }) => {
+      const { doc, schema } = state;
+      const newNodes: ProseMirrorNode[] = [];
+      doc.forEach((node) => {
+        if (node.isBlock && node.type !== schema.nodes.paragraph) {
+          // Convert node to paragraph, preserving content
+          if (node.content.size > 0) {
+            newNodes.push(schema.nodes.paragraph.create(null, node.content));
+          } else if (
+            newNodes.length === 0 ||
+            newNodes[newNodes.length - 1].type !== schema.nodes.paragraph
+          ) {
+            // Add an empty paragraph if needed to maintain structure, but avoid multiple empty ones
+            newNodes.push(schema.nodes.paragraph.create());
+          }
+        } else {
+          newNodes.push(node.copy(node.content));
+        }
+      });
+      tr.replaceWith(0, doc.content.size, newNodes);
+      if (dispatch) dispatch(tr);
+      return true;
+    });
 
     // 3. パラグラフの区切りをすべて hardBreak に変換
     // すべての段落をテキスト＋hardBreakのみにする
     editor.commands.command(({ tr, state, dispatch }) => {
       const { doc, schema } = state;
-      const newText: string[] = [];
-      doc.descendants((node) => {
-        if (node.isText) {
-          newText.push(node.text || "");
-        } else if (node.type.name === "hardBreak") {
-          newText.push("\n");
+      const newContent: ProseMirrorNode[] = [];
+      let firstParagraph = true;
+
+      doc.forEach((node) => {
+        if (node.type.name === "paragraph") {
+          if (!firstParagraph && node.content.size > 0) {
+            // Add hardBreak before non-first, non-empty paragraphs
+            newContent.push(schema.nodes.hardBreak.create());
+          }
+          if (node.content.size > 0) {
+            node.content.forEach((inlineNode) => {
+              newContent.push(inlineNode);
+            });
+          } else if (firstParagraph && newContent.length === 0) {
+            // If it's the very first empty paragraph, let it be (or handle as needed)
+            // This logic might need adjustment based on desired outcome for leading/multiple empty paragraphs
+          }
+          firstParagraph = false;
+        } else if (node.isText) {
+          // Handle loose text nodes if any (should ideally be in paragraphs)
+          newContent.push(node);
         }
-        return true;
+        // Other block types should have been converted to paragraphs by now
       });
-      // 段落区切りを hardBreak に
-      const joined = newText.join("");
-      const lines = joined.split(/\r?\n/);
-      const frag = [];
-      for (let i = 0; i < lines.length; i++) {
-        if (i > 0) frag.push(schema.nodes.hardBreak.create());
-        if (lines[i]) frag.push(schema.text(lines[i]));
+
+      // If newContent is empty and original doc wasn't, create a single empty paragraph
+      if (doc.content.size > 0 && newContent.length === 0) {
+        newContent.push(schema.nodes.paragraph.create());
+      } else if (newContent.length > 0) {
+        // Ensure the final content is wrapped in a paragraph if it's just inline content
+        // This step might be complex depending on how strictly "all hardBreak" is interpreted
+        // For now, we assume the content collected is a flat list of inline nodes and hardBreaks
       }
-      tr.replaceWith(0, doc.content.size, frag);
+
+      if (newContent.length > 0) {
+        tr.replaceWith(
+          0,
+          doc.content.size,
+          schema.nodes.paragraph.create(null, newContent)
+        );
+      } else {
+        // If everything was cleared, ensure there's at least one empty paragraph
+        tr.replaceWith(0, doc.content.size, schema.nodes.paragraph.create());
+      }
+
       if (dispatch) dispatch(tr);
       setPlainTextForCounts(editor.getText());
       return true;
@@ -691,8 +808,12 @@ export default function CharacterCountTab() {
     transformTextInEditorPreservingMarks((text) => {
       const words = toWords(text);
       if (words.length === 0 && text.trim().length > 0) {
-        return text;
+        // Handle cases like "HelloWorld" without spaces if toWords doesn't split them as desired
+        // This might need a more sophisticated word splitting for mixed case strings if that's the input.
+        // For now, if toWords returns nothing but there's text, apply to the whole string as one "word".
+        return conversionFunc([text.toLowerCase()]); // Or handle as per specific needs
       }
+      if (words.length === 0) return text; // Truly empty or whitespace only
       return conversionFunc(words);
     });
   };
@@ -710,7 +831,8 @@ export default function CharacterCountTab() {
       setConfirmClear(true);
       clearTimeoutRef.current = setTimeout(() => setConfirmClear(false), 3000);
     } else {
-      editor.commands.clearContent(true);
+      editor.commands.clearContent(true); // Pass true to emit update
+      setPlainTextForCounts(""); // Explicitly clear plain text state
       setConfirmClear(false);
       if (clearTimeoutRef.current) clearTimeout(clearTimeoutRef.current);
     }
@@ -738,8 +860,9 @@ export default function CharacterCountTab() {
   const tryCopyLegacy = (textToCopy: string) => {
     const textArea = document.createElement("textarea");
     textArea.value = textToCopy;
-    textArea.style.position = "fixed";
-    textArea.style.opacity = "0";
+    textArea.style.position = "fixed"; // Ensure it's not visible
+    textArea.style.left = "-9999px";
+    textArea.style.top = "-9999px";
     document.body.appendChild(textArea);
     textArea.focus();
     textArea.select();
@@ -750,10 +873,12 @@ export default function CharacterCountTab() {
         setCopied(true);
         setTimeout(() => setCopied(false), 2000);
       } else {
-        console.error("Fallback: Failed to copy text");
+        console.error("Fallback: Failed to copy text using execCommand");
+        // Consider showing a user message here if execCommand also fails
       }
     } catch (err) {
-      console.error("Fallback: Error copying text", err);
+      console.error("Fallback: Error copying text using execCommand", err);
+      // Consider showing a user message here
     }
     document.body.removeChild(textArea);
   };
@@ -929,6 +1054,7 @@ export default function CharacterCountTab() {
           overflow: hidden;
         }
         .tiptap-editor-wrapper > div {
+          /* Targets .ProseMirror */
           border-top-left-radius: 0 !important;
           border-top-right-radius: 0 !important;
         }
@@ -941,11 +1067,14 @@ export default function CharacterCountTab() {
         .hard-break-marker,
         .paragraph-end-marker {
           color: #475569; /* slate-600 */
-          font-size: 0.8em;
+          font-size: 0.8em; /* Icons will inherit this size */
           opacity: 0.7;
-          display: inline-block; /* Important for widget decorations */
-          pointer-events: none; /* So they don't interfere with selection */
+          display: inline-flex; /* Changed to inline-flex for better icon alignment */
+          align-items: center;
+          justify-content: center;
+          pointer-events: none;
           user-select: none;
+          vertical-align: middle; /* Adjust vertical alignment if needed */
         }
         .hard-break-marker {
           margin-left: 2px;
@@ -953,12 +1082,14 @@ export default function CharacterCountTab() {
         .paragraph-end-marker {
           margin-left: 2px;
         }
+        .tiptap-icon-widget > svg {
+          /* Style the SVG directly if needed */
+          /* width: 1em; */ /* Example: control size explicitly */
+          /* height: 1em; */
+        }
 
         .full-width-space-highlight {
-          background-color: rgba(255, 235, 59, 0.15); /* Slightly more subtle */
-          /* text-decoration: underline; */
-          /* text-decoration-style: dotted; */
-          /* text-decoration-color: rgba(255, 193, 7, 0.4); */
+          background-color: rgba(255, 235, 59, 0.15);
           outline: 1px dotted rgba(255, 193, 7, 0.4);
           border-radius: 1px;
         }
@@ -991,7 +1122,7 @@ export default function CharacterCountTab() {
           </TabsTrigger>
         </TabsList>
 
-        <CardFooter className="flex flex-col gap-3 md:px-6 px-4 pt-3 pb-4 min-h-[140px]">
+        <CardFooter className="flex flex-col gap-3 md:px-6 px-4 pt-3 pb-4">
           <TabsContent value="general" className="w-full mt-0 space-y-3">
             <div className="grid grid-cols-2 sm:flex sm:flex-row gap-2 pt-1">
               <TooltipProvider delayDuration={100}>
@@ -1013,8 +1144,8 @@ export default function CharacterCountTab() {
                           <FaEyeSlash className="mr-2 h-4 w-4" />
                         )}
                         <span
-                          className="mr-1 h-3 w-3"
-                          style={{ fontSize: "1em" }}
+                          className="mr-1 h-4 w-4 flex items-center justify-center" // Adjusted for icon
+                          style={{ fontSize: "1em" }} // Ensure icon size is consistent
                         >
                           <MdOutlineSubdirectoryArrowLeft />
                         </span>
@@ -1023,7 +1154,9 @@ export default function CharacterCountTab() {
                     </div>
                   </TooltipTrigger>
                   <TooltipContent className="bg-slate-800 text-white border-slate-700 max-w-[200px] text-sm">
-                    <p>改行記号（¶ と ↵）の表示を切り替えます。</p>
+                    <p>
+                      改行記号（段落末尾の記号と強制改行の記号）の表示を切り替えます。
+                    </p>
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
@@ -1081,7 +1214,7 @@ export default function CharacterCountTab() {
                     ? "bg-red-500/10 hover:bg-red-500/20 border-red-500/30 text-red-300 hover:text-red-200"
                     : "bg-pink-500/10 hover:bg-pink-500/20 border-pink-500/30 text-pink-300 hover:text-pink-200"
                 }`}
-                disabled={!plainTextForCounts}
+                disabled={!plainTextForCounts && !editor?.isEmpty} // Disable if editor is empty
               >
                 {confirmClear ? (
                   <>
@@ -1131,7 +1264,7 @@ export default function CharacterCountTab() {
                   </TooltipTrigger>
                   <TooltipContent className="bg-slate-800 text-white border-slate-700 max-w-[200px] text-sm">
                     <p>
-                      全ての書式（太字、斜体、フォントサイズなど）をリセットし、プレーンテキストに戻します。
+                      全ての書式（太字、斜体、フォントサイズなど）をリセットし、プレーンテキストに近い状態（段落と強制改行のみ）に戻します。
                     </p>
                   </TooltipContent>
                 </Tooltip>
