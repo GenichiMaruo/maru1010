@@ -66,36 +66,14 @@ interface TimerPreset {
 const PRESET_STORAGE_KEY = "presentationTimerPreset_v1";
 const CURRENT_PRESET_VERSION = 1;
 
-const BELL_SOUND_DURATION_MS = 1000;
-const CHIME_SOUND_DURATION_MS = 12000;
-const DEFAULT_UNKNOWN_SOUND_DURATION_MS = 500;
 const INTER_BELL_SHOT_INTERVAL_MS = 500;
 const PRELIMINARY_CHIME_INTERVAL_MS = 500;
 const MAIN_ALARM_CHIME_INTERVAL_MS = 600;
 const TIMER_UPDATE_INTERVAL_MS = 200;
 const OVERTIME_UPDATE_INTERVAL_MS = 250;
-const SOUND_INTERRUPT_CHECK_INTERVAL_MS = 30;
 const MAIN_ALARM_ANIMATION_DURATION_MS = 5000;
 const FEEDBACK_MESSAGE_DURATION_MS = 3000;
 const FULLSCREEN_CLASS = "timer-fullscreen-active";
-
-async function interruptibleWait(
-  durationMs: number,
-  shouldContinueFn: () => boolean,
-  checkIntervalMs: number = SOUND_INTERRUPT_CHECK_INTERVAL_MS
-): Promise<boolean> {
-  let waitedMs = 0;
-  while (waitedMs < durationMs) {
-    if (!shouldContinueFn()) return false;
-    const timeToWaitThisCycle = Math.min(
-      checkIntervalMs,
-      durationMs - waitedMs
-    );
-    await new Promise((resolve) => setTimeout(resolve, timeToWaitThisCycle));
-    waitedMs += timeToWaitThisCycle;
-  }
-  return true;
-}
 
 export default function PresentationTimerTab() {
   const [initialMainTime, setInitialMainTime] = useState<TimeObject>({
@@ -211,7 +189,6 @@ export default function PresentationTimerTab() {
       playbackInstanceId?: string
     ) => {
       if (!audioElement) return;
-      const isBellSound = audioElement.src.includes("timer-bell.mp3");
       const shouldThisInstanceContinue = () => {
         if (!playbackInstanceId) return true;
         return internalActiveTestSoundIdRef.current === playbackInstanceId;
@@ -221,84 +198,37 @@ export default function PresentationTimerTab() {
       const createNewAudio = () => {
         const newAudio = new Audio(audioElement.src);
         playingAudiosRef.current.add(newAudio);
-        // 再生終了時にリストから削除
         newAudio.addEventListener("ended", () => {
           playingAudiosRef.current.delete(newAudio);
         });
         return newAudio;
       };
 
-      if (isBellSound && times > 1) {
-        for (let i = 0; i < times; i++) {
-          if (!shouldThisInstanceContinue()) return;
-          const bellAudio = createNewAudio();
-          try {
-            await bellAudio.play();
-          } catch (e) {
-            if (shouldThisInstanceContinue())
-              console.warn(
-                `[playSound ${
-                  playbackInstanceId || "BellMultiShot"
-                }] Bell audio play failed, iter ${i + 1}:`,
-                e
-              );
-            return;
-          }
-          if (i < times - 1) {
-            const completedIntervalWait = await interruptibleWait(
-              intervalMs,
-              shouldThisInstanceContinue
-            );
-            if (!completedIntervalWait) return;
-          }
+      // 絶対時刻基準で再生開始
+      const baseTime = performance.now();
+      for (let i = 0; i < times; i++) {
+        if (!shouldThisInstanceContinue()) return;
+        const scheduled = baseTime + i * intervalMs;
+        const now = performance.now();
+        const wait = scheduled - now;
+        // 予定時刻まで待つ（遅れていたら即再生）
+        if (wait > 0) {
+          await new Promise((resolve) => setTimeout(resolve, wait));
         }
-      } else {
-        for (let i = 0; i < times; i++) {
-          if (!shouldThisInstanceContinue()) return;
-          const chimeAudio = createNewAudio();
-          try {
-            await chimeAudio.play();
-          } catch (e) {
-            if (shouldThisInstanceContinue())
-              console.warn(
-                `[playSound ${
-                  playbackInstanceId || "Chime/SingleBell"
-                }] Audio play failed, iter ${i + 1}:`,
-                e
-              );
-            return;
-          }
-          let soundDurationMs = chimeAudio.duration * 1000;
-          if (!isFinite(soundDurationMs) || soundDurationMs <= 0) {
-            if (isBellSound) soundDurationMs = BELL_SOUND_DURATION_MS;
-            else if (chimeAudio.src.includes("timer-chime.mp3"))
-              soundDurationMs = CHIME_SOUND_DURATION_MS;
-            else
-              soundDurationMs = Math.max(
-                intervalMs,
-                DEFAULT_UNKNOWN_SOUND_DURATION_MS
-              );
-          }
-          let waitedForSoundEnd = 0;
-          while (waitedForSoundEnd < soundDurationMs) {
-            if (!shouldThisInstanceContinue() || chimeAudio.ended) break;
-            const timeToWaitThisCycle = Math.min(
-              SOUND_INTERRUPT_CHECK_INTERVAL_MS,
-              soundDurationMs - waitedForSoundEnd
+        // 念のため直前にも判定
+        if (!shouldThisInstanceContinue()) return;
+        const soundAudio = createNewAudio();
+        try {
+          soundAudio.play();
+        } catch (e) {
+          if (shouldThisInstanceContinue())
+            console.warn(
+              `[playSound ${
+                playbackInstanceId || "Sound"
+              }] Audio play failed, iter ${i + 1}:`,
+              e
             );
-            await new Promise((resolve) =>
-              setTimeout(resolve, timeToWaitThisCycle)
-            );
-            waitedForSoundEnd += timeToWaitThisCycle;
-          }
-          if (!shouldThisInstanceContinue()) return;
-          if (i < times - 1) {
-            const completedIntervalWait = await interruptibleWait(
-              intervalMs,
-              shouldThisInstanceContinue
-            );
-            if (!completedIntervalWait) return;
-          }
+          return;
         }
       }
     },
