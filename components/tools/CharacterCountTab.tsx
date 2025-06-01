@@ -144,7 +144,6 @@ const VisualCuesExtension = (options: {
               const { doc } = state;
 
               doc.descendants((node, pos) => {
-                // Full-width space highlighting
                 if (
                   options.showFullWidthSpaceHighlight &&
                   node.isText &&
@@ -168,20 +167,18 @@ const VisualCuesExtension = (options: {
                   }
                 }
 
-                // Newline markers
                 if (options.showNewlineMarkers) {
                   if (node.type.name === "hardBreak") {
                     decorations.push(
                       Decoration.widget(
-                        pos, // Position for the widget
+                        pos,
                         () => {
-                          // toDOM function
                           const markerElement = document.createElement("span");
                           markerElement.className =
                             "hard-break-marker tiptap-icon-widget";
                           const reactRoot = createRoot(markerElement);
                           reactRoot.render(<MdOutlineSubdirectoryArrowLeft />);
-                          // Store root for unmounting
+
                           (
                             markerElement as HTMLSpanElement & {
                               pmRoot?: ReturnType<typeof createRoot>;
@@ -190,18 +187,18 @@ const VisualCuesExtension = (options: {
                           return markerElement;
                         },
                         {
-                          // Spec for the widget
-                          side: 1, // Render after the node
+                          side: 1,
                           marks: [],
-                          key: `hardbreak-marker-${pos}`, // Unique key
+                          key: `hardbreak-marker-${pos}`,
                           destroy: (node: Node) => {
-                            // Cleanup on destroy
                             type WithPmRoot = Node & {
                               pmRoot?: ReturnType<typeof createRoot>;
                             };
                             const nodeWithPmRoot = node as WithPmRoot;
                             if (nodeWithPmRoot.pmRoot) {
-                              nodeWithPmRoot.pmRoot.unmount();
+                              setTimeout(() => {
+                                nodeWithPmRoot.pmRoot?.unmount();
+                              }, 0);
                             }
                           },
                         }
@@ -210,22 +207,20 @@ const VisualCuesExtension = (options: {
                   } else if (
                     node.isBlock &&
                     node.type.name === "paragraph" &&
-                    node.content.size > 0 // Only for non-empty paragraphs
+                    node.content.size > 0
                   ) {
-                    // Check if it's not the last node in the document to avoid marker after everything
                     if (pos + node.nodeSize < doc.content.size) {
                       decorations.push(
                         Decoration.widget(
-                          pos + node.nodeSize - 1, // Position at the end of paragraph content
+                          pos + node.nodeSize - 1,
                           () => {
-                            // toDOM function
                             const markerElement =
                               document.createElement("span");
                             markerElement.className =
                               "paragraph-end-marker tiptap-icon-widget";
                             const reactRoot = createRoot(markerElement);
                             reactRoot.render(<MdOutlineArrowDownward />);
-                            // Store root for unmounting
+
                             (
                               markerElement as HTMLSpanElement & {
                                 pmRoot?: ReturnType<typeof createRoot>;
@@ -234,19 +229,20 @@ const VisualCuesExtension = (options: {
                             return markerElement;
                           },
                           {
-                            // Spec for the widget
-                            side: 1, // Render after the character at the position
+                            side: 1,
                             marks: [],
                             key: `paragraph-end-marker-${
                               pos + node.nodeSize - 1
-                            }`, // Unique key
-                            destroy: (domNode) => {
-                              // Cleanup on destroy
-                              const nodeWithPmRoot = domNode as HTMLElement & {
+                            }`,
+                            destroy: (node: Node) => {
+                              type WithPmRoot = Node & {
                                 pmRoot?: ReturnType<typeof createRoot>;
                               };
+                              const nodeWithPmRoot = node as WithPmRoot;
                               if (nodeWithPmRoot.pmRoot) {
-                                nodeWithPmRoot.pmRoot.unmount();
+                                setTimeout(() => {
+                                  nodeWithPmRoot.pmRoot?.unmount();
+                                }, 0);
                               }
                             },
                           }
@@ -1085,23 +1081,39 @@ export default function CharacterCountTab() {
         }
 
         /* Visual Cues Styles */
-        .hard-break-marker,
-        .paragraph-end-marker {
-          color: #475569; /* slate-600 */
-          font-size: 0.8em; /* Icons will inherit this size */
-          opacity: 0.7;
-          display: inline-flex; /* Changed to inline-flex for better icon alignment */
+        .hard-break-marker {
+          color: #38bdf8 !important; /* sky-400 */
+          background: rgba(56, 189, 248, 0.18); /* sky-400/20 */
+          border-radius: 3px;
+          border: 1px solid rgba(56, 189, 248, 0.35);
+          font-size: 0.95em;
+          opacity: 1;
+          display: inline-flex;
           align-items: center;
           justify-content: center;
           pointer-events: none;
           user-select: none;
-          vertical-align: middle; /* Adjust vertical alignment if needed */
-        }
-        .hard-break-marker {
+          vertical-align: middle;
           margin-left: 2px;
+          padding: 0 2px;
+          box-shadow: 0 0 0 1.5px rgba(56, 189, 248, 0.15);
         }
         .paragraph-end-marker {
+          color: #fb923c !important; /* orange-400 */
+          background: rgba(251, 146, 60, 0.15); /* orange-400/15 */
+          border-radius: 3px;
+          border: 1px solid rgba(251, 146, 60, 0.32);
+          font-size: 0.95em;
+          opacity: 1;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          pointer-events: none;
+          user-select: none;
+          vertical-align: middle;
           margin-left: 2px;
+          padding: 0 2px;
+          box-shadow: 0 0 0 1.5px rgba(251, 146, 60, 0.13);
         }
         .tiptap-icon-widget > svg {
           /* Style the SVG directly if needed */

@@ -134,7 +134,7 @@ body.timer-fullscreen-active nav {
 }
 body,
 .timer-fullscreen-active {
-  background-color: #0f172a; /* 例: slate-900 */
+  background-color: #0f172a !important;
   /* セーフエリア対応 */
   padding-top: env(safe-area-inset-top);
   background-clip: padding-box;
