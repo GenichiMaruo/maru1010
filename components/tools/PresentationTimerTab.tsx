@@ -75,6 +75,20 @@ const MAIN_ALARM_ANIMATION_DURATION_MS = 5000;
 const FEEDBACK_MESSAGE_DURATION_MS = 3000;
 const FULLSCREEN_CLASS = "timer-fullscreen-active";
 
+function generateNumberRange(start: number, end: number): number[] {
+  const range: number[] = [];
+  for (let i = start; i <= end; i++) {
+    range.push(i);
+  }
+  return range;
+}
+
+declare global {
+  interface Window {
+    webkitAudioContext?: typeof AudioContext;
+  }
+}
+
 export default function PresentationTimerTab() {
   const [initialMainTime, setInitialMainTime] = useState<TimeObject>({
     h: 0,
@@ -94,8 +108,17 @@ export default function PresentationTimerTab() {
   const overtimeIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const targetTimeRef = useRef<number>(0);
   const timerStartTimeRef = useRef<number>(0);
-  const audioChimeRef = useRef<HTMLAudioElement | null>(null);
-  const audioBellRef = useRef<HTMLAudioElement | null>(null);
+
+  const audioContextRef = useRef<AudioContext | null>(null);
+  const audioBuffersRef = useRef<{
+    chime: AudioBuffer | null;
+    bell: AudioBuffer | null;
+  }>({ chime: null, bell: null });
+  const activeSoundSourcesRef = useRef<Set<AudioBufferSourceNode>>(new Set());
+  const currentTestSoundSourcesRef = useRef<Set<AudioBufferSourceNode>>(
+    new Set()
+  );
+
   const [chimes, setChimes] = useState<Chime[]>([]);
   const [showChimeSettingsPanel, setShowChimeSettingsPanel] = useState(false);
   const [showPresetPanel, setShowPresetPanel] = useState(false);
@@ -107,13 +130,11 @@ export default function PresentationTimerTab() {
     null
   );
   const internalActiveTestSoundIdRef = useRef<string | null>(null);
-  const activeTestAudioElementRef = useRef<HTMLAudioElement | null>(null);
   const chimesPlaybackInitiatedRef = useRef<Set<string>>(new Set());
   const [feedbackMessage, setFeedbackMessage] = useState<string | null>(null);
   const feedbackTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const [isFullscreen, setIsFullscreen] = useState(false);
-
   const cardRef = useRef<HTMLDivElement>(null);
 
   const showMainSettings = useMemo(
@@ -137,37 +158,77 @@ export default function PresentationTimerTab() {
   const secondsValues = useMemo(() => generateNumberRange(0, 59), []);
   const bellCountValues = useMemo(() => generateNumberRange(1, 10), []);
 
-  const chimeMarkers = useMemo(() => {
-    const totalSeconds = getCurrentTotalInitialSeconds();
-    if (totalSeconds === 0 || chimes.length === 0) return [];
-    return chimes.map((chime) => {
-      const chimeTimeInSeconds =
-        chime.timeFromStart.m * 60 + chime.timeFromStart.s;
-      const effectiveChimeTime = Math.min(chimeTimeInSeconds, totalSeconds);
-      const percentageFromStart = (effectiveChimeTime / totalSeconds) * 100;
-      const defaultName = `チャイム (${chime.timeFromStart.m}分 ${chime.timeFromStart.s}秒)`;
-      return {
-        id: chime.id,
-        name: chime.name || defaultName,
-        left: `${100 - percentageFromStart}%`,
-        triggered: chime.triggered,
-        time: `${chime.timeFromStart.m}分 ${chime.timeFromStart.s}秒`,
-      };
-    });
-  }, [chimes, getCurrentTotalInitialSeconds]);
+  const displayFeedback = useCallback((message: string) => {
+    setFeedbackMessage(message);
+    if (feedbackTimeoutRef.current) clearTimeout(feedbackTimeoutRef.current);
+    feedbackTimeoutRef.current = setTimeout(
+      () => setFeedbackMessage(null),
+      FEEDBACK_MESSAGE_DURATION_MS
+    );
+  }, []);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
-      audioChimeRef.current = new Audio("/sounds/timer-chime.mp3");
-      audioBellRef.current = new Audio("/sounds/timer-bell.mp3");
+      audioContextRef.current = new (window.AudioContext ||
+        window.webkitAudioContext)();
+
+      const loadSound = async (url: string): Promise<AudioBuffer | null> => {
+        if (!audioContextRef.current) return null;
+        try {
+          const response = await fetch(url);
+          if (!response.ok) {
+            throw new Error(
+              `HTTP error! status: ${response.status} for ${url}`
+            );
+          }
+          const arrayBuffer = await response.arrayBuffer();
+          return await audioContextRef.current.decodeAudioData(arrayBuffer);
+        } catch (error) {
+          console.error(`Failed to load sound: ${url}`, error);
+          displayFeedback(
+            `サウンド読込失敗: ${url.split("/").pop()}. Check console.`
+          );
+          return null;
+        }
+      };
+      Promise.all([
+        loadSound("/sounds/timer-chime.mp3"),
+        loadSound("/sounds/timer-bell.mp3"),
+      ]).then(([chimeBuffer, bellBuffer]) => {
+        audioBuffersRef.current = { chime: chimeBuffer, bell: bellBuffer };
+        if (!chimeBuffer || !bellBuffer) {
+          console.warn("One or more sound files failed to load.");
+        } else {
+        }
+      });
     }
+    const activeSourcesSnapshot = new Set(activeSoundSourcesRef.current);
+    const testSourcesSnapshot = new Set(currentTestSoundSourcesRef.current);
+
     return () => {
       if (alarmAnimationTimeoutRef.current)
         clearTimeout(alarmAnimationTimeoutRef.current);
       if (feedbackTimeoutRef.current) clearTimeout(feedbackTimeoutRef.current);
       document.body.classList.remove(FULLSCREEN_CLASS);
+      if (audioContextRef.current) {
+        activeSourcesSnapshot.forEach((source) => {
+          try {
+            source.onended = null;
+            source.stop();
+          } catch {}
+        });
+        activeSourcesSnapshot.clear();
+        testSourcesSnapshot.forEach((source) => {
+          try {
+            source.onended = null;
+            source.stop();
+          } catch {}
+        });
+        testSourcesSnapshot.clear();
+        audioContextRef.current.close().catch(console.error);
+      }
     };
-  }, []);
+  }, [displayFeedback]);
 
   useEffect(() => {
     if (isFullscreen) {
@@ -177,72 +238,121 @@ export default function PresentationTimerTab() {
     }
   }, [isFullscreen]);
 
-  // 追加: 再生中のAudioを管理するRef
-  const playingAudiosRef = useRef<Set<HTMLAudioElement>>(new Set());
-
-  // playSoundの修正
+  const stopAllPlayingAudios = useCallback(() => {
+    activeSoundSourcesRef.current.forEach((source) => {
+      try {
+        source.onended = null;
+        source.stop();
+      } catch {}
+    });
+    activeSoundSourcesRef.current.clear();
+    currentTestSoundSourcesRef.current.forEach((source) => {
+      try {
+        source.onended = null;
+        source.stop();
+      } catch {}
+    });
+    currentTestSoundSourcesRef.current.clear();
+    if (internalActiveTestSoundIdRef.current) {
+      setUiActiveTestSoundId(null);
+      internalActiveTestSoundIdRef.current = null;
+    }
+  }, []);
   const playSound = useCallback(
     async (
-      audioElement: HTMLAudioElement | null,
+      soundType: "chime" | "bell",
       times: number,
-      intervalMs: number = 10,
-      playbackInstanceId?: string
+      intervalMs: number,
+      isTestSoundContext: boolean = false,
+      currentTestIdForCancellation?: string
     ) => {
-      if (!audioElement) return;
-      const shouldThisInstanceContinue = () => {
-        if (!playbackInstanceId) return true;
-        return internalActiveTestSoundIdRef.current === playbackInstanceId;
-      };
-
-      // 新しいAudioを都度生成
-      const createNewAudio = () => {
-        const newAudio = new Audio(audioElement.src);
-        playingAudiosRef.current.add(newAudio);
-        newAudio.addEventListener("ended", () => {
-          playingAudiosRef.current.delete(newAudio);
-        });
-        return newAudio;
-      };
-
-      // 絶対時刻基準で再生開始
-      const baseTime = performance.now();
-      for (let i = 0; i < times; i++) {
-        if (!shouldThisInstanceContinue()) return;
-        const scheduled = baseTime + i * intervalMs;
-        const now = performance.now();
-        const wait = scheduled - now;
-        // 予定時刻まで待つ（遅れていたら即再生）
-        if (wait > 0) {
-          await new Promise((resolve) => setTimeout(resolve, wait));
+      if (!audioContextRef.current || !audioBuffersRef.current[soundType]) {
+        console.warn(
+          `playSound: AudioContext not ready or ${soundType} buffer missing.`
+        );
+        if (
+          isTestSoundContext &&
+          internalActiveTestSoundIdRef.current === currentTestIdForCancellation
+        ) {
+          setUiActiveTestSoundId(null);
+          internalActiveTestSoundIdRef.current = null;
         }
-        // 念のため直前にも判定
-        if (!shouldThisInstanceContinue()) return;
-        const soundAudio = createNewAudio();
+        return;
+      }
+      const audioContext = audioContextRef.current;
+      const audioBuffer = audioBuffersRef.current[soundType];
+      if (!audioBuffer) {
+        console.warn(`playSound: ${soundType} AudioBuffer is null.`);
+        if (
+          isTestSoundContext &&
+          internalActiveTestSoundIdRef.current === currentTestIdForCancellation
+        ) {
+          setUiActiveTestSoundId(null);
+          internalActiveTestSoundIdRef.current = null;
+        }
+        return;
+      }
+      if (audioContext.state === "suspended") {
         try {
-          soundAudio.play();
+          await audioContext.resume();
         } catch (e) {
-          if (shouldThisInstanceContinue())
-            console.warn(
-              `[playSound ${
-                playbackInstanceId || "Sound"
-              }] Audio play failed, iter ${i + 1}:`,
-              e
-            );
+          console.error("playSound: Failed to resume AudioContext", e);
+          if (
+            isTestSoundContext &&
+            internalActiveTestSoundIdRef.current ===
+              currentTestIdForCancellation
+          ) {
+            setUiActiveTestSoundId(null);
+            internalActiveTestSoundIdRef.current = null;
+          }
           return;
         }
+      }
+      const sourcesCreatedInThisCall = new Set<AudioBufferSourceNode>();
+      for (let i = 0; i < times; i++) {
+        if (
+          isTestSoundContext &&
+          internalActiveTestSoundIdRef.current !== currentTestIdForCancellation
+        ) {
+          sourcesCreatedInThisCall.forEach((s) => {
+            try {
+              s.onended = null;
+              s.stop();
+            } catch {}
+            activeSoundSourcesRef.current.delete(s);
+            currentTestSoundSourcesRef.current.delete(s);
+          });
+          return;
+        }
+        const source = audioContext.createBufferSource();
+        source.buffer = audioBuffer;
+        source.connect(audioContext.destination);
+        const scheduledPlayTime =
+          audioContext.currentTime + (i * intervalMs) / 1000;
+        source.start(scheduledPlayTime);
+        sourcesCreatedInThisCall.add(source);
+        activeSoundSourcesRef.current.add(source);
+        if (isTestSoundContext) {
+          currentTestSoundSourcesRef.current.add(source);
+        }
+        source.onended = () => {
+          activeSoundSourcesRef.current.delete(source);
+          if (isTestSoundContext) {
+            currentTestSoundSourcesRef.current.delete(source);
+            if (
+              internalActiveTestSoundIdRef.current ===
+                currentTestIdForCancellation &&
+              currentTestSoundSourcesRef.current.size === 0
+            ) {
+              setUiActiveTestSoundId(null);
+              internalActiveTestSoundIdRef.current = null;
+            }
+          }
+        };
       }
     },
     []
   );
-
-  // すべての再生中の音を停止する関数
-  const stopAllPlayingAudios = () => {
-    playingAudiosRef.current.forEach((audio) => {
-      audio.pause();
-      audio.currentTime = 0;
-    });
-    playingAudiosRef.current.clear();
-  };
 
   useEffect(() => {
     if (isRunning && timeLeftInSeconds > 0) {
@@ -253,13 +363,12 @@ export default function PresentationTimerTab() {
         setTimeLeftInSeconds(newTimeLeftSeconds);
         const elapsedMilliseconds = now - timerStartTimeRef.current;
         const elapsedSeconds = Math.floor(elapsedMilliseconds / 1000);
-
         chimes.forEach((chime) => {
           if (!chime.triggered) {
             const chimeTriggerTimeSeconds =
               chime.timeFromStart.m * 60 + chime.timeFromStart.s;
             if (
-              elapsedSeconds === chimeTriggerTimeSeconds &&
+              elapsedSeconds >= chimeTriggerTimeSeconds &&
               !chimesPlaybackInitiatedRef.current.has(chime.id)
             ) {
               chimesPlaybackInitiatedRef.current.add(chime.id);
@@ -268,17 +377,10 @@ export default function PresentationTimerTab() {
                   c.id === chime.id ? { ...c, triggered: true } : c
                 )
               );
-              playSound(
-                audioBellRef.current,
-                chime.bellCount,
-                PRELIMINARY_CHIME_INTERVAL_MS
-              ).finally(() =>
-                chimesPlaybackInitiatedRef.current.delete(chime.id)
-              );
+              playSound("bell", chime.bellCount, PRELIMINARY_CHIME_INTERVAL_MS);
             }
           }
         });
-
         if (remainingMilliseconds <= 0) {
           setIsRunning(false);
           setIsMainTimerFinished(true);
@@ -290,19 +392,21 @@ export default function PresentationTimerTab() {
             () => setIsMainAlarmAnimationActive(false),
             MAIN_ALARM_ANIMATION_DURATION_MS
           );
-          const alarmAudioElement =
-            mainAlarmSoundType === "bell"
-              ? audioBellRef.current
-              : audioChimeRef.current;
+          const soundTypeToPlay =
+            mainAlarmSoundType === "bell" ? "bell" : "chime";
           const alarmCount =
             mainAlarmSoundType === "bell" ? mainAlarmBellCount : 1;
           const alarmInterval =
             mainAlarmSoundType === "bell"
               ? INTER_BELL_SHOT_INTERVAL_MS
               : MAIN_ALARM_CHIME_INTERVAL_MS;
-          playSound(alarmAudioElement, alarmCount, alarmInterval);
-          if (Notification.permission === "granted")
+          playSound(soundTypeToPlay, alarmCount, alarmInterval);
+          if (
+            typeof Notification !== "undefined" &&
+            Notification.permission === "granted"
+          ) {
             new Notification("Presentation Timer Finished!");
+          }
         }
       }, TIMER_UPDATE_INTERVAL_MS);
     } else {
@@ -322,6 +426,10 @@ export default function PresentationTimerTab() {
 
   useEffect(() => {
     if (isMainTimerFinished && timeLeftInSeconds === 0) {
+      if (targetTimeRef.current === 0 && timerStartTimeRef.current !== 0) {
+        targetTimeRef.current =
+          timerStartTimeRef.current + getCurrentTotalInitialSeconds() * 1000;
+      }
       overtimeIntervalRef.current = setInterval(() => {
         const now = Date.now();
         const currentOvertime = Math.max(
@@ -338,11 +446,12 @@ export default function PresentationTimerTab() {
       if (overtimeIntervalRef.current)
         clearInterval(overtimeIntervalRef.current);
     };
-  }, [isMainTimerFinished, timeLeftInSeconds]);
+  }, [isMainTimerFinished, timeLeftInSeconds, getCurrentTotalInitialSeconds]);
 
   useEffect(() => {
     if (!isMainTimerFinished) {
-      setTimeLeftInSeconds(getCurrentTotalInitialSeconds());
+      const newTotalSeconds = getCurrentTotalInitialSeconds();
+      setTimeLeftInSeconds(newTotalSeconds);
     }
     if (!isRunning && !isMainTimerFinished) {
       setChimes((prevChimes) =>
@@ -374,6 +483,7 @@ export default function PresentationTimerTab() {
   const handleReset = useCallback(() => {
     setIsRunning(false);
     setIsMainTimerFinished(false);
+    stopAllPlayingAudios();
     setTimeLeftInSeconds(getTotalSeconds(initialMainTime));
     setOvertimeInSeconds(0);
     setChimes((prevChimes) =>
@@ -385,27 +495,9 @@ export default function PresentationTimerTab() {
       alarmAnimationTimeoutRef.current = null;
     }
     setIsMainAlarmAnimationActive(false);
-    if (
-      activeTestAudioElementRef.current &&
-      internalActiveTestSoundIdRef.current
-    ) {
-      activeTestAudioElementRef.current.pause();
-      activeTestAudioElementRef.current.currentTime = 0;
-    }
-    setUiActiveTestSoundId(null);
-    internalActiveTestSoundIdRef.current = null;
-    activeTestAudioElementRef.current = null;
-    [audioChimeRef, audioBellRef].forEach((audioRef) => {
-      if (audioRef.current) {
-        if (!audioRef.current.paused) audioRef.current.pause();
-        audioRef.current.currentTime = 0;
-      }
-    });
     targetTimeRef.current = 0;
     timerStartTimeRef.current = 0;
-    // 追加: 全ての再生中の音を停止
-    stopAllPlayingAudios();
-  }, [initialMainTime]);
+  }, [initialMainTime, stopAllPlayingAudios]);
 
   const handleStartPause = useCallback(() => {
     if (isMainTimerFinished) {
@@ -418,8 +510,19 @@ export default function PresentationTimerTab() {
       !isRunning &&
       timeLeftInSeconds === 0 &&
       !isMainTimerFinished
-    )
+    ) {
       return;
+    }
+    if (
+      audioContextRef.current &&
+      audioContextRef.current.state === "suspended"
+    ) {
+      audioContextRef.current
+        .resume()
+        .catch((e) =>
+          console.error("Failed to resume audio context on start/pause", e)
+        );
+    }
     setIsRunning((prevIsRunning) => {
       const newIsRunning = !prevIsRunning;
       if (newIsRunning) {
@@ -432,21 +535,29 @@ export default function PresentationTimerTab() {
           !isMainTimerFinished &&
           !prevIsRunning
         ) {
+          stopAllPlayingAudios();
           setChimes((prevChimes) =>
             prevChimes.map((chime) => ({ ...chime, triggered: false }))
           );
           chimesPlaybackInitiatedRef.current.clear();
         }
+      } else {
       }
       return newIsRunning;
     });
-    if (Notification.permission === "default") Notification.requestPermission();
+    if (
+      typeof Notification !== "undefined" &&
+      Notification.permission === "default"
+    ) {
+      Notification.requestPermission();
+    }
   }, [
     isRunning,
     isMainTimerFinished,
     timeLeftInSeconds,
     getCurrentTotalInitialSeconds,
     handleReset,
+    stopAllPlayingAudios,
   ]);
 
   const handleAddChime = () =>
@@ -488,67 +599,31 @@ export default function PresentationTimerTab() {
   const handleTestSoundPlayback = useCallback(
     async (
       testId: string,
-      audioElementToPlay: HTMLAudioElement | null,
+      soundTypeToPlay: "chime" | "bell",
       count: number,
       intervalMsForSound: number
     ) => {
-      if (!audioElementToPlay) return;
-      if (
-        internalActiveTestSoundIdRef.current === testId &&
-        activeTestAudioElementRef.current
-      ) {
-        internalActiveTestSoundIdRef.current = null;
-        activeTestAudioElementRef.current.pause();
-        activeTestAudioElementRef.current.currentTime = 0;
+      currentTestSoundSourcesRef.current.forEach((source) => {
+        try {
+          source.onended = null;
+          source.stop();
+        } catch {}
+      });
+      currentTestSoundSourcesRef.current.clear();
+      if (internalActiveTestSoundIdRef.current === testId) {
         setUiActiveTestSoundId(null);
-        activeTestAudioElementRef.current = null;
-        // 追加: テスト音キャンセル時も全て停止
-        stopAllPlayingAudios();
+        internalActiveTestSoundIdRef.current = null;
       } else {
-        if (
-          internalActiveTestSoundIdRef.current &&
-          activeTestAudioElementRef.current
-        ) {
-          const oldTestId = internalActiveTestSoundIdRef.current;
-          internalActiveTestSoundIdRef.current = `stopping_${oldTestId}`;
-          activeTestAudioElementRef.current.pause();
-          activeTestAudioElementRef.current.currentTime = 0;
-          stopAllPlayingAudios();
-        }
         setUiActiveTestSoundId(testId);
         internalActiveTestSoundIdRef.current = testId;
-        activeTestAudioElementRef.current = audioElementToPlay;
-        try {
-          await playSound(
-            audioElementToPlay,
-            count,
-            intervalMsForSound,
-            testId
-          );
-        } catch (e) {
-          if (internalActiveTestSoundIdRef.current === testId) {
-            console.error(
-              `[handleTestSoundPlayback ${testId}] Error during playback:`,
-              e
-            );
-          }
-        } finally {
-          if (internalActiveTestSoundIdRef.current === testId) {
-            setUiActiveTestSoundId(null);
-            internalActiveTestSoundIdRef.current = null;
-            activeTestAudioElementRef.current = null;
-          }
-        }
+        playSound(soundTypeToPlay, count, intervalMsForSound, true, testId);
       }
     },
     [playSound]
   );
 
   const triggerTestMainAlarm = () => {
-    const alarmAudioElement =
-      mainAlarmSoundType === "bell"
-        ? audioBellRef.current
-        : audioChimeRef.current;
+    const soundTypeToPlay = mainAlarmSoundType === "bell" ? "bell" : "chime";
     const alarmCount = mainAlarmSoundType === "bell" ? mainAlarmBellCount : 1;
     const intervalForAlarm =
       mainAlarmSoundType === "bell"
@@ -556,7 +631,7 @@ export default function PresentationTimerTab() {
         : MAIN_ALARM_CHIME_INTERVAL_MS;
     handleTestSoundPlayback(
       "main_alarm",
-      alarmAudioElement,
+      soundTypeToPlay,
       alarmCount,
       intervalForAlarm
     );
@@ -564,20 +639,12 @@ export default function PresentationTimerTab() {
   const triggerTestChimeSound = (chimeId: string, bellCount: number) => {
     handleTestSoundPlayback(
       `chime_${chimeId}`,
-      audioBellRef.current,
+      "bell",
       bellCount,
       INTER_BELL_SHOT_INTERVAL_MS
     );
   };
 
-  const displayFeedback = (message: string) => {
-    setFeedbackMessage(message);
-    if (feedbackTimeoutRef.current) clearTimeout(feedbackTimeoutRef.current);
-    feedbackTimeoutRef.current = setTimeout(
-      () => setFeedbackMessage(null),
-      FEEDBACK_MESSAGE_DURATION_MS
-    );
-  };
   const handleSavePreset = () => {
     try {
       const presetData: TimerPreset = {
@@ -635,14 +702,13 @@ export default function PresentationTimerTab() {
         target.isContentEditable
       )
         return;
-
       if (event.key === "f" || event.key === "F") {
         event.preventDefault();
         toggleFullscreen();
       } else if (event.key === "Escape") {
         if (isFullscreen) {
           event.preventDefault();
-          toggleFullscreen(); // Only exit if currently in fullscreen
+          toggleFullscreen();
         }
       } else if (event.code === "Space") {
         event.preventDefault();
@@ -654,7 +720,7 @@ export default function PresentationTimerTab() {
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [handleStartPause, handleReset, isFullscreen, toggleFullscreen]); // Added isFullscreen and toggleFullscreen
+  }, [handleStartPause, handleReset, isFullscreen, toggleFullscreen]);
 
   const progressDisplayValue = useMemo(() => {
     const totalSec = getCurrentTotalInitialSeconds();
@@ -662,8 +728,26 @@ export default function PresentationTimerTab() {
       if (isMainTimerFinished) return 100;
       return (timeLeftInSeconds / totalSec) * 100;
     }
-    return 100;
+    return isMainTimerFinished ? 0 : 100;
   }, [timeLeftInSeconds, getCurrentTotalInitialSeconds, isMainTimerFinished]);
+  const chimeMarkers = useMemo(() => {
+    const totalSeconds = getCurrentTotalInitialSeconds();
+    if (totalSeconds === 0 || chimes.length === 0) return [];
+    return chimes.map((chime) => {
+      const chimeTimeInSeconds =
+        chime.timeFromStart.m * 60 + chime.timeFromStart.s;
+      const effectiveChimeTime = Math.min(chimeTimeInSeconds, totalSeconds);
+      const percentageFromStart = (effectiveChimeTime / totalSeconds) * 100;
+      const defaultName = `チャイム (${chime.timeFromStart.m}分 ${chime.timeFromStart.s}秒)`;
+      return {
+        id: chime.id,
+        name: chime.name || defaultName,
+        left: `${100 - percentageFromStart}%`,
+        triggered: chime.triggered,
+        time: `${chime.timeFromStart.m}分 ${chime.timeFromStart.s}秒`,
+      };
+    });
+  }, [chimes, getCurrentTotalInitialSeconds]);
 
   const alarmClockClassName = useMemo(() => {
     const baseClasses = "mx-auto transition-all duration-300 ease-in-out";
@@ -744,7 +828,11 @@ export default function PresentationTimerTab() {
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent side="bottom">
-                    <p>{isFullscreen ? "拡大表示終了" : "拡大表示"}</p>
+                    <p>
+                      {isFullscreen
+                        ? "拡大表示終了 (F or ESC)"
+                        : "拡大表示 (F)"}
+                    </p>
                   </TooltipContent>
                 </Tooltip>
                 <Tooltip>
@@ -752,7 +840,11 @@ export default function PresentationTimerTab() {
                     <Button
                       variant="ghost"
                       size="icon"
-                      onClick={() => setShowPresetPanel((p) => !p)}
+                      onClick={() => {
+                        setShowPresetPanel((p) => !p);
+                        if (showChimeSettingsPanel)
+                          setShowChimeSettingsPanel(false); // Close other panel
+                      }}
                       className="text-slate-400 hover:text-sky-300"
                       aria-label="プリセット管理"
                     >
@@ -771,7 +863,10 @@ export default function PresentationTimerTab() {
                     <Button
                       variant="ghost"
                       size="icon"
-                      onClick={() => setShowChimeSettingsPanel((p) => !p)}
+                      onClick={() => {
+                        setShowChimeSettingsPanel((p) => !p);
+                        if (showPresetPanel) setShowPresetPanel(false); // Close other panel
+                      }}
                       className="text-slate-400 hover:text-sky-300"
                       aria-label="チャイム設定"
                     >
@@ -794,8 +889,8 @@ export default function PresentationTimerTab() {
         <CardContent
           className={`flex flex-col items-center space-y-4 flex-grow ${
             isFullscreen
-              ? "justify-center w-full p-4"
-              : "px-4 md:px-6 lg:px-8 pb-2"
+              ? "justify-center w-full p-4" // Fullscreen specific padding
+              : "px-4 md:px-6 lg:px-8 pb-2" // Normal padding
           }`}
         >
           <div className={timerTextClassName}>
@@ -807,21 +902,21 @@ export default function PresentationTimerTab() {
           {isMainTimerFinished &&
             timeLeftInSeconds === 0 &&
             !isRunning &&
-            !isFullscreen && (
+            !isFullscreen && ( // Only show if timer finished, not running, and not fullscreen
               <BellRing
                 size={40}
-                className="text-yellow-400 opacity-80 my-1 animate-bounce"
+                className="text-yellow-400 opacity-80 my-1 animate-bounce" // Or other appropriate animation
               />
             )}
 
           <div
             className={`w-full relative pt-2 pb-2 ${
-              isFullscreen ? "px-4 sm:px-8 md:px-12 lg:px-16" : ""
+              isFullscreen ? "px-4 sm:px-8 md:px-12 lg:px-16" : "" // Wider padding for progress in fullscreen
             }`}
           >
             <Progress
               value={progressDisplayValue}
-              className="w-full h-3 bg-slate-700/80 rounded-full [&>div]:bg-sky-400"
+              className="w-full h-3 bg-slate-700/80 rounded-full [&>div]:bg-sky-400 transition-all duration-150"
             />
             {chimeMarkers.map((marker) => (
               <Tooltip key={marker.id}>
@@ -829,8 +924,8 @@ export default function PresentationTimerTab() {
                   <div
                     className={`absolute top-[-2px] -translate-x-1/2 w-1.5 h-4 rounded-full ${
                       marker.triggered
-                        ? "bg-sky-400 opacity-70"
-                        : "bg-yellow-400 opacity-90"
+                        ? "bg-sky-400 opacity-70" // Triggered chime color
+                        : "bg-yellow-400 opacity-90" // Pending chime color
                     } cursor-pointer hover:opacity-100 hover:scale-125 transition-transform z-10`}
                     style={{ left: marker.left }}
                     aria-label={`チャイム: ${marker.name} 時刻: ${marker.time}`}
@@ -887,12 +982,10 @@ export default function PresentationTimerTab() {
             >
               <RotateCcw
                 className={isFullscreen ? "mr-3 h-6 w-6" : "mr-2 h-5 w-5"}
-              />{" "}
+              />
               Reset
             </Button>
           </div>
-
-          {/* Orientation controls removed as per user request */}
 
           {!isFullscreen && (
             <>
@@ -917,16 +1010,13 @@ export default function PresentationTimerTab() {
                         size="sm"
                         className="text-green-300 border-green-500/50 hover:bg-green-500/10 hover:text-green-200 w-full sm:w-auto"
                       >
-                        <Download size={16} className="mr-2" />{" "}
+                        <Download size={16} className="mr-2" />
                         保存した設定を読込
                       </Button>
                     </div>
-                    {feedbackMessage && (
-                      <p className="text-xs text-center text-slate-400 pt-2 h-4 mb-2">
-                        {feedbackMessage}
-                      </p>
-                    )}
-                    {!feedbackMessage && <div className="h-4 pt-2"></div>}
+                    <div className="text-xs text-center text-slate-400 pt-2 h-6">
+                      {feedbackMessage && <p>{feedbackMessage}</p>}
+                    </div>
                   </div>
                 </div>
               )}
@@ -983,7 +1073,7 @@ export default function PresentationTimerTab() {
                       ))}
                     </div>
                   </div>
-                  <div className="pt-2">
+                  <div>
                     <h3 className="text-sm font-medium text-slate-400 mb-3 text-center">
                       Main Alarm Sound (本鈴)
                     </h3>
@@ -1053,7 +1143,7 @@ export default function PresentationTimerTab() {
                   <div className="space-y-4 p-3 bg-slate-800/50 rounded-lg border border-slate-700/50">
                     <div className="flex justify-between items-center">
                       <h3 className="text-md font-semibold text-sky-200">
-                        Preliminary Chime Settings
+                        Preliminary Chime Settings (予鈴)
                       </h3>
                       <Button
                         variant="outline"
@@ -1089,7 +1179,7 @@ export default function PresentationTimerTab() {
                                     e.target.value
                                   )
                                 }
-                                className="text-sm font-medium text-slate-200 bg-transparent border-b border-slate-600 focus:border-sky-400 focus:ring-0 p-0 w-1/2"
+                                className="text-sm font-medium text-slate-200 bg-transparent border-b border-slate-600 focus:border-sky-400 focus:ring-0 p-0 w-1/2 outline-none"
                                 placeholder={`Chime ${chimeIdx + 1}`}
                               />
                               <Button
@@ -1103,15 +1193,15 @@ export default function PresentationTimerTab() {
                               </Button>
                             </div>
                             <p className="text-xs text-slate-400 -mt-1 mb-1">
-                              Ring{" "}
+                              Ring
                               <span className="text-sky-300">
                                 {chime.bellCount}
-                              </span>{" "}
-                              time(s) (bell sound) at{" "}
+                              </span>
+                              time(s) (bell sound) at
                               <span className="text-sky-300">
                                 {chime.timeFromStart.m}m {chime.timeFromStart.s}
                                 s
-                              </span>{" "}
+                              </span>
                               from start.
                             </p>
                             <div className="flex items-end space-x-2">
@@ -1278,12 +1368,4 @@ export default function PresentationTimerTab() {
       </Card>
     </TooltipProvider>
   );
-}
-
-function generateNumberRange(start: number, end: number): number[] {
-  const range: number[] = [];
-  for (let i = start; i <= end; i++) {
-    range.push(i);
-  }
-  return range;
 }
