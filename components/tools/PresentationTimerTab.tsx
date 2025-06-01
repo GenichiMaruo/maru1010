@@ -749,7 +749,7 @@ export default function PresentationTimerTab() {
     let sizeClass = "text-6xl lg:text-7xl";
 
     if (isFullscreen) {
-      sizeClass = "text-[20vw] sm:text-[17vw] md:text-[15vw] lg:text-[13vw]";
+      sizeClass = "text-[18vw] sm:text-[17vw] md:text-[15vw] lg:text-[13vw]";
       layoutClasses = "pt-8 mb-0";
     }
 
