@@ -8,7 +8,7 @@
     "github": "https://github.com/GenichiMaruo/maru1010"
   },
   {
-    "title": "通信ネットワーク構成論A(2025年)制作物 OnlineOthello",
+    "title": "通信ネットワーク構成論A制作物 OnlineOthello",
     "description": "OnlineOthello は、オンラインでオセロをプレイできるアプリケーション。Node.js (Next.js) によるフロントエンドと、C言語で開発されたクライアントおよびサーバーアプリケーションで構成した。Docker を利用することで、必要な環境を簡単に構築・実行できる。",
     "technologies": [
       "Node.js",
@@ -24,7 +24,7 @@
     "duration": "2025年5月"
   },
   {
-    "title": "58ハッカソン (2025年2月)",
+    "title": "58ハッカソン Happy Shot",
     "description": "動画を送るだけで、最高のベストショットが手に入る！ 詳しくはTopazにて",
     "technologies": ["Next.js", "Python", "TypeScript"],
     "imageUrl": "/portfolio/happy-shot.png",
@@ -46,7 +46,7 @@
     "award": "優秀賞, ソイチャレ大賞"
   },
   {
-    "title": "58ハッカソン (2024年9月)",
+    "title": "58ハッカソン Chronotes",
     "description": "毎日の活動や作業履歴などを自分で書くのは面倒くさい。 そんな作業をAIによって全自動化できる。",
     "technologies": [
       "Go",
@@ -83,7 +83,7 @@
     "duration": "2024年2月"
   },
   {
-    "title": "PushIt（ソフトウェア工学演習 / 2023年7月）",
+    "title": "ソフトウェア工学演習 PushIt",
     "description": "2人対戦型のP2Pオンラインゲーム。CUIでありながらGUI風の操作感を目指し、通信遅延補正やマウス対応など高度な工夫を盛り込んだ。",
     "technologies": ["C", "P2P通信", "独自フレーム同期処理"],
     "imageUrl": "/portfolio/pushit.png",
@@ -93,7 +93,7 @@
     "award": "授業内投票 3位（100名以上中）"
   },
   {
-    "title": "ソーシャル・オープンイノベーションチャレンジ 2023",
+    "title": "ソーシャル・オープンイノベーションチャレンジ2023",
     "description": "「革新的な次世代技術によるパーソナライズド広告の瞬時展開システム」と題して、デジタルサイネージ前の人物をカメラで認識して年齢、性別推定を行い、その判断によって適切な広告を表示するシステムを開発。",
     "technologies": ["Python", "React"],
     "imageUrl": "/portfolio/soityare1.png",
@@ -104,7 +104,7 @@
     "award": "最優秀賞"
   },
   {
-    "title": "SnakeGame（英語による情報技術Ⅰ / 2023年後期）",
+    "title": "英語による情報技術Ⅰ Snake Game",
     "description": "PythonのGUIライブラリを用いて、クラシックなSnakeゲームをチームで作成。シンプルながらもプレイ可能なゲームを実装した。",
     "technologies": ["Python", "Tkinter"],
     "imageUrl": "/portfolio/snakegame.png",
@@ -114,7 +114,7 @@
     "award": ""
   },
   {
-    "title": "Enigma 再現プログラム（2022年4月）",
+    "title": "Enigma 再現プログラム",
     "description": "第二次世界大戦時に使用された暗号機「エニグマ」の仕組みをPythonで再現。ローターや初期キーの設定によって暗号化・復号化が可能。",
     "technologies": ["Python"],
     "imageUrl": "/portfolio/enigma.png",
