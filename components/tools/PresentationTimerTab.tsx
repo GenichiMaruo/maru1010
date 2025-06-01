@@ -199,6 +199,10 @@ export default function PresentationTimerTab() {
     }
   }, [isFullscreen]);
 
+  // 追加: 再生中のAudioを管理するRef
+  const playingAudiosRef = useRef<Set<HTMLAudioElement>>(new Set());
+
+  // playSoundの修正
   const playSound = useCallback(
     async (
       audioElement: HTMLAudioElement | null,
@@ -213,16 +217,23 @@ export default function PresentationTimerTab() {
         return internalActiveTestSoundIdRef.current === playbackInstanceId;
       };
 
+      // 新しいAudioを都度生成
+      const createNewAudio = () => {
+        const newAudio = new Audio(audioElement.src);
+        playingAudiosRef.current.add(newAudio);
+        // 再生終了時にリストから削除
+        newAudio.addEventListener("ended", () => {
+          playingAudiosRef.current.delete(newAudio);
+        });
+        return newAudio;
+      };
+
       if (isBellSound && times > 1) {
         for (let i = 0; i < times; i++) {
-          if (!shouldThisInstanceContinue()) {
-            if (!audioElement.paused) audioElement.pause();
-            audioElement.currentTime = 0;
-            return;
-          }
-          audioElement.currentTime = 0;
+          if (!shouldThisInstanceContinue()) return;
+          const bellAudio = createNewAudio();
           try {
-            await audioElement.play();
+            await bellAudio.play();
           } catch (e) {
             if (shouldThisInstanceContinue())
               console.warn(
@@ -243,14 +254,10 @@ export default function PresentationTimerTab() {
         }
       } else {
         for (let i = 0; i < times; i++) {
-          if (!shouldThisInstanceContinue()) {
-            if (!audioElement.paused) audioElement.pause();
-            audioElement.currentTime = 0;
-            return;
-          }
-          audioElement.currentTime = 0;
+          if (!shouldThisInstanceContinue()) return;
+          const chimeAudio = createNewAudio();
           try {
-            await audioElement.play();
+            await chimeAudio.play();
           } catch (e) {
             if (shouldThisInstanceContinue())
               console.warn(
@@ -261,28 +268,20 @@ export default function PresentationTimerTab() {
               );
             return;
           }
-          let soundDurationMs = audioElement.duration * 1000;
+          let soundDurationMs = chimeAudio.duration * 1000;
           if (!isFinite(soundDurationMs) || soundDurationMs <= 0) {
             if (isBellSound) soundDurationMs = BELL_SOUND_DURATION_MS;
-            else if (audioElement.src.includes("timer-chime.mp3"))
+            else if (chimeAudio.src.includes("timer-chime.mp3"))
               soundDurationMs = CHIME_SOUND_DURATION_MS;
-            else {
+            else
               soundDurationMs = Math.max(
                 intervalMs,
                 DEFAULT_UNKNOWN_SOUND_DURATION_MS
               );
-              console.warn(
-                `[playSound ${
-                  playbackInstanceId || "Chime/SingleBell"
-                }] Unknown audio, fallback duration: ${soundDurationMs}ms. src: ${
-                  audioElement.src
-                }`
-              );
-            }
           }
           let waitedForSoundEnd = 0;
           while (waitedForSoundEnd < soundDurationMs) {
-            if (!shouldThisInstanceContinue() || audioElement.ended) break;
+            if (!shouldThisInstanceContinue() || chimeAudio.ended) break;
             const timeToWaitThisCycle = Math.min(
               SOUND_INTERRUPT_CHECK_INTERVAL_MS,
               soundDurationMs - waitedForSoundEnd
@@ -292,11 +291,7 @@ export default function PresentationTimerTab() {
             );
             waitedForSoundEnd += timeToWaitThisCycle;
           }
-          if (!shouldThisInstanceContinue()) {
-            if (!audioElement.paused) audioElement.pause();
-            audioElement.currentTime = 0;
-            return;
-          }
+          if (!shouldThisInstanceContinue()) return;
           if (i < times - 1) {
             const completedIntervalWait = await interruptibleWait(
               intervalMs,
@@ -309,6 +304,15 @@ export default function PresentationTimerTab() {
     },
     []
   );
+
+  // すべての再生中の音を停止する関数
+  const stopAllPlayingAudios = () => {
+    playingAudiosRef.current.forEach((audio) => {
+      audio.pause();
+      audio.currentTime = 0;
+    });
+    playingAudiosRef.current.clear();
+  };
 
   useEffect(() => {
     if (isRunning && timeLeftInSeconds > 0) {
@@ -469,6 +473,8 @@ export default function PresentationTimerTab() {
     });
     targetTimeRef.current = 0;
     timerStartTimeRef.current = 0;
+    // 追加: 全ての再生中の音を停止
+    stopAllPlayingAudios();
   }, [initialMainTime]);
 
   const handleStartPause = useCallback(() => {
@@ -566,6 +572,8 @@ export default function PresentationTimerTab() {
         activeTestAudioElementRef.current.currentTime = 0;
         setUiActiveTestSoundId(null);
         activeTestAudioElementRef.current = null;
+        // 追加: テスト音キャンセル時も全て停止
+        stopAllPlayingAudios();
       } else {
         if (
           internalActiveTestSoundIdRef.current &&
@@ -575,6 +583,7 @@ export default function PresentationTimerTab() {
           internalActiveTestSoundIdRef.current = `stopping_${oldTestId}`;
           activeTestAudioElementRef.current.pause();
           activeTestAudioElementRef.current.currentTime = 0;
+          stopAllPlayingAudios();
         }
         setUiActiveTestSoundId(testId);
         internalActiveTestSoundIdRef.current = testId;
