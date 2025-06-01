@@ -512,7 +512,6 @@ export default function CharacterCountTab() {
   useEffect(() => {
     if (!editor) return;
     setPlainTextForCounts(editor.getText());
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editor]);
 
   // Load settings from local storage on mount
@@ -552,7 +551,8 @@ export default function CharacterCountTab() {
     transformFunction: (text: string) => string
   ) => {
     if (!editor) return;
-    const { state, view } = editor;
+    const { state } = editor;
+    const view = editor.view;
     const { tr, doc, schema } = state;
     let modified = false;
     doc.descendants((node: ProseMirrorNode, pos: number) => {
@@ -756,19 +756,40 @@ export default function CharacterCountTab() {
   const DOUBLE_CLICK_THRESHOLD_MS = 300;
 
   const handleRemoveWhitespaces = () => {
+    if (!editor) return;
+    const { state, view } = editor;
+    const { tr } = state;
     const now = Date.now();
     const timeSinceLastClick = now - lastWhitespaceClickTimeRef.current;
-    if (timeSinceLastClick < DOUBLE_CLICK_THRESHOLD_MS) {
-      transformTextInEditorPreservingMarks((text) =>
-        text.replace(/[ \t\u3000]+/g, " ").trim()
-      );
-      lastWhitespaceClickTimeRef.current = 0;
-    } else {
-      transformTextInEditorPreservingMarks((text) =>
-        text.replace(/[ \t\u3000]/g, "")
-      );
-      lastWhitespaceClickTimeRef.current = now;
+    const changes: { from: number; to: number; text: string }[] = [];
+    state.doc.descendants((node, pos) => {
+      if (!node.isText || !node.text) return;
+      const originalText = node.text;
+      let newText: string;
+      if (timeSinceLastClick < DOUBLE_CLICK_THRESHOLD_MS) {
+        // ダブルクリック → 空白を 1 つにまとめて trim
+        newText = originalText.replace(/[ \t\u3000]+/g, " ").trim();
+      } else {
+        // シングルクリック → 空白をすべて削除
+        newText = originalText.replace(/[ \t\u3000]/g, "");
+      }
+      if (newText !== originalText) {
+        changes.push({
+          from: pos,
+          to: pos + originalText.length,
+          text: newText,
+        });
+      }
+    });
+    // 逆順で適用（位置ズレ防止）
+    for (const change of changes.reverse()) {
+      tr.insertText(change.text, change.from, change.to);
     }
+    if (tr.docChanged) {
+      view.dispatch(tr);
+    }
+    lastWhitespaceClickTimeRef.current =
+      timeSinceLastClick < DOUBLE_CLICK_THRESHOLD_MS ? 0 : now;
   };
 
   const handleJpToEnPunctuation = () =>
