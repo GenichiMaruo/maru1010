@@ -121,3 +121,21 @@
     @apply bg-background text-foreground;
   }
 }
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
+}
+body.timer-fullscreen-active nav {
+  display: none !important;
+}
+body,
+.timer-fullscreen-active {
+  background-color: #0f172a !important;
+  /* セーフエリア対応 */
+  padding-top: env(safe-area-inset-top);
+  background-clip: padding-box;
+}

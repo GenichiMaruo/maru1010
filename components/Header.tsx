@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { FaHome } from "react-icons/fa";
-import { FaFolder, FaEnvelope } from "react-icons/fa6"; // アイコンをインポート
+import { FaFolder, FaToolbox } from "react-icons/fa6"; // アイコンをインポート
 
 const Header = () => {
   return (
@@ -32,11 +32,11 @@ const Header = () => {
       </Button>
       <Button asChild variant="link">
         <Link
-          href="/contact"
+          href="/tools"
           className="hover:text-blue-500 transition-colors duration-200 flex items-center gap-1"
         >
-          <FaEnvelope />
-          <span className="hidden sm:block">Contact</span>
+          <FaToolbox />
+          <span className="hidden sm:block">Tools</span>
         </Link>
       </Button>
     </nav>
