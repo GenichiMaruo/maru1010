@@ -45,7 +45,7 @@ export default function Home() {
             </div>
             <div className="text-center md:text-left my-2 mx-6">
               <p className="text-gray-700">
-                カメラで認識した人物間の関係推定技術に関する研究を行っている大学院生。趣味でウェブ開発をしており、フロントエンド・バックエンド問わず学習中。ハッカソンにも積極的に参加。
+                カメラで認識した人物間の関係推定技術に関する研究を行っている大学院生。趣味でウェブ開発をしており、フロントエンド・バックエンド問わず学習中。
               </p>
             </div>
             <CardFooter className="flex flex-wrap justify-center md:justify-start gap-2 mt-4">
