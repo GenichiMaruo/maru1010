@@ -4,8 +4,8 @@
     "description": "Next.jsとTailwind CSSを使用して作成したポートフォリオサイト",
     "technologies": ["Next.js", "Tailwind CSS", "TypeScript", "Shadcn UI"],
     "imageUrl": "/portfolio/portfolio-site.png",
-    "link": "/",
-    "github": "https://github.com/GenichiMaruo/maru1010"
+    "link": ["/"],
+    "github": ["https://github.com/GenichiMaruo/maru1010"]
   },
   {
     "title": "通信ネットワーク構成論A制作物 OnlineOthello",
@@ -20,7 +20,7 @@
       "Docker"
     ],
     "imageUrl": "/portfolio/online-othello.png",
-    "github": "https://github.com/GenichiMaruo/OnlineOthello",
+    "github": ["https://github.com/GenichiMaruo/OnlineOthello"],
     "duration": "2025年5月"
   },
   {
@@ -28,8 +28,8 @@
     "description": "動画を送るだけで、最高のベストショットが手に入る！ 詳しくはTopazにて",
     "technologies": ["Next.js", "Python", "TypeScript"],
     "imageUrl": "/portfolio/happy-shot.png",
-    "link": "https://topaz.dev/projects/5ba3d6d5f2818f64236f",
-    "github": "https://github.com/yashikota/happy-shot",
+    "link": ["https://topaz.dev/projects/5ba3d6d5f2818f64236f"],
+    "github": ["https://github.com/yashikota/happy-shot"],
     "details": "\n**関わったプロダクトの概要**\n\n動画を送るだけで、最高のベストショットが手に入る！ 詳しくはTopazにて\n\n**チーム体制と役割**\n\nフロントエンド開発1名とバックエンド開発2名で行った。\n\n**やったこと**\n\nバックエンド開発で表情分析以外を担当。顔の向き検出、瞬き検出、各動画フレームのスコア化、動画全体におけるスコアの推移のグラフ化、スコアグラフから良いと思われるフレームの抽出、表情分析との連携、フロントエンドとの通信用APIの整備などを行った。\n\n**成長したこと**\n\n久しぶりのバックエンド担当でうまく実装できないことが多かったが時間内にできる別の方法を模索することで最初に設定した課題を達成することができた。一つの方法に固執せず、柔軟に別の解決策を模索することで、たとえ途中でつまずいても、最終的には大きな課題を乗り越えられることを学んだ。\n\n**実績**\n\nハッカソンでは優秀賞を受賞した。\n",
     "duration": "2025年2月",
     "award": "優秀賞"
@@ -39,14 +39,15 @@
     "description": "「占いと年齢性別推定を用いたパーソナライズド広告の最適化」と題して昨年行った実験の追加検証や、切り口を変えた方法での有効性の検証などを行った。",
     "technologies": ["Python", "React"],
     "imageUrl": "/portfolio/smile-sindan.png",
-    "link": "https://www.oit.ac.jp/labs/is/datascience/msl/soichalle/award.html",
-    "github": "",
+    "link": [
+      "https://www.oit.ac.jp/labs/is/datascience/msl/soichalle/award.html"
+    ],
     "details": "\n**関わったプロダクトの概要**\n\n「占いと年齢性別推定を用いたパーソナライズド広告の最適化」と題して昨年行った実験の追加検証や、切り口を変えた方法での有効性の検証などを行った。\n\n**チーム体制と役割**\n\n2人チームで、開発担当とアイディア出し、発表担当に分かれた。\n\n**やったこと**\n\n去年のプログラムをベースに追加開発を行い前年度より精度を高めた。\n\n**実績**\n\nアイデアコンテストでは優秀賞、チャレンジコンテストではソイチャレ大賞を受賞した。\n",
     "duration": "2024年",
     "award": "優秀賞, ソイチャレ大賞"
   },
   {
-    "title": "58ハッカソン Chronotes",
+    "title": "ハッカソン開発: AIノート Chronotes",
     "description": "毎日の活動や作業履歴などを自分で書くのは面倒くさい。 そんな作業をAIによって全自動化できる。",
     "technologies": [
       "Go",
@@ -56,19 +57,27 @@
       "Shadcn UI"
     ],
     "imageUrl": "/portfolio/chronotes.png",
-    "link": "https://topaz.dev/projects/9752f502380d2cc00f7c",
-    "github": "https://github.com/GenichiMaruo/chronotes-front",
-    "details": "\n**関わったプロダクトの概要**\n\n毎日の活動や作業履歴などを自分で書くのは面倒くさい。 そんな作業をAIによって全自動化できる。\n\n**チーム体制と役割**\n\nバックエンド2名、フロントエンド2名で行った。\n\n**やったこと**\n\n自分の担当はフロントエンドの作成とデプロイ、バックエンドとのAPI通信関連の整備、ウェブ上でのメモの編集機能の実装など。キックオフ直後から細かいタスクを設定し、着実に開発を進めた。バックエンドとの連携の実装が直前になってしまったが発表までには完成し、すべての機能の実装に成功した。\n\n**成長したこと**\n4人でのチーム開発を経験し、チーム内での役割分担や円滑なコミュニケーションの重要性を学んだ。特に、フロントエンドとバックエンドの連携を進める中で、仕様のすり合わせや調整の大切さを実感した。また、限られた時間の中で優先順位をつけながら開発を進めるスキルや、発表までに機能を完成させるためのタスク管理力も向上した。\n\n**実績**\n\nハッカソンでは優秀賞を受賞した。\n",
-    "duration": "2024年9月",
-    "award": "優秀賞"
+    "link": [
+      "https://topaz.dev/projects/9752f502380d2cc00f7c",
+      "https://protopedia.net/prototype/private/2db74b33-4cd6-49a8-b107-22296fa31e50"
+    ],
+    "github": [
+      "https://github.com/GenichiMaruo/chronotes-front",
+      "https://github.com/jphacks/os_2411"
+    ],
+    "details": "**関わったプロダクトの概要**\n\n毎日の活動や作業履歴などを自分で書くのは面倒くさい。そんな作業をAIによって全自動化できるプロダクト「Chronotes」である。\nこのプロジェクトは、2024年9月に行われた58ハッカソンで初めて開発・発表し、その後、同年10月に開催されたJPHacks2024にて更なる機能追加と改良を行った。\n\n**チーム体制と役割**\n\nJPHacksでの開発は、バックエンド2名、フロントエンド2名のチームで行った。私は主にフロントエンド開発を担当した。\n(58ハッカソン時も同様のチーム体制であった。)\n\n**やったこと・担当した主な機能**\n\n***58ハッカソンでの初期開発 (2024年9月)***\n最初のバージョン開発では、主にフロントエンドの初期構築、デプロイ、バックエンドとの基本的なAPI通信の整備、ウェブ上でのメモ編集機能の初期実装などを担当した。キックオフ直後から細かいタスクを設定し、着実に開発を進めた。\n\n***JPHacksでの追加開発と機能強化 (2024年10月)***\nJPHacksでは、ユーザー体験の向上と分析機能の深化を目指し、以下の主要な機能の実装を担当した。\n\n1.  **期間要約ページの新規作成**\n    ユーザーが自身の活動記録をより詳細に、かつ直感的に分析できるようにするため、期間要約表示ページを新たに開発した。\n    * **柔軟な期間選択**: 従来の期間選択方法を見直し、プルダウンメニュー形式に変更した。これにより、より多くの期間候補からユーザーが任意の期間を手軽に選択し、データを要約できるようになった。\n    * **データの可視化強化**: ページ上部にはワードクラウドを導入した。これは、指定された期間のノートに付与されたタグの頻度に基づいてフロントエンドで自動生成され、ユーザーが頻繁に使用しているキーワードやトピックを一目で把握できるようにするものだ。\n\n2.  **画像アップロード機能の実装**\n    ノート作成時のユーザーエクスペリエンスと表現力を向上させるため、画像をノートエディターに直接ドラッグ＆ドロップで簡単に挿入できる機能を実装した。\n    * **直感的な操作**: ユーザーは特別な操作を覚えることなく、直感的に画像をノートに追加できる。\n    * **セキュアな処理**: ドラッグ＆ドロップされた画像は、フロントエンドのAPI通信モジュールを経由してバックエンドにアップロードされる。その際、セキュリティを考慮し、バックエンドではアップロードされた画像にアクセスするためのURLに有効期限を設定している。これにより、不正なアクセスやデータ漏洩のリスクを軽減し、安全な画像管理を実現した。\n\n(その他、JPHacksでは以下の機能がチームによって開発・改良された。)\n* 対応するサービスの拡大 (connpass, Wakatime)\n* ノートを他のユーザーとシェアできる機能の作成\n* 形態素解析エンドポイントの作成\n* デモモードの作成\n\n**成長したこと**\n\nこれらのハッカソンを通じたチーム開発を経験し、チーム内での役割分担や円滑なコミュニケーションの重要性を深く学んだ。特に、フロントエンドとバックエンドの連携を進める中で、仕様のすり合わせや細やかな調整の大切さを実感した。限られた時間の中で優先順位をつけながら開発を進めるスキルや、発表までに機能を完成させるためのタスク管理能力も大きく向上したと感じている。JPHacksでの追加開発では、既存システムへの影響を考慮した上での機能設計や、よりユーザー視点に立った改善提案を行う実践的な経験を積むことができた。\n\n**実績**\n\nChronotesは、58ハッカソンにて優秀賞を受賞した。\n",
+    "duration": "2024年9月～10月",
+    "award": "優秀賞 (58ハッカソン)"
   },
   {
     "title": "U-22 プログラミング・コンテスト2024",
     "description": "ゲームマスターが撮影した写真のヒントを元に、プレイヤーは同じ場所や構図を探し出しす。そしてゲームマスターの写真に最も似た写真を撮影したプレイヤーが勝利する。",
     "technologies": ["Vite", "React"],
     "imageUrl": "/portfolio/scene-hunter.png",
-    "link": "https://protopedia.net/prototype/private/76e77efd-35c5-43b3-921b-279979c9eaf1",
-    "github": "https://github.com/GenichiMaruo/SceneHunter-front",
+    "link": [
+      "https://protopedia.net/prototype/private/76e77efd-35c5-43b3-921b-279979c9eaf1"
+    ],
+    "github": ["https://github.com/GenichiMaruo/SceneHunter-front"],
     "details": "\n**関わったプロダクトの概要**\n\nゲームマスターが撮影した写真のヒントを元に、プレイヤーは同じ場所や構図を探し出しす。そしてゲームマスターの写真に最も似た写真を撮影したプレイヤーが勝利する。\n\n**チーム体制と役割**\n\n自分の役割はフロントエンド全般を担当した。Vite+Reactでの開発は初めての技術スタックだったため、公式ドキュメントやオンラインチュートリアルを参考にしながら学習を進めた。\n",
     "duration": "2024年8月"
   },
@@ -77,8 +86,7 @@
     "description": "Minecraftサーバーの情報を取得し、Discordに通知したり、Discordからコマンドを受け取ってサーバーを操作するBot。",
     "technologies": ["Python"],
     "imageUrl": "/portfolio/mcserverbot.png",
-    "link": "",
-    "github": "https://github.com/GenichiMaruo/MinecraftServerDiscordBot",
+    "github": ["https://github.com/GenichiMaruo/MinecraftServerDiscordBot"],
     "details": "Minecraftサーバーの情報を取得し、Discordに通知したり、Discordからコマンドを受け取ってサーバーを操作するBot。その他サーバー参加ポイントシステムがあり、ポイントを貯めることでゲーム内でのアイテム購入がDiscord上で可能。",
     "duration": "2024年2月"
   },
@@ -87,7 +95,7 @@
     "description": "2人対戦型のP2Pオンラインゲーム。CUIでありながらGUI風の操作感を目指し、通信遅延補正やマウス対応など高度な工夫を盛り込んだ。",
     "technologies": ["C", "P2P通信", "独自フレーム同期処理"],
     "imageUrl": "/portfolio/pushit.png",
-    "github": "https://github.com/GenichiMaruo/PushIt",
+    "github": ["https://github.com/GenichiMaruo/PushIt"],
     "details": "\n**関わったプロダクトの概要**\n\nソフトウェア工学演習の授業にて、2Dオンライン対戦ゲーム「PushIt」を開発した。P2P通信による対戦型ゲームで、中央の箱を相手陣地に押し込むことで勝敗が決まる。\n\n**授業内容と開発体制**\n\n仕様書（外部・内部・テスト）を作成後に実装を行う形式で、自分一人で開発を担当した。\n\n**やったこと**\n\n- プレイヤー間の通信ラグをフレーム番号で推定し、相手位置を補正\n- CUI上でも色やマウス入力に対応し、GUI風の操作体験を提供\n- メニュー画面を含む全体設計、仕様書の作成と実装のすべてを担当\n\n**成長したこと**\n\nP2P通信や予測処理といったネットワーク系の実装経験を積み、1人で仕様策定から開発、調整、完成まで一貫して行うスキルが身についた。UIの工夫により、CUIでも快適な操作性を実現した。\n\n**実績**\n\n授業内投票で100人以上の中から3位に選出。",
     "duration": "2023年7月",
     "award": "授業内投票 3位（100名以上中）"
@@ -97,8 +105,9 @@
     "description": "「革新的な次世代技術によるパーソナライズド広告の瞬時展開システム」と題して、デジタルサイネージ前の人物をカメラで認識して年齢、性別推定を行い、その判断によって適切な広告を表示するシステムを開発。",
     "technologies": ["Python", "React"],
     "imageUrl": "/portfolio/soityare1.png",
-    "link": "https://www.oit.ac.jp/labs/is/datascience/msl/soichalle/award.html",
-    "github": "",
+    "link": [
+      "https://www.oit.ac.jp/labs/is/datascience/msl/soichalle/award.html"
+    ],
     "details": "\n**関わったプロダクトの概要**\n\n「革新的な次世代技術によるパーソナライズド広告の瞬時展開システム」と題して、デジタルサイネージ前の人物をカメラで認識して年齢、性別推定を行い、その判断によって適切な広告を表示するシステムを開発し、大阪工業大学枚方キャンパスの学園祭で実証実験を行い、その有効性を評価した。\n\n**チーム体制と役割**\n\nチームでアイディア出し、プログラム作成、資料作成、学園祭準備、実証実験、発表などをそれぞれ分担しながら進めた。数ヶ月にわたり、何度も会議や進捗確認を行った。\n\n**やったこと**\n\nアイディア出し、プログラム作成全般と学園祭準備など。\n\n**成長したこと**\n\nチームでのアイディア出しや方向性の決定を通じて、個人開発では得られない協調性や意思決定のスキルを身につけた。また、メンバーと役割を分担しながら開発を進める中で、タスク管理や効果的なコミュニケーションの重要性を実感した。さらに、学園祭での実証実験を経て、ユーザー視点でのシステムの検証や改善の大切さを学ぶことができた。\n\n**実績**\n\n2023年度チャレンジコンテストにて最優秀賞を受賞した。\n",
     "duration": "2023年6月~2023年12月",
     "award": "最優秀賞"
@@ -108,28 +117,25 @@
     "description": "PythonのGUIライブラリを用いて、クラシックなSnakeゲームをチームで作成。シンプルながらもプレイ可能なゲームを実装した。",
     "technologies": ["Python", "Tkinter"],
     "imageUrl": "/portfolio/snakegame.png",
-    "github": "https://github.com/GenichiMaruo/SnakeGame",
+    "github": ["https://github.com/GenichiMaruo/SnakeGame"],
     "details": "\n**関わったプロダクトの概要**\n\n英語による情報技術Ⅰの授業にて、Pythonを用いたSnakeゲームを作成。Tkinterを使ってGUI上で操作可能なゲームを実装した。\n\n**チーム体制と役割**\n\n4人チームで開発を行い、自分は主にコード作成を担当した。\n\n**やったこと**\n\nゲームのロジック構築、画面描画、ユーザー操作への対応（キーボード入力）など、実装全般を担当。Tkinterを用いたGUI開発や、Pythonのクラス設計なども経験した。\n\n**成長したこと**\n\nPythonを使ったGUIアプリケーション開発の基礎を習得し、ゲームの動作やバグを確認しながら何度も改善を重ねる過程で、粘り強く開発を進める力が身についた。また、チームでの開発を通じて、コードの分担やコミュニケーションの重要性も学んだ。\n",
-    "duration": "2023年1月",
-    "award": ""
+    "duration": "2023年1月"
   },
   {
     "title": "Enigma 再現プログラム",
     "description": "第二次世界大戦時に使用された暗号機「エニグマ」の仕組みをPythonで再現。ローターや初期キーの設定によって暗号化・復号化が可能。",
     "technologies": ["Python"],
     "imageUrl": "/portfolio/enigma.png",
-    "github": "https://github.com/GenichiMaruo/Enigma",
+    "github": ["https://github.com/GenichiMaruo/Enigma"],
     "details": "\n**関わったプロダクトの概要**\n\n第二次世界大戦時にドイツ軍が使用していた暗号機「エニグマ」の動作をPythonで再現したプログラム。ローターによる文字変換をシミュレートし、暗号化・復号化のプロセスを体験できる。\n\n**構成と使い方**\n\n- `main.py`: テキストファイルを読み込み、暗号変換を行う（出力は `out.txt`）。\n- `main2.py`: 任意の文字列と初期キーを手入力して、即時変換。\n- `setrotor.py`: 任意のシード値によりローター設定ファイル `rotors.txt` を生成。\n\n**技術的特徴**\n\n- エニグマ特有のローターと反射板の仕組みを再現\n- ローターの初期化・順番・シードによって多様な暗号結果が得られる\n- GUI なしでも操作可能な軽量設計\n\n**成長したこと**\n\nエニグマの構造をコードとして抽象化・再現することで、暗号アルゴリズムに対する理解が深まった。小規模ながら、歴史的な技術を自作で体験できる設計力・実装力を養うことができた。",
-    "duration": "2022年4月",
-    "award": ""
+    "duration": "2022年4月"
   },
   {
     "title": "Minecraft Bot Contest 2021 (学内コンテスト)",
     "description": "Minecraftの敵モブであるゾンビを自動で倒すBotを作成し、その性能を競うコンテスト。",
     "technologies": ["Python"],
     "imageUrl": "/portfolio/mc-bot-contest.png",
-    "link": "",
-    "github": "https://github.com/GenichiMaruo/MinecraftBot",
+    "github": ["https://github.com/GenichiMaruo/MinecraftBot"],
     "details": "\n**関わったプロダクトの概要**\n\nMinecraftの敵モブであるゾンビを自動で倒すBotを作成し、その性能を競うコンテスト。\n\n**チーム体制と役割**\n\n自分の役割はプログラミング全般。ゲーム画面のキャプチャ映像をリアルタイムにカスケード分類器にかけてゾンビを判定し攻撃するためマウスカーソルの移動とキーボード入力命令を実行する。\n",
     "duration": "2022年3月",
     "award": "2位"
