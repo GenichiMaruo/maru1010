@@ -139,3 +139,47 @@ body,
   padding-top: env(safe-area-inset-top);
   background-clip: padding-box;
 }
+
+/* ダークモード用のパターン切り替え */
+.dark [style*="--tools-pattern-light"] {
+  background-image: var(--tools-pattern-dark) !important;
+}
+
+.dark [style*="--pattern-light"] {
+  background-image: var(--pattern-dark) !important;
+}
+
+/* ポートフォリオページの背景 */
+.portfolio-background {
+  background: linear-gradient(
+    135deg,
+    #f0f8ff 0%,
+    #e6f3ff 25%,
+    #dbeafe 50%,
+    #e0e7ff 100%
+  );
+  background-repeat: repeat;
+  background-size: 200px 200px;
+}
+
+.dark .portfolio-background {
+  background: linear-gradient(
+    135deg,
+    #0f172a 0%,
+    #1e293b 25%,
+    #334155 50%,
+    #475569 100%
+  );
+  background-repeat: repeat;
+  background-size: 200px 200px;
+}
+
+/* PICO-88ページ用のグリッドパターン */
+.bg-grid-pattern {
+  background-image: linear-gradient(
+      rgba(59, 130, 246, 0.1) 1px,
+      transparent 1px
+    ),
+    linear-gradient(90deg, rgba(59, 130, 246, 0.1) 1px, transparent 1px);
+  background-size: 20px 20px;
+}

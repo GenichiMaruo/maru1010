@@ -61,8 +61,12 @@ const TiptapRenderer: React.FC<TiptapRendererProps> = ({
         .tiptap-custom-styles h3 {
           margin-top: 1em;
           margin-bottom: 0.5em;
-          color: #e2e8f0; /* 薄いグレー、ダークモード向けの色かもしれません */
-          /* ライトモードでの表示も考慮する場合、CSS変数やダークモードセレクタでの調整が必要 */
+          color: #1f2937; /* ライトモード: dark gray */
+        }
+        .dark .tiptap-custom-styles h1,
+        .dark .tiptap-custom-styles h2,
+        .dark .tiptap-custom-styles h3 {
+          color: #e2e8f0; /* ダークモード: light gray */
         }
         /* 以下、提供されたスタイルをそのまま記述 */
         .tiptap-custom-styles ul {
@@ -136,18 +140,26 @@ const TiptapRenderer: React.FC<TiptapRendererProps> = ({
         }
         .tiptap-custom-styles blockquote {
           border-left: 3px solid #38bdf8; /* sky-500 */
-          color: #94a3b8; /* slate-400 */
+          color: #64748b; /* slate-500 for light mode */
           padding-left: 1em;
-          margin-left: 0; /* Tailwind proseのスタイルを打ち消す場合など */
+          margin-left: 0;
           font-style: italic;
         }
+        .dark .tiptap-custom-styles blockquote {
+          color: #94a3b8; /* slate-400 for dark mode */
+        }
         .tiptap-custom-styles pre {
-          background-color: #1e293b; /* slate-800 */
-          color: #e2e8f0; /* slate-200 */
-          border-radius: 0.375rem; /* rounded-md */
+          background-color: #f1f5f9; /* slate-100 for light mode */
+          color: #1e293b; /* slate-800 for light mode */
+          border-radius: 0.375rem;
           padding: 0.75em 1em;
-          border: 1px solid #334155; /* slate-700 */
-          overflow-x: auto; /* 横スクロール */
+          border: 1px solid #e2e8f0; /* slate-200 for light mode */
+          overflow-x: auto;
+        }
+        .dark .tiptap-custom-styles pre {
+          background-color: #1e293b; /* slate-800 for dark mode */
+          color: #e2e8f0; /* slate-200 for dark mode */
+          border: 1px solid #334155; /* slate-700 for dark mode */
         }
         /* 以下のスタイルは主に編集可能なエディタ向けですが、念のため含めます */
         .tiptap-editor-wrapper {

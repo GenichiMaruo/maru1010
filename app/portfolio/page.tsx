@@ -18,7 +18,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { generateGeometricPattern } from "@/utils/generatePattern";
 import projects from "./projects.json";
 import {
   Dialog,
@@ -28,6 +27,7 @@ import {
   DialogClose,
 } from "@/components/ui/dialog";
 import { FaLink, FaGithub } from "react-icons/fa";
+import { generatePattern } from "@/utils/generatePattern";
 
 import TiptapRenderer from "@/components/TiptapRenderer";
 
@@ -44,41 +44,41 @@ interface Project {
 }
 
 export default function Portfolio() {
-  const [patternSvg, setPatternSvg] = useState<string>("");
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+  const [backgroundPattern, setBackgroundPattern] = useState<string>("");
 
   useEffect(() => {
-    const patternOptions = {
-      size: 300,
-      colors: ["#f0f4f8", "#d9e2ec", "#bcccdc", "#9fb3c8"],
-      complexity: Math.random(),
-      contrast: Math.random(),
-    };
-    const svg = generateGeometricPattern(patternOptions);
-    setPatternSvg(svg);
+    // ライト/ダークモードの状態を検出
+    const isDark = document.documentElement.classList.contains("dark");
+    const pattern = generatePattern(isDark ? "dark" : "light");
+    const dataUrl = `data:image/svg+xml;base64,${btoa(pattern)}`;
+    setBackgroundPattern(dataUrl);
+
+    // ダークモード切り替えの監視
+    const observer = new MutationObserver(() => {
+      const isDarkNow = document.documentElement.classList.contains("dark");
+      const newPattern = generatePattern(isDarkNow ? "dark" : "light");
+      const newDataUrl = `data:image/svg+xml;base64,${btoa(newPattern)}`;
+      setBackgroundPattern(newDataUrl);
+    });
+
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["class"],
+    });
+
+    return () => observer.disconnect();
   }, []);
 
-  const backgroundStyle: React.CSSProperties = {
-    backgroundImage: `url('data:image/svg+xml;utf8,${encodeURIComponent(
-      patternSvg
-    )}')`,
-    backgroundColor: "#f0f4f8",
-    position: "relative",
-  };
-
-  const overlayStyle: React.CSSProperties = {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    width: "100%",
-    height: "100%",
-    backgroundColor: "rgba(138, 161, 230, 0.5)",
-    zIndex: 1,
-  };
-
   return (
-    <div className="min-h-screen flex flex-col" style={backgroundStyle}>
-      <div style={overlayStyle}></div>
+    <div
+      className="min-h-screen flex flex-col portfolio-background"
+      style={{
+        backgroundImage: backgroundPattern
+          ? `url(${backgroundPattern})`
+          : undefined,
+      }}
+    >
       <main className="flex-grow relative z-[2]">
         <div className="container mx-auto p-4 pt-24 pb-10">
           <h1 className="text-4xl md:text-5xl font-bold text-center mb-6 pb-3 bg-clip-text text-transparent leading-tight bg-gradient-to-r from-pink-500 via-purple-600 to-violet-500 hover:tracking-wide transition-all duration-300 ease-in-out [text-shadow:0_0_8px_rgba(236,72,153,0.3),_0_0_15px_rgba(139,92,246,0.2)]">
@@ -119,7 +119,7 @@ export default function Portfolio() {
         open={!!selectedProject}
         onOpenChange={() => setSelectedProject(null)}
       >
-        <DialogContent className="w-full max-w-5xl sm:max-w-2xl max-h-[90vh] overflow-y-auto bg-white dark:bg-gray-950 p-6 sm:p-8 rounded-lg shadow-xl">
+        <DialogContent className="w-full max-w-5xl sm:max-w-2xl max-h-[90vh] overflow-y-auto bg-white dark:bg-gray-900 p-6 sm:p-8 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700">
           {selectedProject && (
             <div>
               <DialogHeader className="mb-6 border-b dark:border-gray-700 pb-4">

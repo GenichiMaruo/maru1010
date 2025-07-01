@@ -41,10 +41,41 @@ export function generateGeometricPattern(options: PatternOptions): string {
       const height = baseHeight + Math.random() * heightVariation;
       const rotation = Math.random() * 360;
       const opacity = 0.2 + contrast * 0.8;
-      svg += `<rect x="${x}" y="${y}" width="${width}" height="${height}" fill="${color}" fill-opacity="${opacity}" transform="rotate(${rotation} ${x + width / 2} ${y + height / 2})" />`;
+      svg += `<rect x="${x}" y="${y}" width="${width}" height="${height}" fill="${color}" fill-opacity="${opacity}" transform="rotate(${rotation} ${
+        x + width / 2
+      } ${y + height / 2})" />`;
     }
   }
 
   svg += `</svg>`;
   return svg;
+}
+
+export function generatePattern(theme: "light" | "dark" = "light"): string {
+  const lightColors = [
+    "#f0f8ff", // 薄いブルー
+    "#e6f3ff", // より薄いブルー
+    "#dbeafe", // 青みがかった白
+    "#e0e7ff", // ラベンダーブルー
+    "#f3e8ff", // 薄い紫
+    "#fdf2f8", // 薄いピンク
+  ];
+
+  const darkColors = [
+    "#0f172a", // ダークブルー
+    "#1e293b", // スレートグレー
+    "#334155", // ミディアムグレー
+    "#475569", // ライトグレー
+    "#1e1b4b", // ダークインディゴ
+    "#312e81", // インディゴ
+  ];
+
+  const colors = theme === "light" ? lightColors : darkColors;
+
+  return generateGeometricPattern({
+    size: 200,
+    colors: colors,
+    complexity: 0.3,
+    contrast: theme === "light" ? 0.2 : 0.4,
+  });
 }
