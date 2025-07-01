@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { generateGeometricPattern } from "@/utils/generatePattern";
 import {
@@ -16,6 +16,23 @@ import CharacterCountTab from "@/components/tools/CharacterCountTab";
 import PresentationTimerTab from "@/components/tools/PresentationTimerTab";
 
 export default function ToolsPage() {
+  const [activeTab, setActiveTab] = useState("stopwatch");
+
+  // URLのハッシュからアクティブタブを取得
+  useEffect(() => {
+    const hash = window.location.hash.slice(1); // # を除去
+    const validTabs = ["stopwatch", "timer", "presentation", "charcount"];
+    if (hash && validTabs.includes(hash)) {
+      setActiveTab(hash);
+    }
+  }, []);
+
+  // タブ変更時にURLのハッシュを更新
+  const handleTabChange = (value: string) => {
+    setActiveTab(value);
+    const newUrl = `${window.location.pathname}#${value}`;
+    window.history.pushState(null, "", newUrl);
+  };
   useEffect(() => {
     const lightPatternOptions = {
       size: 300,
@@ -54,7 +71,8 @@ export default function ToolsPage() {
       <div className="absolute top-0 left-0 w-full h-full bg-blue-500/20 dark:bg-blue-900/40 z-[1]"></div>
       <div className="container mx-auto px-4 relative z-[2]">
         <Tabs
-          defaultValue="stopwatch"
+          value={activeTab}
+          onValueChange={handleTabChange}
           className="w-full flex flex-col items-center"
         >
           <div
