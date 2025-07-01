@@ -1,7 +1,7 @@
 // components/Header.tsx
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { FaHome } from "react-icons/fa";
+import { FaHome, FaMicrochip } from "react-icons/fa";
 import { FaFolder, FaToolbox } from "react-icons/fa6";
 import { ModeToggle } from "@/components/mode-toggle";
 
@@ -31,6 +31,16 @@ const Header = () => {
         >
           <FaFolder />
           <span className="hidden sm:block">Portfolio</span>
+        </Link>
+      </Button>
+      <Button asChild variant="link" className="p-2">
+        <Link
+          href="/pico88"
+          className="hover:text-blue-500 dark:hover:text-blue-400 transition-colors duration-200 flex items-center gap-1
+                     text-gray-700 dark:text-gray-200"
+        >
+          <FaMicrochip />
+          <span className="hidden sm:block">PICO-88</span>
         </Link>
       </Button>
       <Button asChild variant="link" className="p-2">

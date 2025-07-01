@@ -9,8 +9,9 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { FaFacebook, FaGithub } from "react-icons/fa";
+import { FaFacebook, FaGithub, FaPlay, FaMicrochip } from "react-icons/fa";
 import { FaXTwitter } from "react-icons/fa6";
+import Link from "next/link";
 
 export default function Home() {
   return (
@@ -88,6 +89,39 @@ export default function Home() {
                 </a>
               </Button>
             </CardFooter>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* PICO-88 CTA Section */}
+      <Card className="w-[90%] max-w-[700px] bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/70 dark:to-purple-900/70 my-6 hover:scale-105 transition-transform duration-300 ease-in-out border border-blue-200 dark:border-blue-700">
+        <CardContent className="p-6 text-center">
+          <div className="flex justify-center mb-4">
+            <div className="p-3 bg-blue-600 text-white rounded-full">
+              <FaMicrochip className="h-8 w-8" />
+            </div>
+          </div>
+          <CardTitle className="text-2xl mb-3 text-blue-800 dark:text-blue-200">
+            🎮 PICO-88 シミュレータ
+          </CardTitle>
+          <CardDescription className="text-gray-700 dark:text-gray-200 mb-4 text-base">
+            ブラウザで体験できる8ビットコンピュータ！
+            <br />
+            アセンブリ言語プログラミングとレトロコンピューティングを学ぼう
+          </CardDescription>
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <Button asChild className="bg-blue-600 hover:bg-blue-700 text-white">
+              <Link href="/pico88" className="flex items-center">
+                <FaPlay className="mr-2" />
+                詳細を見る
+              </Link>
+            </Button>
+            <Button asChild variant="outline" className="border-blue-600 text-blue-600 hover:bg-blue-50 dark:border-blue-300 dark:text-blue-300 dark:hover:bg-blue-900/40">
+              <a href="https://pico88.maru1010.com" target="_blank" rel="noopener noreferrer" className="flex items-center">
+                <FaMicrochip className="mr-2" />
+                今すぐ体験
+              </a>
+            </Button>
           </div>
         </CardContent>
       </Card>
