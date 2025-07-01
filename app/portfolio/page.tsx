@@ -45,35 +45,40 @@ interface Project {
 
 export default function Portfolio() {
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
-  const [backgroundPattern, setBackgroundPattern] = useState<string>('');
+  const [backgroundPattern, setBackgroundPattern] = useState<string>("");
 
   useEffect(() => {
     // ライト/ダークモードの状態を検出
-    const isDark = document.documentElement.classList.contains('dark');
-    const pattern = generatePattern(isDark ? 'dark' : 'light');
+    const isDark = document.documentElement.classList.contains("dark");
+    const pattern = generatePattern(isDark ? "dark" : "light");
     const dataUrl = `data:image/svg+xml;base64,${btoa(pattern)}`;
     setBackgroundPattern(dataUrl);
 
     // ダークモード切り替えの監視
     const observer = new MutationObserver(() => {
-      const isDarkNow = document.documentElement.classList.contains('dark');
-      const newPattern = generatePattern(isDarkNow ? 'dark' : 'light');
+      const isDarkNow = document.documentElement.classList.contains("dark");
+      const newPattern = generatePattern(isDarkNow ? "dark" : "light");
       const newDataUrl = `data:image/svg+xml;base64,${btoa(newPattern)}`;
       setBackgroundPattern(newDataUrl);
     });
 
     observer.observe(document.documentElement, {
       attributes: true,
-      attributeFilter: ['class']
+      attributeFilter: ["class"],
     });
 
     return () => observer.disconnect();
   }, []);
 
   return (
-    <div className="min-h-screen flex flex-col portfolio-background" style={{
-      backgroundImage: backgroundPattern ? `url(${backgroundPattern})` : undefined
-    }}>
+    <div
+      className="min-h-screen flex flex-col portfolio-background"
+      style={{
+        backgroundImage: backgroundPattern
+          ? `url(${backgroundPattern})`
+          : undefined,
+      }}
+    >
       <main className="flex-grow relative z-[2]">
         <div className="container mx-auto p-4 pt-24 pb-10">
           <h1 className="text-4xl md:text-5xl font-bold text-center mb-6 pb-3 bg-clip-text text-transparent leading-tight bg-gradient-to-r from-pink-500 via-purple-600 to-violet-500 hover:tracking-wide transition-all duration-300 ease-in-out [text-shadow:0_0_8px_rgba(236,72,153,0.3),_0_0_15px_rgba(139,92,246,0.2)]">

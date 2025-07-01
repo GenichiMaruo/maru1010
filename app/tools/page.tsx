@@ -29,20 +29,26 @@ export default function ToolsPage() {
       complexity: Math.random() * 0.3 + 0.3,
       contrast: Math.random() * 0.4 + 0.3,
     };
-    
+
     const lightSvg = generateGeometricPattern(lightPatternOptions);
     const darkSvg = generateGeometricPattern(darkPatternOptions);
-    
+
     // CSSカスタムプロパティとして設定
-    document.documentElement.style.setProperty('--tools-pattern-light', `url('data:image/svg+xml;utf8,${encodeURIComponent(lightSvg)}')`);
-    document.documentElement.style.setProperty('--tools-pattern-dark', `url('data:image/svg+xml;utf8,${encodeURIComponent(darkSvg)}')`);
+    document.documentElement.style.setProperty(
+      "--tools-pattern-light",
+      `url('data:image/svg+xml;utf8,${encodeURIComponent(lightSvg)}')`
+    );
+    document.documentElement.style.setProperty(
+      "--tools-pattern-dark",
+      `url('data:image/svg+xml;utf8,${encodeURIComponent(darkSvg)}')`
+    );
   }, []);
 
   return (
-    <div 
+    <div
       className="min-h-screen bg-indigo-100 dark:bg-gray-900 pt-24 pb-16 relative"
       style={{
-        backgroundImage: 'var(--tools-pattern-light)',
+        backgroundImage: "var(--tools-pattern-light)",
       }}
     >
       <div className="absolute top-0 left-0 w-full h-full bg-blue-500/20 dark:bg-blue-900/40 z-[1]"></div>

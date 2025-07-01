@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { FaHome } from "react-icons/fa";
-import { FaFolder, FaToolbox } from "react-icons/fa6"; 
+import { FaFolder, FaToolbox } from "react-icons/fa6";
 import { ModeToggle } from "@/components/mode-toggle";
 
 const Header = () => {
