@@ -110,14 +110,26 @@ export default function Home() {
             アセンブリ言語プログラミングとレトロコンピューティングを学ぼう
           </CardDescription>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
-            <Button asChild className="bg-blue-600 hover:bg-blue-700 text-white">
+            <Button
+              asChild
+              className="bg-blue-600 hover:bg-blue-700 text-white"
+            >
               <Link href="/pico88" className="flex items-center">
                 <FaPlay className="mr-2" />
                 詳細を見る
               </Link>
             </Button>
-            <Button asChild variant="outline" className="border-blue-600 text-blue-600 hover:bg-blue-50 dark:border-blue-300 dark:text-blue-300 dark:hover:bg-blue-900/40">
-              <a href="https://pico88.maru1010.com" target="_blank" rel="noopener noreferrer" className="flex items-center">
+            <Button
+              asChild
+              variant="outline"
+              className="border-blue-600 text-blue-600 hover:bg-blue-50 dark:border-blue-300 dark:text-blue-300 dark:hover:bg-blue-900/40"
+            >
+              <a
+                href="https://pico88.maru1010.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center"
+              >
                 <FaMicrochip className="mr-2" />
                 今すぐ体験
               </a>
