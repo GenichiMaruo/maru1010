@@ -56,6 +56,8 @@ import {
   MdOutlineArrowDownward,
 } from "react-icons/md"; // Added MdOutlineArrowDownward
 import { FaRegTrashCan } from "react-icons/fa6";
+import Link from "next/link";
+import { ExternalLink } from "lucide-react";
 
 // Tiptap imports
 import { useEditor, EditorContent } from "@tiptap/react";
@@ -938,12 +940,26 @@ export default function CharacterCountTab() {
 
   return (
     <Card className="w-full max-w-3xl mx-auto bg-slate-800/60 backdrop-blur-xl border border-slate-700/50 shadow-2xl rounded-2xl text-slate-50 flex flex-col gap-0 py-3">
-      <CardHeader className="px-6 pt-4 pb-2 flex justify-center items-center">
+      <CardHeader className="px-6 pt-4 pb-2 flex justify-center items-center relative">
         <FaKeyboard className="text-4xl text-sky-300/90 drop-shadow" />
         <CardTitle className="text-2xl md:text-3xl font-semibold text-slate-100 mx-2">
           文字数カウンター
         </CardTitle>
         <FaKeyboard className="text-4xl text-sky-300/90 drop-shadow" />
+
+        {/* Char Count Pro Link */}
+        <div className="absolute right-4 top-4">
+          <Link href="/tools/char-count-pro">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-sky-300 hover:text-sky-200 hover:bg-sky-500/20 border border-sky-400/30 hover:border-sky-300/50 transition-all duration-200"
+            >
+              <ExternalLink className="w-4 h-4 mr-1" />
+              Pro版
+            </Button>
+          </Link>
+        </div>
       </CardHeader>
       <CardContent className="space-y-3 px-4 md:px-6 py-3">
         <TiptapMenuBar editor={editor} />
