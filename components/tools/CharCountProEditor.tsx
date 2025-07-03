@@ -1,6 +1,12 @@
 "use client";
 
-import React, { useState, useRef, useCallback, useEffect } from "react";
+import React, {
+  useState,
+  useRef,
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+} from "react";
 import { useTheme } from "next-themes";
 import { useRouter } from "next/navigation";
 import { useEditor, EditorContent } from "@tiptap/react";
@@ -254,7 +260,14 @@ const VisibilityExtension = Extension.create<{
 
 export default function CharCountProEditor() {
   const { theme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
   const router = useRouter();
+
+  // Hydration対策：クライアントサイドでマウント完了を追跡
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const showParagraphMarkers = false;
   const [showNewlineMarkers, setShowNewlineMarkers] = useState(false);
   const [showFullWidthSpaces, setShowFullWidthSpaces] = useState(false);
@@ -289,6 +302,9 @@ export default function CharCountProEditor() {
     renameFile,
     exportFile,
     instantSave,
+    isSaving,
+    isRestoredFromStorage,
+    resetRestoredFlag,
   } = fileManager;
 
   // エディター設定（可視化機能を追加）
@@ -305,7 +321,7 @@ export default function CharCountProEditor() {
         showFullWidthSpaces: showFullWidthSpaces,
       }),
     ],
-    content: "<p></p>",
+    content: "<p></p>", // 初期値はシンプルに
     editorProps: {
       attributes: {
         class: "tiptap-editor",
@@ -322,6 +338,27 @@ export default function CharCountProEditor() {
 
   // エディター操作フック（エディター作成後）
   const editorOperations = useEditorOperations(editor);
+
+  // エディター初期化時にアクティブファイルの内容を設定
+  useEffect(() => {
+    if (editor && activeFile) {
+      // エディターが作成され、アクティブファイルが存在する場合は内容を設定
+      const currentContent = editor.getHTML();
+      if (currentContent !== activeFile.content) {
+        editor.commands.setContent(activeFile.content, false);
+      }
+    }
+  }, [editor, activeFile]); // エディターまたはアクティブファイルが変更された時に実行
+
+  // ローカルストレージから復元時の即座反映（同期的実行）
+  useLayoutEffect(() => {
+    if (editor && activeFile && isRestoredFromStorage) {
+      // 復元時は同期的に即座にエディター内容を設定
+      editor.commands.setContent(activeFile.content, false);
+      // フラグをリセットして一度だけ実行されるようにする
+      resetRestoredFlag();
+    }
+  }, [editor, activeFile, isRestoredFromStorage, resetRestoredFlag]);
 
   // アクティブファイル切り替え時にエディター内容を更新
   // タイマーを使用して遅延更新し、入力処理を妨げないようにする
@@ -385,6 +422,11 @@ export default function CharCountProEditor() {
     }
   }, [editor, showParagraphMarkers, showNewlineMarkers, showFullWidthSpaces]);
 
+  // Hydration対策：クライアントサイドでマウント完了を追跡
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   // VS Code風サイドバーリサイザー
   const handleResizeStart = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
@@ -420,9 +462,27 @@ export default function CharCountProEditor() {
     }
   };
 
-  // 基本統計計算
-  const stats = editor
-    ? calculateTextStats(editor.getText())
+  // アクティブファイルの内容から統計を計算（プレーンテキストに変換）
+  const getPlainTextFromHtml = useCallback((html: string): string => {
+    if (!html) return "";
+
+    // 簡単なHTMLタグ除去（より正確にテキストを抽出）
+    return html
+      .replace(/<\/p>/g, "\n")
+      .replace(/<br\s*\/?>/g, "\n")
+      .replace(/<\/div>/g, "\n")
+      .replace(/<\/li>/g, "\n")
+      .replace(/<[^>]*>/g, "")
+      .replace(/&nbsp;/g, " ")
+      .replace(/&lt;/g, "<")
+      .replace(/&gt;/g, ">")
+      .replace(/&amp;/g, "&")
+      .trim();
+  }, []);
+
+  // 基本統計計算（アクティブファイルの内容から直接計算）
+  const stats = activeFile
+    ? calculateTextStats(getPlainTextFromHtml(activeFile.content))
     : {
         characters: 0,
         charactersNoSpaces: 0,
@@ -438,6 +498,30 @@ export default function CharCountProEditor() {
 
   const targetProgress =
     targetLength > 0 ? (stats.characters / targetLength) * 100 : 0;
+
+  // ページ閉じる前やリロード前に確実に保存
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      // 即座に保存（遅延なし）
+      if (fileTabs.length > 0) {
+        try {
+          localStorage.setItem(
+            "char-count-pro-files",
+            JSON.stringify(fileTabs)
+          );
+          localStorage.setItem("char-count-pro-active-file", activeFileId);
+        } catch (error) {
+          console.warn("Failed to save on beforeunload:", error);
+        }
+      }
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
+  }, [fileTabs, activeFileId]);
 
   return (
     <div className="h-full flex bg-slate-50 dark:bg-slate-900">
@@ -466,7 +550,9 @@ export default function CharCountProEditor() {
                         }
                         className="h-6 w-6 p-0 text-slate-600 dark:text-slate-300"
                       >
-                        {theme === "dark" ? (
+                        {!mounted ? (
+                          <div className="w-3 h-3" />
+                        ) : theme === "dark" ? (
                           <Sun className="w-3 h-3" />
                         ) : (
                           <Moon className="w-3 h-3" />
@@ -539,7 +625,7 @@ export default function CharCountProEditor() {
                       value={file.name}
                       onChange={(e) => renameFile(file.id, e.target.value)}
                       className="bg-transparent border-none outline-none flex-1 text-sm"
-                      onBlur={() => instantSave(file.id)}
+                      onBlur={() => instantSave()}
                       onFocus={(e) => e.stopPropagation()}
                       onClick={(e) => e.stopPropagation()}
                     />
@@ -574,7 +660,39 @@ export default function CharCountProEditor() {
                 onToggleAdvancedStats={() =>
                   setShowAdvancedStats(!showAdvancedStats)
                 }
+                activeFileContent={activeFile?.content}
               />
+
+              {/* 保存状態 */}
+              <div className="mt-3 p-2 bg-slate-100 dark:bg-slate-800 rounded-md">
+                <div className="text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
+                  AUTO-SAVE
+                </div>
+                <div className="flex items-center gap-2 text-xs">
+                  <div
+                    className={`w-1.5 h-1.5 rounded-full ${
+                      isSaving
+                        ? "bg-orange-500 animate-pulse"
+                        : activeFile?.isDirty
+                        ? "bg-yellow-500"
+                        : "bg-green-500"
+                    }`}
+                  ></div>
+                  <span className="text-slate-700 dark:text-slate-300">
+                    {isSaving
+                      ? "Saving..."
+                      : activeFile?.isDirty
+                      ? "Modified"
+                      : "Saved"}
+                  </span>
+                </div>
+                <div className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                  Last:{" "}
+                  {mounted && activeFile?.lastSaved
+                    ? activeFile.lastSaved.toLocaleTimeString()
+                    : "--:--:--"}
+                </div>
+              </div>
 
               {/* エクスポートセクション */}
               <div className="mt-4 space-y-1.5">

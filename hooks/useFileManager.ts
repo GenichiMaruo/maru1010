@@ -1,4 +1,10 @@
-import { useState, useCallback } from "react";
+import {
+  useState,
+  useCallback,
+  useEffect,
+  useRef,
+  useLayoutEffect,
+} from "react";
 
 export interface FileTab {
   id: string;
@@ -8,18 +14,146 @@ export interface FileTab {
   lastSaved: Date;
 }
 
-export const useFileManager = () => {
-  const [fileTabs, setFileTabs] = useState<FileTab[]>([
-    {
+// ローカルストレージのキー
+const STORAGE_KEYS = {
+  FILES: "char-count-pro-files",
+  ACTIVE_FILE: "char-count-pro-active-file",
+};
+
+// ローカルストレージからファイルを復元
+const loadFilesFromStorage = (): { files: FileTab[]; activeFileId: string } => {
+  // SSRとHydration問題を防ぐため、windowオブジェクトの存在を確認
+  if (typeof window === "undefined") {
+    const defaultFile: FileTab = {
       id: "1",
       name: "Untitled",
       content: "",
       isDirty: false,
-      lastSaved: new Date(),
-    },
-  ]);
+      lastSaved: new Date(0), // 固定日時でHydration安全
+    };
+    return { files: [defaultFile], activeFileId: "1" };
+  }
+
+  try {
+    const savedFiles = localStorage.getItem(STORAGE_KEYS.FILES);
+    const savedActiveFileId = localStorage.getItem(STORAGE_KEYS.ACTIVE_FILE);
+
+    if (savedFiles) {
+      const files = JSON.parse(savedFiles).map(
+        (file: Omit<FileTab, "lastSaved"> & { lastSaved: string }) => ({
+          ...file,
+          lastSaved: new Date(file.lastSaved),
+        })
+      );
+
+      const activeFileId =
+        savedActiveFileId &&
+        files.find((f: FileTab) => f.id === savedActiveFileId)
+          ? savedActiveFileId
+          : files[0]?.id || "1";
+
+      return { files, activeFileId };
+    }
+  } catch (error) {
+    console.warn("Failed to load files from localStorage:", error);
+  }
+
+  // デフォルトのファイル
+  const defaultFile: FileTab = {
+    id: "1",
+    name: "Untitled",
+    content: "",
+    isDirty: false,
+    lastSaved: new Date(0), // 固定日時でHydration安全
+  };
+
+  return { files: [defaultFile], activeFileId: "1" };
+};
+
+// ローカルストレージにファイルを保存
+const saveFilesToStorage = (files: FileTab[], activeFileId: string) => {
+  // SSRとHydration問題を防ぐため、windowオブジェクトの存在を確認
+  if (typeof window === "undefined") return;
+
+  try {
+    localStorage.setItem(STORAGE_KEYS.FILES, JSON.stringify(files));
+    localStorage.setItem(STORAGE_KEYS.ACTIVE_FILE, activeFileId);
+  } catch (error) {
+    console.warn("Failed to save files to localStorage:", error);
+  }
+};
+
+export const useFileManager = () => {
+  // デフォルトファイルで初期化（SSR対応）
+  const defaultFile: FileTab = {
+    id: "1",
+    name: "Untitled",
+    content: "",
+    isDirty: false,
+    lastSaved: new Date(0), // 固定日時でHydration安全
+  };
+
+  // 初期状態（SSR安全）
+  const [fileTabs, setFileTabs] = useState<FileTab[]>([defaultFile]);
   const [activeFileId, setActiveFileId] = useState("1");
-  // const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const autoSaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const [isInitialized, setIsInitialized] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [isRestoredFromStorage, setIsRestoredFromStorage] = useState(false);
+
+  // クライアントサイドでマウント後に即座にローカルストレージから復元
+  // useLayoutEffectを使用して同期的に実行し、より高速な復元を実現
+  useLayoutEffect(() => {
+    if (typeof window !== "undefined" && !isInitialized) {
+      const { files, activeFileId } = loadFilesFromStorage();
+      setFileTabs(files);
+      setActiveFileId(activeFileId);
+      setIsInitialized(true);
+      setIsRestoredFromStorage(true);
+    }
+  }, [isInitialized]);
+
+  // ファイルの状態が変更されたときに自動保存
+  useEffect(() => {
+    // 初期化完了前や初回レンダリング時のスキップ
+    if (!isInitialized || fileTabs.length === 0) return;
+
+    // dirtyなファイルが存在する場合のみ保存処理を実行
+    const hasDirtyFiles = fileTabs.some((file) => file.isDirty);
+    if (!hasDirtyFiles) return;
+
+    // 保存中状態に設定
+    setIsSaving(true);
+
+    // 少し遅延して保存（頻繁な保存を防ぐ）
+    if (autoSaveTimeoutRef.current) {
+      clearTimeout(autoSaveTimeoutRef.current);
+    }
+
+    autoSaveTimeoutRef.current = setTimeout(() => {
+      try {
+        saveFilesToStorage(fileTabs, activeFileId);
+        // 保存成功時にすべてのファイルのisDirtyをfalseに更新
+        setFileTabs((prev) =>
+          prev.map((file) => ({
+            ...file,
+            isDirty: false,
+            lastSaved: new Date(),
+          }))
+        );
+      } catch (error) {
+        console.warn("Failed to save files:", error);
+      } finally {
+        setIsSaving(false);
+      }
+    }, 200); // 200ms（0.2秒）後に保存（より高速化）
+
+    return () => {
+      if (autoSaveTimeoutRef.current) {
+        clearTimeout(autoSaveTimeoutRef.current);
+      }
+    };
+  }, [fileTabs, activeFileId, isInitialized]);
 
   // 現在のアクティブファイル
   const activeFile =
@@ -41,11 +175,11 @@ export const useFileManager = () => {
       name: `Untitled-${newId.slice(-4)}`,
       content: "",
       isDirty: false,
-      lastSaved: new Date(),
+      lastSaved: isInitialized ? new Date() : new Date(0),
     };
     setFileTabs((prev) => [...prev, newFile]);
     setActiveFileId(newId);
-  }, []);
+  }, [isInitialized]);
 
   const closeFile = useCallback(
     (fileId: string) => {
@@ -58,7 +192,7 @@ export const useFileManager = () => {
             name: "Untitled",
             content: "",
             isDirty: false,
-            lastSaved: new Date(),
+            lastSaved: isInitialized ? new Date() : new Date(0),
           };
           return [newFile];
         }
@@ -72,7 +206,7 @@ export const useFileManager = () => {
         }
       }
     },
-    [activeFileId, fileTabs]
+    [activeFileId, fileTabs, isInitialized]
   );
 
   const renameFile = useCallback((fileId: string, newName: string) => {
@@ -83,39 +217,36 @@ export const useFileManager = () => {
     );
   }, []);
 
-  // 自動保存機能
-  const saveFile = useCallback(
-    (fileId: string) => {
-      const file = fileTabs.find((f) => f.id === fileId);
-      if (file) {
-        localStorage.setItem(
-          `char-count-pro-file-${fileId}`,
-          JSON.stringify({
-            name: file.name,
-            content: file.content,
-            lastSaved: new Date().toISOString(),
-          })
-        );
+  // 復元フラグをリセットする関数
+  const resetRestoredFlag = useCallback(() => {
+    setIsRestoredFromStorage(false);
+  }, []);
+  const saveAllFiles = useCallback(() => {
+    if (!isInitialized) return;
 
-        setFileTabs((prev) =>
-          prev.map((f) =>
-            f.id === fileId
-              ? { ...f, isDirty: false, lastSaved: new Date() }
-              : f
-          )
-        );
-      }
-    },
-    [fileTabs]
-  );
+    try {
+      saveFilesToStorage(fileTabs, activeFileId);
+      setFileTabs((prev) =>
+        prev.map((file) => ({
+          ...file,
+          isDirty: false,
+          lastSaved: new Date(),
+        }))
+      );
+    } catch (error) {
+      console.warn("Failed to save files:", error);
+    }
+  }, [fileTabs, activeFileId, isInitialized]);
 
-  // 即時保存
-  const instantSave = useCallback(
-    (fileId: string) => {
-      saveFile(fileId);
-    },
-    [saveFile]
-  );
+  // 即時保存（手動保存用）
+  const instantSave = useCallback(() => {
+    if (autoSaveTimeoutRef.current) {
+      clearTimeout(autoSaveTimeoutRef.current);
+    }
+    setIsSaving(true);
+    saveAllFiles();
+    setIsSaving(false);
+  }, [saveAllFiles]);
 
   // ファイルのエクスポート
   const exportFile = useCallback(
@@ -211,9 +342,12 @@ export const useFileManager = () => {
     addNewFile,
     closeFile,
     renameFile,
-    saveFile,
+    saveAllFiles,
     instantSave,
     exportFile,
     importFile,
+    isSaving,
+    isRestoredFromStorage,
+    resetRestoredFlag,
   };
 };

@@ -18,6 +18,7 @@ interface StatisticsPanelProps {
   targetLength: number;
   showAdvancedStats: boolean;
   onToggleAdvancedStats: () => void;
+  activeFileContent?: string; // アクティブファイルの内容
 }
 
 export const StatisticsPanel: React.FC<StatisticsPanelProps> = ({
@@ -25,6 +26,7 @@ export const StatisticsPanel: React.FC<StatisticsPanelProps> = ({
   targetLength,
   showAdvancedStats,
   onToggleAdvancedStats,
+  activeFileContent,
 }) => {
   const [cachedStats, setCachedStats] = useState<TextStats>({
     characters: 0,
@@ -64,11 +66,30 @@ export const StatisticsPanel: React.FC<StatisticsPanelProps> = ({
 
   const statsTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
+  // HTMLをプレーンテキストに変換
+  const getPlainTextFromHtml = useCallback((html: string): string => {
+    if (!html) return "";
+
+    return html
+      .replace(/<\/p>/g, "\n")
+      .replace(/<br\s*\/?>/g, "\n")
+      .replace(/<\/div>/g, "\n")
+      .replace(/<\/li>/g, "\n")
+      .replace(/<[^>]*>/g, "")
+      .replace(/&nbsp;/g, " ")
+      .replace(/&lt;/g, "<")
+      .replace(/&gt;/g, ">")
+      .replace(/&amp;/g, "&")
+      .trim();
+  }, []);
+
   // 統計計算の更新
   const updateStats = useCallback(() => {
-    if (!editor) return;
+    // activeFileContentが提供されている場合はそれを使用、そうでなければエディターから取得
+    const text = activeFileContent
+      ? getPlainTextFromHtml(activeFileContent)
+      : editor?.getText() || "";
 
-    const text = editor.getText();
     const newStats = calculateTextStats(text);
     const newLanguageStats = calculateLanguageStats(text);
     const newAdvancedStats = calculateAdvancedStats(text);
@@ -76,7 +97,7 @@ export const StatisticsPanel: React.FC<StatisticsPanelProps> = ({
     setCachedStats(newStats);
     setCachedLanguageStats(newLanguageStats);
     setCachedAdvancedStats(newAdvancedStats);
-  }, [editor]);
+  }, [editor, activeFileContent, getPlainTextFromHtml]);
 
   // エディター内容変更時の統計更新（遅延実行）
   useEffect(() => {
@@ -101,6 +122,13 @@ export const StatisticsPanel: React.FC<StatisticsPanelProps> = ({
       }
     };
   }, [editor, updateStats]);
+
+  // activeFileContentが変更された時の統計更新（即座に実行）
+  useEffect(() => {
+    if (activeFileContent !== undefined) {
+      updateStats();
+    }
+  }, [activeFileContent, updateStats]);
 
   const stats = cachedStats;
   const languageStats = cachedLanguageStats;
