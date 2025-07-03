@@ -5,12 +5,9 @@ import { useTheme } from "next-themes";
 import { useRouter } from "next/navigation";
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
-import { HardBreak } from "@tiptap/extension-hard-break";
 import TextStyle from "@tiptap/extension-text-style";
 import Underline from "@tiptap/extension-underline";
 import Strike from "@tiptap/extension-strike";
-import Blockquote from "@tiptap/extension-blockquote";
-import CodeBlock from "@tiptap/extension-code-block";
 import { Extension } from "@tiptap/core";
 import { Decoration, DecorationSet } from "prosemirror-view";
 import { Plugin, PluginKey } from "prosemirror-state";
@@ -108,12 +105,24 @@ const FontSizeExtension = Extension.create<{
     return {
       setFontSize:
         (fontSize) =>
-        ({ chain }) => {
+        ({ chain, state }) => {
+          // 選択範囲がある場合のみフォントサイズを適用
+          const { from, to } = state.selection;
+          if (from === to) {
+            // 選択範囲がない場合は何もしない
+            return false;
+          }
           return chain().setMark("textStyle", { fontSize }).run();
         },
       unsetFontSize:
         () =>
-        ({ chain }) => {
+        ({ chain, state }) => {
+          // 選択範囲がある場合のみフォントサイズを解除
+          const { from, to } = state.selection;
+          if (from === to) {
+            // 選択範囲がない場合は何もしない
+            return false;
+          }
           return chain()
             .setMark("textStyle", { fontSize: null })
             .removeEmptyTextStyle()
@@ -164,27 +173,48 @@ const VisibilityExtension = Extension.create<{
                 }
               }
 
-              // 改行マーカー
-              if (
-                options.showNewlineMarkers &&
-                node.type.name === "hardBreak"
-              ) {
-                decorations.push(
-                  Decoration.widget(
-                    pos + 1,
-                    () => {
-                      const markerElement = document.createElement("span");
-                      markerElement.className = "hard-break-marker";
-                      markerElement.textContent = "↵";
-                      return markerElement;
-                    },
-                    {
-                      side: 1,
-                      marks: [],
-                      key: `hardbreak-marker-${pos}`,
-                    }
-                  )
-                );
+              // 改行マーカー（hardBreak と段落の終わり）
+              if (options.showNewlineMarkers) {
+                // hardBreak（Shift+Enter）の場合
+                if (node.type.name === "hardBreak") {
+                  decorations.push(
+                    Decoration.widget(
+                      pos,
+                      () => {
+                        const markerElement = document.createElement("span");
+                        markerElement.className = "hard-break-marker";
+                        markerElement.textContent = "↲";
+                        return markerElement;
+                      },
+                      {
+                        side: -1,
+                        marks: [],
+                        key: `hardbreak-marker-${pos}`,
+                      }
+                    )
+                  );
+                }
+
+                // 段落の終わり（通常のEnter）の場合
+                if (node.type.name === "paragraph" && node.content.size > 0) {
+                  const endPos = pos + node.nodeSize - 1;
+                  decorations.push(
+                    Decoration.widget(
+                      endPos,
+                      () => {
+                        const markerElement = document.createElement("span");
+                        markerElement.className = "paragraph-end-marker";
+                        markerElement.textContent = "↲";
+                        return markerElement;
+                      },
+                      {
+                        side: 1,
+                        marks: [],
+                        key: `paragraph-end-marker-${endPos}`,
+                      }
+                    )
+                  );
+                }
               }
 
               // 段落マーカー
@@ -222,7 +252,7 @@ const VisibilityExtension = Extension.create<{
   },
 });
 
-export default function CharCountProEditorRefactored() {
+export default function CharCountProEditor() {
   const { theme, setTheme } = useTheme();
   const router = useRouter();
   const showParagraphMarkers = false;
@@ -261,70 +291,75 @@ export default function CharCountProEditorRefactored() {
     instantSave,
   } = fileManager;
 
-  // エディター設定
+  // エディター設定（可視化機能を追加）
   const editor = useEditor({
     extensions: [
-      StarterKit.configure({
-        hardBreak: false,
-        bulletList: {
-          HTMLAttributes: {
-            class: "prose-list prose-bullet-list",
-          },
-        },
-        orderedList: {
-          HTMLAttributes: {
-            class: "prose-list prose-ordered-list",
-          },
-        },
-      }),
-      HardBreak.extend({
-        addKeyboardShortcuts() {
-          return {
-            "Shift-Enter": () => this.editor.commands.setHardBreak(),
-          };
-        },
-      }),
+      StarterKit,
       TextStyle,
-      FontSizeExtension,
       Underline,
       Strike,
-      Blockquote,
-      CodeBlock,
+      FontSizeExtension,
       VisibilityExtension.configure({
-        showParagraphMarkers,
-        showNewlineMarkers,
-        showFullWidthSpaces,
+        showParagraphMarkers: showParagraphMarkers,
+        showNewlineMarkers: showNewlineMarkers,
+        showFullWidthSpaces: showFullWidthSpaces,
       }),
     ],
-    content: activeFile.content,
+    content: "<p></p>",
     editorProps: {
       attributes: {
-        class: `prose prose-slate max-w-none focus:outline-none min-h-[calc(100vh-200px)] p-6 text-${currentFontSize}px`,
+        class: "tiptap-editor",
+        style: `line-height: 1.6; padding: 2rem; min-height: calc(100vh - 200px);`,
+        spellcheck: "false",
       },
     },
     onUpdate: ({ editor }) => {
       const content = editor.getHTML();
       updateFileContent(activeFileId, content);
-
-      // 自動保存
-      setTimeout(() => {
-        instantSave(activeFileId);
-      }, 300);
     },
     immediatelyRender: false,
-    shouldRerenderOnTransaction: false,
-    enableInputRules: true,
-    enablePasteRules: true,
   });
 
   // エディター操作フック（エディター作成後）
   const editorOperations = useEditorOperations(editor);
 
   // アクティブファイル切り替え時にエディター内容を更新
+  // タイマーを使用して遅延更新し、入力処理を妨げないようにする
+  const previousFileIdRef = useRef<string>(activeFileId);
+  const updateTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
   useEffect(() => {
     if (editor && activeFile) {
-      editor.commands.setContent(activeFile.content);
+      const isFileChanged = previousFileIdRef.current !== activeFileId;
+
+      if (isFileChanged) {
+        // 前のタイマーをクリア
+        if (updateTimeoutRef.current) {
+          clearTimeout(updateTimeoutRef.current);
+        }
+
+        // 少し遅延してから内容を更新（入力処理を妨げないため）
+        updateTimeoutRef.current = setTimeout(() => {
+          if (editor && activeFile) {
+            const currentContent = editor.getHTML();
+            const isContentDifferent = currentContent !== activeFile.content;
+
+            if (isContentDifferent) {
+              editor.commands.setContent(activeFile.content, false);
+            }
+          }
+        }, 100); // 100ms遅延
+
+        previousFileIdRef.current = activeFileId;
+      }
     }
+
+    // クリーンアップ
+    return () => {
+      if (updateTimeoutRef.current) {
+        clearTimeout(updateTimeoutRef.current);
+      }
+    };
   }, [editor, activeFile, activeFileId]);
 
   // エディター更新時に可視化設定を更新
@@ -929,40 +964,62 @@ export default function CharCountProEditorRefactored() {
 
           {/* 中央: フォントサイズ */}
           <div className="flex items-center gap-2">
-            <Select
-              value={currentFontSize}
-              onValueChange={(value) => {
-                setCurrentFontSize(value);
-                editor?.chain().focus().setFontSize(value).run();
-              }}
-            >
-              <SelectTrigger className="w-20 h-6 text-xs bg-white dark:bg-slate-900">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="12">12px</SelectItem>
-                <SelectItem value="14">14px</SelectItem>
-                <SelectItem value="16">16px</SelectItem>
-                <SelectItem value="18">18px</SelectItem>
-                <SelectItem value="20">20px</SelectItem>
-                <SelectItem value="24">24px</SelectItem>
-              </SelectContent>
-            </Select>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div>
+                    <Select
+                      value={currentFontSize}
+                      onValueChange={(value) => {
+                        setCurrentFontSize(value);
+                        // 選択範囲がある場合のみフォントサイズを適用
+                        if (editor) {
+                          const { from, to } = editor.state.selection;
+                          if (from !== to) {
+                            editor.chain().focus().setFontSize(value).run();
+                          }
+                        }
+                      }}
+                    >
+                      <SelectTrigger className="w-20 h-6 text-xs bg-white dark:bg-slate-900">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="12">12px</SelectItem>
+                        <SelectItem value="14">14px</SelectItem>
+                        <SelectItem value="16">16px</SelectItem>
+                        <SelectItem value="18">18px</SelectItem>
+                        <SelectItem value="20">20px</SelectItem>
+                        <SelectItem value="24">24px</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent>Font Size (Select text first)</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           </div>
 
           {/* 右側: 統計とターゲット */}
           <div className="flex items-center gap-3 text-xs">
-            <div className="flex items-center gap-1">
-              <span className="text-slate-600 dark:text-slate-400">
+            <div className="flex items-center gap-2">
+              <span className="text-slate-600 dark:text-slate-400 font-medium">
                 Target:
               </span>
-              <input
-                type="number"
-                value={targetLength}
-                onChange={(e) => setTargetLength(Number(e.target.value))}
-                className="w-16 h-6 px-1 text-xs border border-slate-200 dark:border-slate-700 rounded bg-white dark:bg-slate-900"
-                placeholder="0"
-              />
+              <div className="relative">
+                <input
+                  type="number"
+                  value={targetLength || ""}
+                  onChange={(e) => setTargetLength(Number(e.target.value) || 0)}
+                  className="w-20 h-7 px-2 text-xs border border-slate-200 dark:border-slate-700 rounded-md bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent"
+                  placeholder="0"
+                  min="0"
+                  max="999999"
+                />
+                <span className="absolute right-2 top-1/2 transform -translate-y-1/2 text-xs text-slate-400 pointer-events-none">
+                  chars
+                </span>
+              </div>
             </div>
             <div className="flex items-center gap-3">
               <span className="text-blue-600 dark:text-blue-400 font-medium">
@@ -1147,19 +1204,17 @@ export default function CharCountProEditorRefactored() {
         <div className="flex-1 overflow-hidden">
           <EditorContent
             editor={editor}
-            className="h-full prose max-w-none focus-within:ring-0 dark:prose-invert overflow-y-auto overflow-x-hidden bg-white dark:bg-slate-900"
+            className="h-full overflow-y-auto overflow-x-hidden bg-white dark:bg-slate-900"
           />
         </div>
       </div>
 
       {/* CSS for special character highlighting and list styles */}
       <style jsx global>{`
-        .ProseMirror {
+        /* TipTapエディターのスタイル */
+        .tiptap-editor {
           height: 100%;
-          padding: 2rem;
           outline: none;
-          font-size: ${currentFontSize}px;
-          line-height: 1.7;
           background-color: white;
           word-wrap: break-word;
           word-break: break-word;
@@ -1168,11 +1223,61 @@ export default function CharCountProEditorRefactored() {
           max-width: 100%;
           box-sizing: border-box;
           overflow-x: hidden;
+          font-size: 16px; /* デフォルトフォントサイズを固定 */
         }
 
-        .dark .ProseMirror {
+        .dark .tiptap-editor {
           background-color: #0f172a;
           color: #f8fafc;
+        }
+
+        /* 段落のスペース処理を確実に */
+        .tiptap-editor p {
+          white-space: pre-wrap;
+          margin: 0.75em 0;
+          line-height: inherit;
+        }
+
+        .tiptap-editor p:first-child {
+          margin-top: 0;
+        }
+
+        .tiptap-editor p:last-child {
+          margin-bottom: 0;
+        }
+
+        /* リスト処理 */
+        .tiptap-editor ul,
+        .tiptap-editor ol {
+          padding-left: 1.5rem;
+          margin: 0.75em 0;
+        }
+
+        .tiptap-editor li {
+          margin: 0.25em 0;
+        }
+
+        /* その他の要素 */
+        .tiptap-editor h1,
+        .tiptap-editor h2,
+        .tiptap-editor h3,
+        .tiptap-editor h4,
+        .tiptap-editor h5,
+        .tiptap-editor h6 {
+          margin: 1em 0 0.5em 0;
+          line-height: 1.3;
+        }
+
+        .tiptap-editor blockquote {
+          border-left: 3px solid #d1d5db;
+          padding-left: 1rem;
+          margin: 1em 0;
+          color: #6b7280;
+        }
+
+        .dark .tiptap-editor blockquote {
+          border-left-color: #4b5563;
+          color: #9ca3af;
         }
 
         /* 長い単語・URLの強制改行 */
@@ -1270,6 +1375,21 @@ export default function CharCountProEditorRefactored() {
           padding: 0 2px !important;
         }
 
+        /* 段落終了マーカー */
+        .paragraph-end-marker {
+          color: #6b7280 !important;
+          font-size: 12px !important;
+          font-weight: bold !important;
+          margin-left: 2px !important;
+          opacity: 0.6 !important;
+          user-select: none !important;
+          pointer-events: none !important;
+          display: inline-block !important;
+          background-color: rgba(107, 114, 128, 0.1) !important;
+          border-radius: 2px !important;
+          padding: 0 2px !important;
+        }
+
         /* 段落マーカー */
         .paragraph-marker {
           color: #9ca3af !important;
@@ -1295,6 +1415,11 @@ export default function CharCountProEditorRefactored() {
         }
 
         .dark .hard-break-marker {
+          color: #9ca3af !important;
+          background-color: rgba(156, 163, 175, 0.2) !important;
+        }
+
+        .dark .paragraph-end-marker {
           color: #9ca3af !important;
           background-color: rgba(156, 163, 175, 0.2) !important;
         }
