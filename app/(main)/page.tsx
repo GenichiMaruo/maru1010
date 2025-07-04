@@ -8,7 +8,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { CoinTossAvatar } from "@/components/CoinTossAvatar";
 import { FaFacebook, FaGithub, FaPlay, FaMicrochip } from "react-icons/fa";
 import { FaXTwitter } from "react-icons/fa6";
 import Link from "next/link";
@@ -22,10 +22,7 @@ export default function Home() {
       <Card className="w-[90%] max-w-[700px] bg-white/90 dark:bg-gray-900/90 my-10 hover:scale-105 transition-transform duration-300 ease-in-out mt-24 pt-6 border border-gray-200 dark:border-gray-700">
         <CardContent className="flex flex-col md:flex-row items-center p-4">
           <div className="flex justify-center p-4 mb-4 md:mb-0 md:mx-6 max-w-xs">
-            <Avatar className="w-32 h-32 border-4 border-blue-500 dark:border-blue-400">
-              <AvatarImage src="/avatar.png" alt="Profile Picture" />
-              <AvatarFallback>GM</AvatarFallback>
-            </Avatar>
+            <CoinTossAvatar />
           </div>
           <div className="w-full">
             <div className="text-center md:text-left">

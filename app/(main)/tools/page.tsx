@@ -63,12 +63,12 @@ export default function ToolsPage() {
 
   return (
     <div
-      className="min-h-screen bg-indigo-100 dark:bg-gray-900 pt-24 pb-16 relative"
+      className="min-h-screen bg-indigo-100 dark:bg-gray-900 pt-24 pb-16 relative transition-colors duration-300 ease-in-out"
       style={{
         backgroundImage: "var(--tools-pattern-light)",
       }}
     >
-      <div className="absolute top-0 left-0 w-full h-full bg-blue-500/20 dark:bg-blue-900/40 z-[1]"></div>
+      <div className="absolute top-0 left-0 w-full h-full bg-blue-500/20 dark:bg-blue-900/40 z-[1] transition-colors duration-300 ease-in-out"></div>
       <div className="container mx-auto px-4 relative z-[2]">
         <Tabs
           value={activeTab}

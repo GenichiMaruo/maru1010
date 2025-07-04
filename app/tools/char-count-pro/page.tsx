@@ -33,7 +33,7 @@ export default function CharCountProPage() {
   }, []);
 
   return (
-    <div className="h-screen bg-cyan-50 dark:bg-slate-900 relative overflow-hidden">
+    <div className="h-screen bg-cyan-50 dark:bg-slate-900 relative overflow-hidden transition-colors duration-300 ease-in-out">
       {/* Full Screen Editor */}
       <div className="relative z-[2] h-full">
         <CharCountProEditor />

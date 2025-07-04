@@ -72,7 +72,7 @@ export default function Portfolio() {
 
   return (
     <div
-      className="min-h-screen flex flex-col portfolio-background"
+      className="min-h-screen flex flex-col portfolio-background transition-colors duration-300 ease-in-out"
       style={{
         backgroundImage: backgroundPattern
           ? `url(${backgroundPattern})`
