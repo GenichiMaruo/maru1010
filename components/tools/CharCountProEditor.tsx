@@ -371,9 +371,17 @@ export default function CharCountProEditorNew() {
         {/* エディター本体 */}
         <div className="flex-1 relative bg-white dark:bg-slate-900">
           {/* プレビューと分割表示 */}
-          <div className={`flex h-full ${isPreviewVisible ? "divide-x divide-slate-200 dark:divide-slate-700" : ""}`}>
+          <div
+            className={`flex h-full ${
+              isPreviewVisible
+                ? "divide-x divide-slate-200 dark:divide-slate-700"
+                : ""
+            }`}
+          >
             {/* エディター */}
-            <div className={`${isPreviewVisible ? "w-1/2" : "w-full"} relative`}>
+            <div
+              className={`${isPreviewVisible ? "w-1/2" : "w-full"} relative`}
+            >
               <EditorContent
                 editor={editor}
                 className="h-full overflow-y-auto prose prose-slate dark:prose-invert max-w-none"
@@ -386,7 +394,9 @@ export default function CharCountProEditorNew() {
                 <div
                   className="prose prose-slate dark:prose-invert max-w-none"
                   dangerouslySetInnerHTML={{
-                    __html: marked(getPlainTextFromHtml(activeFile?.content || "")),
+                    __html: marked(
+                      getPlainTextFromHtml(activeFile?.content || "")
+                    ),
                   }}
                 />
               </div>
@@ -563,30 +573,30 @@ export default function CharCountProEditorNew() {
         .statistics-scrollbar::-webkit-scrollbar {
           width: 6px;
         }
-        
+
         .statistics-scrollbar::-webkit-scrollbar-track {
           background: rgba(148, 163, 184, 0.1);
           border-radius: 3px;
         }
-        
+
         .statistics-scrollbar::-webkit-scrollbar-thumb {
           background: rgba(148, 163, 184, 0.3);
           border-radius: 3px;
           transition: background 0.2s ease;
         }
-        
+
         .statistics-scrollbar::-webkit-scrollbar-thumb:hover {
           background: rgba(148, 163, 184, 0.5);
         }
-        
+
         .dark .statistics-scrollbar::-webkit-scrollbar-track {
           background: rgba(71, 85, 105, 0.1);
         }
-        
+
         .dark .statistics-scrollbar::-webkit-scrollbar-thumb {
           background: rgba(71, 85, 105, 0.4);
         }
-        
+
         .dark .statistics-scrollbar::-webkit-scrollbar-thumb:hover {
           background: rgba(71, 85, 105, 0.6);
         }
@@ -595,9 +605,9 @@ export default function CharCountProEditorNew() {
         .statistics-resizer {
           position: relative;
         }
-        
+
         .statistics-resizer::before {
-          content: '';
+          content: "";
           position: absolute;
           left: 50%;
           top: 50%;
@@ -609,12 +619,12 @@ export default function CharCountProEditorNew() {
           opacity: 0;
           transition: opacity 0.2s ease;
         }
-        
+
         .statistics-resizer:hover::before,
         .statistics-resizer.resizing::before {
           opacity: 1;
         }
-        
+
         .dark .statistics-resizer::before {
           background: rgba(203, 213, 225, 0.4);
         }
