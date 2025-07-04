@@ -30,13 +30,11 @@ import {
   FaKeyboard,
   FaExpandArrowsAlt,
 } from "react-icons/fa";
-import {
-  MdOutlineSubdirectoryArrowLeft,
-} from "react-icons/md";
+import { MdOutlineSubdirectoryArrowLeft } from "react-icons/md";
 
 interface ToolbarProps {
   editor: Editor | null;
-  
+
   // Modal states
   isCodeBlockMenuVisible: boolean;
   setIsCodeBlockMenuVisible: (visible: boolean) => void;
@@ -46,16 +44,16 @@ interface ToolbarProps {
   setIsPreviewVisible: (visible: boolean) => void;
   isShortcutsVisible: boolean;
   setIsShortcutsVisible: (visible: boolean) => void;
-  
+
   // Visibility settings
   showFullWidthSpaces: boolean;
   setShowFullWidthSpaces: (show: boolean) => void;
   showNewlineMarkers: boolean;
   setShowNewlineMarkers: (show: boolean) => void;
-  
+
   // Link handlers
   onLinkClick: () => void;
-  
+
   // Statistics
   stats: {
     characters: number;
@@ -107,7 +105,7 @@ export function Toolbar({
   };
 
   const handleMathInsert = () => {
-    const equation = prompt('Enter LaTeX equation (e.g., E = mc^2):');
+    const equation = prompt("Enter LaTeX equation (e.g., E = mc^2):");
     if (equation) {
       editor?.chain().focus().insertContent(`$$${equation}$$`).run();
     }
@@ -115,7 +113,7 @@ export function Toolbar({
 
   const handleUnlink = () => {
     if (editor) {
-      editor.chain().focus().extendMarkRange('link').unsetLink().run();
+      editor.chain().focus().extendMarkRange("link").unsetLink().run();
     }
   };
 
@@ -171,7 +169,9 @@ export function Toolbar({
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => editor?.chain().focus().toggleUnderline().run()}
+                  onClick={() =>
+                    editor?.chain().focus().toggleUnderline().run()
+                  }
                   className={`h-6 w-6 p-0 rounded-sm ${
                     editor?.isActive("underline")
                       ? "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300"
@@ -214,7 +214,9 @@ export function Toolbar({
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => editor?.chain().focus().toggleBulletList().run()}
+                  onClick={() =>
+                    editor?.chain().focus().toggleBulletList().run()
+                  }
                   className={`h-6 w-6 p-0 rounded-sm ${
                     editor?.isActive("bulletList")
                       ? "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300"
@@ -234,7 +236,9 @@ export function Toolbar({
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => editor?.chain().focus().toggleOrderedList().run()}
+                  onClick={() =>
+                    editor?.chain().focus().toggleOrderedList().run()
+                  }
                   className={`h-6 w-6 p-0 rounded-sm ${
                     editor?.isActive("orderedList")
                       ? "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300"
@@ -309,7 +313,9 @@ export function Toolbar({
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => editor?.chain().focus().toggleBlockquote().run()}
+                  onClick={() =>
+                    editor?.chain().focus().toggleBlockquote().run()
+                  }
                   className={`h-6 w-6 p-0 rounded-sm ${
                     editor?.isActive("blockquote")
                       ? "bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300"
@@ -329,7 +335,9 @@ export function Toolbar({
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => editor?.chain().focus().setHorizontalRule().run()}
+                  onClick={() =>
+                    editor?.chain().focus().setHorizontalRule().run()
+                  }
                   className="h-6 w-6 p-0 rounded-sm hover:bg-slate-100 dark:hover:bg-slate-800"
                 >
                   <FaMinus className="w-3 h-3" />
@@ -393,7 +401,9 @@ export function Toolbar({
                 </Button>
               </TooltipTrigger>
               <TooltipContent>
-                {editor?.isActive("table") ? "Table Operations" : "Insert Table"}
+                {editor?.isActive("table")
+                  ? "Table Operations"
+                  : "Insert Table"}
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>

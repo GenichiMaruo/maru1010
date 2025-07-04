@@ -11,18 +11,8 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { StatisticsPanel } from "../StatisticsPanel";
-import {
-  FaPlus,
-  FaTimes,
-  FaFileImport,
-} from "react-icons/fa";
-import {
-  Menu,
-  Home,
-  Sun,
-  Moon,
-  ChevronLeft,
-} from "lucide-react";
+import { FaPlus, FaTimes, FaFileImport } from "react-icons/fa";
+import { Menu, Home, Sun, Moon, ChevronLeft } from "lucide-react";
 import { Editor } from "@tiptap/react";
 import { FileTab } from "@/hooks/useFileManager";
 
@@ -33,12 +23,12 @@ interface SidebarProps {
   setSidebarCollapsed: (collapsed: boolean) => void;
   isResizing: boolean;
   handleResizeStart: (e: React.MouseEvent) => void;
-  
+
   // Statistics state
   statisticsHeight: number;
   isStatisticsResizing: boolean;
   handleStatisticsResizeStart: (e: React.MouseEvent) => void;
-  
+
   // File management
   fileTabs: FileTab[];
   activeFileId: string;
@@ -50,7 +40,7 @@ interface SidebarProps {
   exportFile: (file: FileTab, format?: "txt" | "md" | "json") => void;
   instantSave: () => void;
   handleFileImport: (event: React.ChangeEvent<HTMLInputElement>) => void;
-  
+
   // Editor and stats
   editor: Editor | null;
   targetLength: number;

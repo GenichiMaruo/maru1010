@@ -17,13 +17,13 @@ export function useLinkModal(editor: Editor | null) {
 
   const openLinkModal = useCallback(() => {
     if (!editor) return;
-    
+
     const { from, to } = editor.state.selection;
     const selectedText = editor.state.doc.textBetween(from, to);
-    
+
     // 既存のリンクがある場合は編集
     const currentLink = editor.getAttributes("link").href;
-    
+
     if (currentLink) {
       // 既存リンクを編集
       setLinkModalData({
@@ -46,7 +46,7 @@ export function useLinkModal(editor: Editor | null) {
         isEditing: false,
       });
     }
-    
+
     setIsLinkModalVisible(true);
   }, [editor]);
 

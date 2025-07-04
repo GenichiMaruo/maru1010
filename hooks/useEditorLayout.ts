@@ -69,7 +69,7 @@ export function useEditorLayout() {
     isStatisticsResizing,
     resizeRef,
     statisticsResizeRef,
-    
+
     // Handlers
     handleResizeStart,
     handleStatisticsResizeStart,
