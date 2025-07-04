@@ -60,6 +60,12 @@ export function SplitEditorPane({
   showNewlineMarkers = false,
   showFullWidthSpaces = false,
 }: SplitEditorPaneProps) {
+  console.log("🔧 SplitEditorPane props:", {
+    paneId: pane.id,
+    hasOnTabReorder: !!onTabReorder,
+    hasOnTabMove: !!onTabMove,
+    isMainPane: pane.id === "main",
+  });
   // ドラッグ&ドロップのステート
   const [draggedTabIndex, setDraggedTabIndex] = useState<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
@@ -73,11 +79,41 @@ export function SplitEditorPane({
     ? files.find((f) => f.id === pane.activeFileId) || null
     : null;
 
+  // 存在しないファイルIDをクリーンアップ
+  const validFileIds = pane.fileIds.filter((id) =>
+    files.some((f) => f.id === id)
+  );
+  if (validFileIds.length !== pane.fileIds.length) {
+    console.log("🧹 Cleaning up invalid file IDs:", {
+      before: pane.fileIds,
+      after: validFileIds,
+      removed: pane.fileIds.filter((id) => !validFileIds.includes(id)),
+    });
+    // 無効なファイルIDがある場合は、validFileIdsで更新
+    // ただし、これは副作用なので、useEffectで処理する必要がある
+  }
+
+  // デバッグ: ペインファイルの順序を確認
+  console.log(
+    "📁 PaneFiles for",
+    pane.id,
+    ":",
+    paneFiles.map((f) => ({ id: f.id, name: f.name }))
+  );
+  console.log("🗂️ Pane fileIds order:", pane.fileIds);
+  console.log("✅ Valid fileIds:", validFileIds);
+
   // ドラッグ開始
   const handleDragStart = (e: React.DragEvent, index: number) => {
     const file = paneFiles[index];
     if (!file) return;
 
+    console.log("🔥 Drag start:", {
+      paneId: pane.id,
+      index,
+      fileId: file.id,
+      isMainPane: pane.id === "main",
+    });
     setDraggedTabIndex(index);
     e.dataTransfer.effectAllowed = "move";
 
@@ -102,7 +138,24 @@ export function SplitEditorPane({
     // タブのドラッグ&ドロップの場合のみ処理
     if (hasTabData && !hasFiles) {
       e.dataTransfer.dropEffect = "move";
-      if (draggedTabIndex !== null && draggedTabIndex !== index) {
+
+      // 同一ペイン内のドラッグの場合は、位置交換可能なタブにハイライト
+      if (draggedTabIndex !== null) {
+        // ドラッグ中のタブと異なる位置であれば常にハイライト（先頭との交換も含む）
+        if (draggedTabIndex !== index) {
+          console.log("Drag over (same pane):", {
+            paneId: pane.id,
+            draggedTabIndex,
+            targetIndex: index,
+          });
+          setDragOverIndex(index);
+        }
+      } else {
+        // 異なるペイン間のドラッグの場合は常にドラッグオーバー表示
+        console.log("Drag over (cross pane):", {
+          targetPane: pane.id,
+          targetIndex: index,
+        });
         setDragOverIndex(index);
       }
     }
@@ -159,7 +212,14 @@ export function SplitEditorPane({
 
     // タブのドラッグ&ドロップの場合のみ処理
     if (hasTabData && !hasFiles) {
-      if (draggedTabIndex !== null && draggedTabIndex !== index) {
+      // 同一ペイン内のドラッグの場合は、位置交換可能なタブにハイライト
+      if (draggedTabIndex !== null) {
+        // ドラッグ中のタブと異なる位置であれば常にハイライト（先頭との交換も含む）
+        if (draggedTabIndex !== index) {
+          setDragOverIndex(index);
+        }
+      } else {
+        // 異なるペイン間のドラッグの場合は常にドラッグオーバー表示
         setDragOverIndex(index);
       }
     }
@@ -173,6 +233,7 @@ export function SplitEditorPane({
   // ドロップ（タブ上）
   const handleDrop = (e: React.DragEvent, dropIndex: number) => {
     e.preventDefault();
+    e.stopPropagation(); // イベントの伝播を停止
 
     // データ転送の種類をチェック
     const hasTabData = e.dataTransfer.types.includes("application/json");
@@ -187,14 +248,48 @@ export function SplitEditorPane({
           const dragData = JSON.parse(dragDataStr);
           const { fileId, sourcePane, sourceIndex } = dragData;
 
+          console.log("🎯 Tab drop:", {
+            fileId,
+            sourcePane,
+            targetPane: pane.id,
+            sourceIndex,
+            dropIndex,
+            isMainPane: pane.id === "main",
+            isSamePane: sourcePane === pane.id,
+          });
+
           if (sourcePane === pane.id) {
             // 同一ペイン内でのタブ並び替え
             if (sourceIndex !== dropIndex && onTabReorder) {
+              console.log(
+                "✅ Same pane reorder:",
+                sourceIndex,
+                "→",
+                dropIndex,
+                "| First tab exchange allowed:",
+                dropIndex === 0,
+                "| Main pane:",
+                pane.id === "main"
+              );
               onTabReorder(sourceIndex, dropIndex);
+            } else {
+              console.log("❌ Same pane reorder blocked:", {
+                sourceIndex,
+                dropIndex,
+                hasOnTabReorder: !!onTabReorder,
+              });
             }
           } else {
             // 異なるペイン間でのタブ移動
             if (onTabMove) {
+              console.log(
+                "Cross-pane move:",
+                sourcePane,
+                "→",
+                pane.id,
+                "at index",
+                dropIndex
+              );
               onTabMove(sourcePane, pane.id, fileId, dropIndex);
             }
           }
@@ -205,6 +300,7 @@ export function SplitEditorPane({
             draggedTabIndex !== dropIndex &&
             onTabReorder
           ) {
+            console.log("Fallback reorder:", draggedTabIndex, "→", dropIndex);
             onTabReorder(draggedTabIndex, dropIndex);
           }
         }
@@ -216,11 +312,18 @@ export function SplitEditorPane({
           draggedTabIndex !== dropIndex &&
           onTabReorder
         ) {
+          console.log(
+            "Error fallback reorder:",
+            draggedTabIndex,
+            "→",
+            dropIndex
+          );
           onTabReorder(draggedTabIndex, dropIndex);
         }
       }
     }
 
+    // 状態をリセット
     setDraggedTabIndex(null);
     setDragOverIndex(null);
     setIsDragOverPane(false);
@@ -401,9 +504,7 @@ export function SplitEditorPane({
                       ? "bg-white dark:bg-slate-900 text-slate-900 dark:text-white"
                       : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-700"
                   } ${draggedTabIndex === index ? "opacity-50 scale-95" : ""} ${
-                    dragOverIndex === index &&
-                    draggedTabIndex !== null &&
-                    draggedTabIndex !== index
+                    dragOverIndex === index && draggedTabIndex !== index
                       ? "border-l-4 border-l-blue-500 dark:border-l-blue-400 bg-blue-50/50 dark:bg-blue-900/20 transform translate-x-1 shadow-lg"
                       : ""
                   }`}
@@ -428,7 +529,8 @@ export function SplitEditorPane({
                     </svg>
                   </div>
 
-                  {paneFiles.length > 1 && (
+                  {/* 閉じるボタン - メインペインでは常に表示、サブペインではファイルが複数ある場合のみ表示 */}
+                  {(pane.id === "main" || paneFiles.length > 1) && (
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
@@ -526,21 +628,19 @@ export function SplitEditorPane({
             </svg>
           </Button>
 
-          {/* 閉じるボタン（メインペイン以外） */}
-          {pane.id !== "main" && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={(e) => {
-                e.stopPropagation();
-                onClose();
-              }}
-              className="p-1 h-6 w-6 text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200"
-              title="ペインを閉じる"
-            >
-              ✕
-            </Button>
-          )}
+          {/* 閉じるボタン（すべてのペインで表示） */}
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={(e) => {
+              e.stopPropagation();
+              onClose();
+            }}
+            className="p-1 h-6 w-6 text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200"
+            title="ペインを閉じる"
+          >
+            ✕
+          </Button>
         </div>
       </div>
 

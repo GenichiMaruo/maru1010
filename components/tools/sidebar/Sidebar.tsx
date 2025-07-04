@@ -21,10 +21,9 @@ import {
   ChevronUp,
   ChevronDown,
   Globe,
-  ExternalLink,
 } from "lucide-react";
 import { Editor } from "@tiptap/react";
-import { FileTab, EditorWindow } from "@/hooks/useFileManager";
+import { FileTab } from "@/hooks/useFileManager";
 import { SplitLayout, EditorPane } from "@/hooks/useEditorLayout";
 
 interface SidebarProps {
@@ -53,11 +52,6 @@ interface SidebarProps {
   handleFileImport: (event: React.ChangeEvent<HTMLInputElement>) => void;
   onLatexExport: () => void;
   reorderFiles: (fromIndex: number, toIndex: number) => void;
-
-  // Window management
-  editorWindows: EditorWindow[];
-  createWindow: () => string;
-  assignFileToWindow: (windowId: string, fileId: string) => void;
 
   // Split layout management
   splitLayout: SplitLayout;
@@ -98,16 +92,8 @@ export function Sidebar({
   handleFileImport,
   onLatexExport,
   reorderFiles,
-  editorWindows,
-  createWindow,
-  assignFileToWindow,
-  splitLayout,
   activePaneId,
-  setActivePaneId,
   assignFileToPane,
-  removeFileFromPane,
-  setActiveFileInPane,
-  getAllPanes,
   editor,
   targetLength,
   showAdvancedStats,
@@ -218,9 +204,9 @@ export function Sidebar({
   // ファイルダブルクリック処理（アクティブペインで開く）
   const handleFileDoubleClick = useCallback(
     (fileId: string) => {
-      if (activePaneId) {
-        assignFileToPane(activePaneId, fileId);
-      }
+      // アクティブペインが存在する場合はそこに、存在しない場合はメインペインに割り当て
+      const targetPaneId = activePaneId || "main";
+      assignFileToPane(targetPaneId, fileId);
     },
     [activePaneId, assignFileToPane]
   );
@@ -278,15 +264,6 @@ export function Sidebar({
       setSelectedFiles(new Set());
     }
   }, [selectedFiles, fileTabs.length, closeFile]);
-
-  // ウィンドウへのファイルドロップ処理
-  const handleFileDropToWindow = useCallback(
-    (fileId: string) => {
-      const windowId = createWindow();
-      assignFileToWindow(windowId, fileId);
-    },
-    [createWindow, assignFileToWindow]
-  );
 
   // キーボードショートカット
   useEffect(() => {
@@ -489,15 +466,6 @@ export function Sidebar({
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={createWindow}
-                  className="h-5 w-5 p-0 text-slate-600 dark:text-slate-300"
-                  title={t.newWindow}
-                >
-                  <ExternalLink className="w-2.5 h-2.5" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
                   onClick={addNewFile}
                   className="h-5 w-5 p-0 text-slate-600 dark:text-slate-300"
                 >
@@ -544,16 +512,6 @@ export function Sidebar({
                 {file.isDirty && (
                   <div className="w-1.5 h-1.5 bg-orange-500 rounded-full"></div>
                 )}
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleFileDropToWindow(file.id);
-                  }}
-                  className="opacity-0 group-hover:opacity-100 hover:text-blue-500 transition-opacity"
-                  title={t.newWindow}
-                >
-                  <ExternalLink className="w-2.5 h-2.5" />
-                </button>
                 {fileTabs.length > 1 && (
                   <button
                     onClick={(e) => {

@@ -91,12 +91,9 @@ export function useEditorLayout() {
 
   const closePane = useCallback(
     (paneId: string) => {
-      if (paneId === "main") return; // メインペインは閉じられない
-
       setSplitLayout((currentLayout) => {
         const closePaneRecursive = (
-          layout: SplitLayout,
-          parent?: SplitLayout
+          layout: SplitLayout
         ): SplitLayout | null => {
           if (layout.type === "split" && layout.children) {
             const newChildren = layout.children
@@ -104,7 +101,7 @@ export function useEditorLayout() {
                 if (child.type === "pane" && child.pane?.id === paneId) {
                   return null; // このペインを削除
                 }
-                return closePaneRecursive(child, layout) || child;
+                return closePaneRecursive(child) || child;
               })
               .filter(Boolean) as SplitLayout[];
 
@@ -123,6 +120,7 @@ export function useEditorLayout() {
         };
 
         const result = closePaneRecursive(currentLayout);
+        // すべてのペインが削除された場合、メインペインを作成
         return (
           result || {
             id: "root",
@@ -132,9 +130,29 @@ export function useEditorLayout() {
         );
       });
 
-      // アクティブペインが閉じられた場合、メインペインをアクティブにする
+      // アクティブペインが閉じられた場合、残っているペインを探してアクティブにする
       if (activePaneId === paneId) {
-        setActivePaneId("main");
+        setTimeout(() => {
+          setSplitLayout((currentLayout) => {
+            const allPanesRecursive = (layout: SplitLayout): EditorPane[] => {
+              if (layout.type === "pane" && layout.pane) {
+                return [layout.pane];
+              }
+              if (layout.type === "split" && layout.children) {
+                return layout.children.flatMap(allPanesRecursive);
+              }
+              return [];
+            };
+
+            const allPanes = allPanesRecursive(currentLayout);
+            if (allPanes.length > 0) {
+              setActivePaneId(allPanes[0].id);
+            } else {
+              setActivePaneId("main");
+            }
+            return currentLayout;
+          });
+        }, 0);
       }
     },
     [activePaneId]
@@ -143,6 +161,32 @@ export function useEditorLayout() {
   const assignFileToPane = useCallback(
     (paneId: string, fileId: string | null) => {
       setSplitLayout((currentLayout) => {
+        // ペインが存在するかチェック
+        const findPaneRecursive = (layout: SplitLayout): boolean => {
+          if (layout.type === "pane" && layout.pane?.id === paneId) {
+            return true;
+          }
+          if (layout.type === "split" && layout.children) {
+            return layout.children.some(findPaneRecursive);
+          }
+          return false;
+        };
+
+        // ペインが存在しない場合、新しいペインを作成
+        if (!findPaneRecursive(currentLayout)) {
+          const newPane: EditorPane = {
+            id: paneId,
+            fileIds: fileId ? [fileId] : [],
+            activeFileId: fileId,
+          };
+
+          return {
+            id: "root",
+            type: "pane",
+            pane: newPane,
+          };
+        }
+
         const assignFileRecursive = (layout: SplitLayout): SplitLayout => {
           if (layout.type === "pane" && layout.pane?.id === paneId) {
             const currentPane = layout.pane;
@@ -178,6 +222,9 @@ export function useEditorLayout() {
 
         return assignFileRecursive(currentLayout);
       });
+
+      // ペインをアクティブにする
+      setActivePaneId(paneId);
     },
     []
   );
@@ -243,15 +290,51 @@ export function useEditorLayout() {
 
   const reorderTabsInPane = useCallback(
     (paneId: string, fromIndex: number, toIndex: number) => {
+      // 無効な操作をガード
+      if (fromIndex === toIndex) {
+        console.log("� Same index, skipping reorder:", {
+          paneId,
+          fromIndex,
+          toIndex,
+        });
+        return;
+      }
+
+      console.log("�🔄 reorderTabsInPane called:", {
+        paneId,
+        fromIndex,
+        toIndex,
+        isMainPane: paneId === "main",
+      });
+
       setSplitLayout((currentLayout) => {
         const reorderTabsRecursive = (layout: SplitLayout): SplitLayout => {
           if (layout.type === "pane" && layout.pane?.id === paneId) {
             const currentPane = layout.pane;
             const newFileIds = [...currentPane.fileIds];
 
+            // インデックスの妥当性をチェック
+            if (
+              fromIndex < 0 ||
+              fromIndex >= newFileIds.length ||
+              toIndex < 0 ||
+              toIndex >= newFileIds.length
+            ) {
+              console.warn("🚫 Invalid indices:", {
+                fromIndex,
+                toIndex,
+                length: newFileIds.length,
+              });
+              return layout;
+            }
+
+            console.log("📝 Before reorder:", newFileIds);
+
             // 配列要素を移動
             const [movedItem] = newFileIds.splice(fromIndex, 1);
             newFileIds.splice(toIndex, 0, movedItem);
+
+            console.log("📝 After reorder:", newFileIds);
 
             return {
               ...layout,
@@ -267,7 +350,9 @@ export function useEditorLayout() {
           return layout;
         };
 
-        return reorderTabsRecursive(currentLayout);
+        const result = reorderTabsRecursive(currentLayout);
+        console.log("📋 Layout updated for pane:", paneId);
+        return result;
       });
     },
     []
@@ -434,6 +519,54 @@ export function useEditorLayout() {
     [statisticsHeight]
   );
 
+  const cleanupInvalidFileIds = useCallback((validFileIds: string[]) => {
+    setSplitLayout((currentLayout) => {
+      const cleanupRecursive = (layout: SplitLayout): SplitLayout => {
+        if (layout.type === "pane" && layout.pane) {
+          const currentPane = layout.pane;
+          const cleanFileIds = currentPane.fileIds.filter((id) =>
+            validFileIds.includes(id)
+          );
+          const cleanActiveFileId = cleanFileIds.includes(
+            currentPane.activeFileId || ""
+          )
+            ? currentPane.activeFileId
+            : cleanFileIds[0] || null;
+
+          if (
+            cleanFileIds.length !== currentPane.fileIds.length ||
+            cleanActiveFileId !== currentPane.activeFileId
+          ) {
+            console.log("🧹 Cleanup pane", currentPane.id, ":", {
+              before: currentPane.fileIds,
+              after: cleanFileIds,
+              activeFileBefore: currentPane.activeFileId,
+              activeFileAfter: cleanActiveFileId,
+            });
+
+            return {
+              ...layout,
+              pane: {
+                ...currentPane,
+                fileIds: cleanFileIds,
+                activeFileId: cleanActiveFileId,
+              },
+            };
+          }
+        }
+        if (layout.type === "split" && layout.children) {
+          return {
+            ...layout,
+            children: layout.children.map(cleanupRecursive),
+          };
+        }
+        return layout;
+      };
+
+      return cleanupRecursive(currentLayout);
+    });
+  }, []);
+
   return {
     // State
     sidebarWidth,
@@ -465,5 +598,6 @@ export function useEditorLayout() {
     getAllPanes,
     updateSplitSizes,
     findPane,
+    cleanupInvalidFileIds,
   };
 }

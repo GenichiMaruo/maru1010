@@ -21,7 +21,6 @@ import { common, createLowlight } from "lowlight";
 // Custom components and hooks
 import { Sidebar } from "./sidebar/Sidebar";
 import { Toolbar } from "./toolbar/Toolbar";
-import { FloatingWindow } from "./FloatingWindow";
 import { SplitLayoutRenderer } from "./SplitLayoutRenderer";
 import LinkModal from "./LinkModal";
 import LaTeXExportModal from "./LaTeXExportModal";
@@ -94,13 +93,6 @@ export default function CharCountProEditor() {
     exportFile,
     importFile,
     reorderFiles,
-    editorWindows,
-    createWindow,
-    closeWindow,
-    assignFileToWindow,
-    updateWindowPosition,
-    updateWindowSize,
-    toggleWindowMinimize,
     instantSave,
     isSaving,
     isRestoredFromStorage,
@@ -129,7 +121,7 @@ export default function CharCountProEditor() {
     moveTabBetweenPanes,
     getAllPanes,
     updateSplitSizes,
-    findPane,
+    cleanupInvalidFileIds,
   } = layout;
 
   // エディター設定
@@ -244,6 +236,12 @@ export default function CharCountProEditor() {
       editor.view.dispatch(editor.state.tr);
     }
   }, [editor, showNewlineMarkers, showFullWidthSpaces]);
+
+  // 無効なファイルIDのクリーンアップ
+  useEffect(() => {
+    const validFileIds = fileTabs.map((file) => file.id);
+    cleanupInvalidFileIds(validFileIds);
+  }, [fileTabs, cleanupInvalidFileIds]);
 
   // ファイルインポート処理
   const handleFileImport = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -412,9 +410,6 @@ export default function CharCountProEditor() {
         handleFileImport={handleFileImport}
         onLatexExport={handleLatexExport}
         reorderFiles={reorderFiles}
-        editorWindows={editorWindows}
-        createWindow={createWindow}
-        assignFileToWindow={assignFileToWindow}
         splitLayout={splitLayout}
         activePaneId={activePaneId}
         setActivePaneId={setActivePaneId}
@@ -626,25 +621,6 @@ export default function CharCountProEditor() {
         content={activeFile?.content || ""}
         filename={activeFile?.name || "document"}
       />
-
-      {/* フローティングウィンドウ */}
-      {editorWindows.map((window) => {
-        const windowFile = window.fileId
-          ? fileTabs.find((f) => f.id === window.fileId) || null
-          : null;
-        return (
-          <FloatingWindow
-            key={window.id}
-            window={window}
-            file={windowFile}
-            onClose={closeWindow}
-            onMinimize={toggleWindowMinimize}
-            onUpdatePosition={updateWindowPosition}
-            onUpdateSize={updateWindowSize}
-            onContentChange={updateFileContent}
-          />
-        );
-      })}
 
       {/* カスタムスタイル */}
       <style jsx global>{`
