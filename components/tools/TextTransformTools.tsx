@@ -88,8 +88,7 @@ export function TextTransformTools({
     }
   };
 
-  if (!editor) return null;
-
+  // editorがnullでもボタンは表示する（他のツールバーボタンと同じ動作）
   return (
     <div className={`flex items-center gap-1 ${className || ""}`}>
       {/* Case Conversion Dropdown */}
@@ -97,11 +96,12 @@ export function TextTransformTools({
         <Tooltip>
           <DropdownMenu>
             <TooltipTrigger asChild>
-              <DropdownMenuTrigger asChild>
+              <DropdownMenuTrigger asChild disabled={!editor}>
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-6 w-6 p-0 hover:bg-slate-100 dark:hover:bg-slate-700"
+                  disabled={!editor}
+                  className="h-6 w-6 p-0 hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-50"
                 >
                   <FaLanguage className="w-3.5 h-3.5" />
                 </Button>
@@ -141,8 +141,9 @@ export function TextTransformTools({
             <Button
               variant="ghost"
               size="sm"
+              disabled={!editor}
               onClick={() => setIsCommentModalOpen(true)}
-              className="h-6 w-6 p-0 hover:bg-slate-100 dark:hover:bg-slate-700"
+              className="h-6 w-6 p-0 hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-50"
             >
               <FaRegComments className="w-3.5 h-3.5" />
             </Button>
@@ -158,8 +159,9 @@ export function TextTransformTools({
             <Button
               variant="ghost"
               size="sm"
+              disabled={!editor}
               onClick={handleRemoveNewlines}
-              className="h-6 w-6 p-0 hover:bg-slate-100 dark:hover:bg-slate-700"
+              className="h-6 w-6 p-0 hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-50"
             >
               <FaMinus className="w-3.5 h-3.5" />
             </Button>
@@ -174,8 +176,9 @@ export function TextTransformTools({
             <Button
               variant="ghost"
               size="sm"
+              disabled={!editor}
               onClick={handleClearFormatting}
-              className="h-6 w-6 p-0 hover:bg-slate-100 dark:hover:bg-slate-700"
+              className="h-6 w-6 p-0 hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-50"
             >
               <FaEraser className="w-3.5 h-3.5" />
             </Button>
@@ -191,8 +194,9 @@ export function TextTransformTools({
             <Button
               variant="ghost"
               size="sm"
+              disabled={!editor}
               onClick={handleCopyToClipboard}
-              className="h-6 w-6 p-0 hover:bg-slate-100 dark:hover:bg-slate-700"
+              className="h-6 w-6 p-0 hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-50"
             >
               {copied ? (
                 <FaCheck className="w-3.5 h-3.5 text-green-600" />

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useLayoutEffect } from "react";
 import { Editor } from "@tiptap/react";
 import { Button } from "@/components/ui/button";
 import {
@@ -44,6 +44,7 @@ import {
   FaEye,
   FaKeyboard,
   FaEllipsisH,
+  FaTextHeight,
 } from "react-icons/fa";
 import { MdOutlineSubdirectoryArrowLeft } from "react-icons/md";
 import { TbBorderCorners } from "react-icons/tb";
@@ -112,6 +113,7 @@ export function Toolbar({
     lists: true,
     markdown: true,
     advanced: true,
+    textTransform: true, // 独自ツール - 常に表示（最重要）
     display: true,
   });
   const toolbarRef = useRef<HTMLDivElement>(null);
@@ -119,7 +121,10 @@ export function Toolbar({
   const rightSideRef = useRef<HTMLDivElement>(null);
 
   // スペースをチェックしてツールバーの表示を動的に調整
-  useEffect(() => {
+  useLayoutEffect(() => {
+    // 初期状態でtextTransformは必ず表示する
+    setShowGroups(prev => ({ ...prev, textTransform: true }));
+    
     const checkOverflow = () => {
       if (!toolbarRef.current || !leftSideRef.current || !rightSideRef.current)
         return;
@@ -130,6 +135,7 @@ export function Toolbar({
 
       // 各グループの最小幅を推定（概算）
       const baseWidth = 160; // 基本的なテキスト装飾
+      const textTransformWidth = 80; // 独自ツール（常に表示なので含める）
       const commonWidth = 120; // 共通機能（Math、Preview、Shortcuts）
       const listsWidth = 80;
       const markdownWidth = 120;
@@ -141,15 +147,14 @@ export function Toolbar({
         lists: true,
         markdown: true,
         advanced: true,
+        textTransform: true, // 常に表示なので実際は使用されない
         display: true,
       };
 
-      // 利用可能な幅に基づいて表示するグループを決定（優先度順で隠す）
-      // 必要な幅を逆順で計算して、収まらない場合は隠す
-
-      // 全体の必要幅を計算
+      // 全体の必要幅を計算（textTransformは条件分岐なしで常に表示なので、動的グループには含めない）
       const totalNeededWidth =
         baseWidth +
+        textTransformWidth + // 常に表示されるので必ず含める
         commonWidth +
         displayWidth +
         advancedWidth +
@@ -161,7 +166,7 @@ export function Toolbar({
         // 全て表示（デフォルトのtrue値をそのまま使用）
       } else {
         // スペース不足の場合、優先度順で隠していく
-        let currentWidth = baseWidth; // 基本機能は常に表示
+        let currentWidth = baseWidth + textTransformWidth; // 基本機能と独自ツールは常に表示
 
         // 1. リストを追加できるかチェック
         if (availableWidth >= currentWidth + listsWidth) {
@@ -202,10 +207,114 @@ export function Toolbar({
       setShowGroups(newShowGroups);
     };
 
+    // 初回チェック（DOMが描画された直後）
     checkOverflow();
+  }, []);
+
+  // リサイズイベントとタイマーベースの再チェック
+  useEffect(() => {
+    // 初期状態でtextTransformは必ず表示する（保険）
+    setShowGroups(prev => ({ ...prev, textTransform: true }));
+    
+    const checkOverflow = () => {
+      if (!toolbarRef.current || !leftSideRef.current || !rightSideRef.current)
+        return;
+
+      const toolbarWidth = toolbarRef.current.clientWidth;
+      const rightSideWidth = rightSideRef.current.clientWidth;
+      const availableWidth = toolbarWidth - rightSideWidth - 60;
+
+      const baseWidth = 160;
+      const textTransformWidth = 80; // 独自ツール（常に表示なので含める）
+      const commonWidth = 120;
+      const listsWidth = 80;
+      const markdownWidth = 120;
+      const advancedWidth = 160;
+      const displayWidth = 80;
+
+      const newShowGroups = {
+        common: true,
+        lists: true,
+        markdown: true,
+        advanced: true,
+        textTransform: true, // 常に表示なので実際は使用されない
+        display: true,
+      };
+
+      const totalNeededWidth =
+        baseWidth +
+        textTransformWidth + // 常に表示されるので必ず含める
+        commonWidth +
+        displayWidth +
+        advancedWidth +
+        markdownWidth +
+        listsWidth;
+
+      if (availableWidth >= totalNeededWidth) {
+        // 全て表示
+      } else {
+        let currentWidth = baseWidth + textTransformWidth; // 基本機能と独自ツールは常に表示
+
+        if (availableWidth >= currentWidth + listsWidth) {
+          currentWidth += listsWidth;
+        } else {
+          newShowGroups.lists = false;
+        }
+
+        if (availableWidth >= currentWidth + markdownWidth) {
+          currentWidth += markdownWidth;
+        } else {
+          newShowGroups.markdown = false;
+        }
+
+        if (availableWidth >= currentWidth + advancedWidth) {
+          currentWidth += advancedWidth;
+        } else {
+          newShowGroups.advanced = false;
+        }
+
+        if (availableWidth >= currentWidth + displayWidth) {
+          currentWidth += displayWidth;
+        } else {
+          newShowGroups.display = false;
+        }
+
+        if (availableWidth >= currentWidth + commonWidth) {
+          currentWidth += commonWidth;
+        } else {
+          newShowGroups.common = false;
+        }
+      }
+
+      setShowGroups(newShowGroups);
+    };
+    
+    // 複数のタイミングでチェック（ローカルストレージ読み込み完了まで保険をかける）
+    const timeoutIds = [
+      setTimeout(checkOverflow, 0),    // 即座に
+      setTimeout(checkOverflow, 50),   // 50ms後
+      setTimeout(checkOverflow, 100),  // 100ms後
+      setTimeout(checkOverflow, 200),  // 200ms後
+      setTimeout(checkOverflow, 500),  // 500ms後（ローカルストレージ読み込み保険）
+      setTimeout(checkOverflow, 1000), // 1秒後（最終保険）
+    ];
+    
+    // ResizeObserverを使用してより正確な検知
+    let resizeObserver: ResizeObserver | null = null;
+    if (toolbarRef.current) {
+      resizeObserver = new ResizeObserver(checkOverflow);
+      resizeObserver.observe(toolbarRef.current);
+    }
+    
     window.addEventListener("resize", checkOverflow);
 
-    return () => window.removeEventListener("resize", checkOverflow);
+    return () => {
+      window.removeEventListener("resize", checkOverflow);
+      timeoutIds.forEach(clearTimeout);
+      if (resizeObserver) {
+        resizeObserver.disconnect();
+      }
+    };
   }, []);
 
   const handleImageInsert = () => {
@@ -246,6 +355,18 @@ export function Toolbar({
     if (editor) {
       editor.chain().focus().extendMarkRange("link").unsetLink().run();
     }
+  };
+
+  const handleFontSize = (fontSize: string) => {
+    if (!editor) return;
+    
+    // 選択範囲がある場合のみフォントサイズを変更
+    const { from, to } = editor.state.selection;
+    if (from === to) {
+      return; // 選択範囲がない場合は何もしない
+    }
+    
+    editor.chain().focus().setMark("textStyle", { fontSize }).run();
   };
 
   // 基本ツールボタンコンポーネント
@@ -321,6 +442,46 @@ export function Toolbar({
             onClick={() => editor?.chain().focus().toggleStrike().run()}
             isActive={editor?.isActive("strike")}
           />
+          
+          {/* Font Size Dropdown */}
+          <TooltipProvider>
+            <Tooltip>
+              <DropdownMenu>
+                <TooltipTrigger asChild>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-6 w-6 p-0 hover:bg-slate-100 dark:hover:bg-slate-700"
+                    >
+                      <FaTextHeight className="w-3 h-3" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                </TooltipTrigger>
+                <TooltipContent>Font Size</TooltipContent>
+                <DropdownMenuContent align="start" className="w-20">
+                  <DropdownMenuItem onClick={() => handleFontSize("12")}>
+                    12px
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleFontSize("14")}>
+                    14px
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleFontSize("16")}>
+                    16px
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleFontSize("18")}>
+                    18px
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleFontSize("20")}>
+                    20px
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleFontSize("24")}>
+                    24px
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </Tooltip>
+          </TooltipProvider>
         </div>
 
         {/* リスト - 動的表示 */}
@@ -418,18 +579,16 @@ export function Toolbar({
           </div>
         )}
 
-        {/* テキスト変換ツール - 高度な機能として表示 */}
-        {showGroups.advanced && (
-          <div className="flex items-center gap-0.5 bg-white dark:bg-slate-900 rounded p-0.5 shadow-sm border border-slate-200 dark:border-slate-700 flex-shrink-0">
-            <TextTransformTools
-              editor={editor}
-              onUpdate={() => {
-                // 統計を更新するためのコールバック
-              }}
-              className=""
-            />
-          </div>
-        )}
+        {/* テキスト変換ツール - 基本機能と同様に常に表示 */}
+        <div className="flex items-center gap-0.5 bg-white dark:bg-slate-900 rounded p-0.5 shadow-sm border border-slate-200 dark:border-slate-700 flex-shrink-0">
+          <TextTransformTools
+            editor={editor}
+            onUpdate={() => {
+              // 統計を更新するためのコールバック
+            }}
+            className=""
+          />
+        </div>
 
         {/* 表示設定 - 動的表示 */}
         {showGroups.display && (
