@@ -21,9 +21,11 @@ import {
   ChevronUp,
   ChevronDown,
   Globe,
+  ExternalLink,
 } from "lucide-react";
 import { Editor } from "@tiptap/react";
-import { FileTab } from "@/hooks/useFileManager";
+import { FileTab, EditorWindow } from "@/hooks/useFileManager";
+import { SplitLayout, EditorPane } from "@/hooks/useEditorLayout";
 
 interface SidebarProps {
   // Layout state
@@ -51,6 +53,20 @@ interface SidebarProps {
   handleFileImport: (event: React.ChangeEvent<HTMLInputElement>) => void;
   onLatexExport: () => void;
   reorderFiles: (fromIndex: number, toIndex: number) => void;
+
+  // Window management
+  editorWindows: EditorWindow[];
+  createWindow: () => string;
+  assignFileToWindow: (windowId: string, fileId: string) => void;
+
+  // Split layout management
+  splitLayout: SplitLayout;
+  activePaneId: string;
+  setActivePaneId: (paneId: string) => void;
+  assignFileToPane: (paneId: string, fileId: string | null) => void;
+  removeFileFromPane: (paneId: string, fileId: string) => void;
+  setActiveFileInPane: (paneId: string, fileId: string) => void;
+  getAllPanes: () => EditorPane[];
 
   // Editor and stats
   editor: Editor | null;
@@ -82,6 +98,16 @@ export function Sidebar({
   handleFileImport,
   onLatexExport,
   reorderFiles,
+  editorWindows,
+  createWindow,
+  assignFileToWindow,
+  splitLayout,
+  activePaneId,
+  setActivePaneId,
+  assignFileToPane,
+  removeFileFromPane,
+  setActiveFileInPane,
+  getAllPanes,
   editor,
   targetLength,
   showAdvancedStats,
@@ -126,6 +152,8 @@ export function Sidebar({
       toggleLanguage: "Toggle Language",
       selectedFiles: "selected",
       deleteSelected: "Delete Selected",
+      newWindow: "New Window",
+      dragFileToWindow: "Drag file to a window to open",
     },
     ja: {
       header: "CHAR COUNT PRO",
@@ -146,6 +174,8 @@ export function Sidebar({
       toggleLanguage: "言語切り替え",
       selectedFiles: "個選択中",
       deleteSelected: "選択したファイルを削除",
+      newWindow: "新しいウィンドウ",
+      dragFileToWindow: "ファイルをウィンドウにドラッグして開く",
     },
   };
 
@@ -185,6 +215,16 @@ export function Sidebar({
     }
   };
 
+  // ファイルダブルクリック処理（アクティブペインで開く）
+  const handleFileDoubleClick = useCallback(
+    (fileId: string) => {
+      if (activePaneId) {
+        assignFileToPane(activePaneId, fileId);
+      }
+    },
+    [activePaneId, assignFileToPane]
+  );
+
   // ドラッグ開始
   const handleDragStart = (e: React.DragEvent, fileId: string) => {
     setDraggedFileId(fileId);
@@ -221,6 +261,12 @@ export function Sidebar({
     setDragOverFileId(null);
   };
 
+  // ドラッグ終了（ドロップしなかった場合も含む）
+  const handleDragEnd = () => {
+    setDraggedFileId(null);
+    setDragOverFileId(null);
+  };
+
   // 複数ファイル削除
   const handleDeleteSelected = useCallback(() => {
     if (selectedFiles.size > 0) {
@@ -232,6 +278,15 @@ export function Sidebar({
       setSelectedFiles(new Set());
     }
   }, [selectedFiles, fileTabs.length, closeFile]);
+
+  // ウィンドウへのファイルドロップ処理
+  const handleFileDropToWindow = useCallback(
+    (fileId: string) => {
+      const windowId = createWindow();
+      assignFileToWindow(windowId, fileId);
+    },
+    [createWindow, assignFileToWindow]
+  );
 
   // キーボードショートカット
   useEffect(() => {
@@ -434,6 +489,15 @@ export function Sidebar({
                 <Button
                   variant="ghost"
                   size="sm"
+                  onClick={createWindow}
+                  className="h-5 w-5 p-0 text-slate-600 dark:text-slate-300"
+                  title={t.newWindow}
+                >
+                  <ExternalLink className="w-2.5 h-2.5" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
                   onClick={addNewFile}
                   className="h-5 w-5 p-0 text-slate-600 dark:text-slate-300"
                 >
@@ -457,11 +521,13 @@ export function Sidebar({
                     : ""
                 }`}
                 onClick={(e) => handleFileSelect(file.id, e)}
+                onDoubleClick={() => handleFileDoubleClick(file.id)}
                 draggable
                 onDragStart={(e) => handleDragStart(e, file.id)}
                 onDragOver={(e) => handleDragOver(e, file.id)}
                 onDragLeave={handleDragLeave}
                 onDrop={(e) => handleDrop(e, file.id)}
+                onDragEnd={handleDragEnd}
               >
                 <div className="w-4 h-4 flex items-center justify-center">
                   <div className="w-2 h-2 bg-slate-400 dark:bg-slate-500 rounded-sm"></div>
@@ -478,6 +544,16 @@ export function Sidebar({
                 {file.isDirty && (
                   <div className="w-1.5 h-1.5 bg-orange-500 rounded-full"></div>
                 )}
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleFileDropToWindow(file.id);
+                  }}
+                  className="opacity-0 group-hover:opacity-100 hover:text-blue-500 transition-opacity"
+                  title={t.newWindow}
+                >
+                  <ExternalLink className="w-2.5 h-2.5" />
+                </button>
                 {fileTabs.length > 1 && (
                   <button
                     onClick={(e) => {

@@ -14,6 +14,14 @@ export interface FileTab {
   lastSaved: Date;
 }
 
+export interface EditorWindow {
+  id: string;
+  fileId: string | null;
+  position: { x: number; y: number };
+  size: { width: number; height: number };
+  isMinimized: boolean;
+}
+
 // ローカルストレージのキー
 const STORAGE_KEYS = {
   FILES: "char-count-pro-files",
@@ -96,6 +104,7 @@ export const useFileManager = () => {
   // 初期状態（SSR安全）
   const [fileTabs, setFileTabs] = useState<FileTab[]>([defaultFile]);
   const [activeFileId, setActiveFileId] = useState("1");
+  const [editorWindows, setEditorWindows] = useState<EditorWindow[]>([]);
   const autoSaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const [isInitialized, setIsInitialized] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -343,6 +352,58 @@ export const useFileManager = () => {
     });
   }, []);
 
+  // ウィンドウ管理関数
+  const createWindow = useCallback(() => {
+    const newWindow: EditorWindow = {
+      id: Date.now().toString(),
+      fileId: null,
+      position: {
+        x: 50 + editorWindows.length * 30,
+        y: 50 + editorWindows.length * 30,
+      },
+      size: { width: 600, height: 400 },
+      isMinimized: false,
+    };
+    setEditorWindows((prev) => [...prev, newWindow]);
+    return newWindow.id;
+  }, [editorWindows.length]);
+
+  const closeWindow = useCallback((windowId: string) => {
+    setEditorWindows((prev) => prev.filter((w) => w.id !== windowId));
+  }, []);
+
+  const assignFileToWindow = useCallback((windowId: string, fileId: string) => {
+    setEditorWindows((prev) =>
+      prev.map((w) => (w.id === windowId ? { ...w, fileId } : w))
+    );
+  }, []);
+
+  const updateWindowPosition = useCallback(
+    (windowId: string, position: { x: number; y: number }) => {
+      setEditorWindows((prev) =>
+        prev.map((w) => (w.id === windowId ? { ...w, position } : w))
+      );
+    },
+    []
+  );
+
+  const updateWindowSize = useCallback(
+    (windowId: string, size: { width: number; height: number }) => {
+      setEditorWindows((prev) =>
+        prev.map((w) => (w.id === windowId ? { ...w, size } : w))
+      );
+    },
+    []
+  );
+
+  const toggleWindowMinimize = useCallback((windowId: string) => {
+    setEditorWindows((prev) =>
+      prev.map((w) =>
+        w.id === windowId ? { ...w, isMinimized: !w.isMinimized } : w
+      )
+    );
+  }, []);
+
   return {
     fileTabs,
     activeFileId,
@@ -360,5 +421,12 @@ export const useFileManager = () => {
     isRestoredFromStorage,
     resetRestoredFlag,
     reorderFiles,
+    editorWindows,
+    createWindow,
+    closeWindow,
+    assignFileToWindow,
+    updateWindowPosition,
+    updateWindowSize,
+    toggleWindowMinimize,
   };
 };

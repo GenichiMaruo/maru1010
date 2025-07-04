@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
-import { useEditor, EditorContent } from "@tiptap/react";
+import { useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import TextStyle from "@tiptap/extension-text-style";
 import Underline from "@tiptap/extension-underline";
@@ -20,8 +20,9 @@ import { common, createLowlight } from "lowlight";
 
 // Custom components and hooks
 import { Sidebar } from "./sidebar/Sidebar";
-import { FileTabBar } from "./layout/FileTabBar";
 import { Toolbar } from "./toolbar/Toolbar";
+import { FloatingWindow } from "./FloatingWindow";
+import { SplitLayoutRenderer } from "./SplitLayoutRenderer";
 import LinkModal from "./LinkModal";
 import LaTeXExportModal from "./LaTeXExportModal";
 import { FontSizeExtension, VisibilityExtension } from "./extensions";
@@ -93,6 +94,13 @@ export default function CharCountProEditor() {
     exportFile,
     importFile,
     reorderFiles,
+    editorWindows,
+    createWindow,
+    closeWindow,
+    assignFileToWindow,
+    updateWindowPosition,
+    updateWindowSize,
+    toggleWindowMinimize,
     instantSave,
     isSaving,
     isRestoredFromStorage,
@@ -109,6 +117,19 @@ export default function CharCountProEditor() {
     isStatisticsResizing,
     handleResizeStart,
     handleStatisticsResizeStart,
+    splitLayout,
+    activePaneId,
+    setActivePaneId,
+    splitPane,
+    closePane,
+    assignFileToPane,
+    removeFileFromPane,
+    setActiveFileInPane,
+    reorderTabsInPane,
+    moveTabBetweenPanes,
+    getAllPanes,
+    updateSplitSizes,
+    findPane,
   } = layout;
 
   // エディター設定
@@ -197,7 +218,12 @@ export default function CharCountProEditor() {
   );
   useAutoSave(fileTabs, activeFileId);
 
-  // エディター更新時に可視化設定を更新
+  // アクティブファイルが変更された時にメインペインに割り当て
+  useEffect(() => {
+    if (activeFileId) {
+      assignFileToPane("main", activeFileId);
+    }
+  }, [activeFileId, assignFileToPane]);
   useEffect(() => {
     if (editor) {
       editor.extensionManager.extensions.forEach((extension) => {
@@ -245,7 +271,20 @@ export default function CharCountProEditor() {
   const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    setIsDragOver(true);
+
+    // タブのドラッグ&ドロップかどうかをデータ転送の種類でチェック
+    const hasTabData = e.dataTransfer.types.includes("application/json");
+    const hasFiles = e.dataTransfer.types.includes("Files");
+
+    // タブのドラッグ&ドロップの場合は外部ファイルドロップのUIを表示しない
+    if (hasTabData && !hasFiles) {
+      return;
+    }
+
+    // 外部ファイルの場合のみドラッグオーバー状態を設定
+    if (hasFiles) {
+      setIsDragOver(true);
+    }
   }, []);
 
   const handleDragLeave = useCallback((e: React.DragEvent) => {
@@ -263,6 +302,16 @@ export default function CharCountProEditor() {
       e.stopPropagation();
       setIsDragOver(false);
 
+      // データ転送の種類をチェック
+      const hasTabData = e.dataTransfer.types.includes("application/json");
+      const hasFiles = e.dataTransfer.types.includes("Files");
+
+      // タブのドラッグ&ドロップの場合は何もしない
+      if (hasTabData && !hasFiles) {
+        return;
+      }
+
+      // 外部ファイルのドロップ処理
       const files = e.dataTransfer.files;
       if (files.length > 0) {
         const file = files[0];
@@ -363,6 +412,16 @@ export default function CharCountProEditor() {
         handleFileImport={handleFileImport}
         onLatexExport={handleLatexExport}
         reorderFiles={reorderFiles}
+        editorWindows={editorWindows}
+        createWindow={createWindow}
+        assignFileToWindow={assignFileToWindow}
+        splitLayout={splitLayout}
+        activePaneId={activePaneId}
+        setActivePaneId={setActivePaneId}
+        assignFileToPane={assignFileToPane}
+        removeFileFromPane={removeFileFromPane}
+        setActiveFileInPane={setActiveFileInPane}
+        getAllPanes={getAllPanes}
         editor={editor}
         targetLength={targetLength}
         showAdvancedStats={showAdvancedStats}
@@ -378,15 +437,6 @@ export default function CharCountProEditor() {
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
       >
-        {/* VS Code風ファイルタブバー */}
-        <FileTabBar
-          fileTabs={fileTabs}
-          activeFileId={activeFileId}
-          setActiveFileId={setActiveFileId}
-          closeFile={closeFile}
-          addNewFile={addNewFile}
-        />
-
         {/* VS Code風ツールバー */}
         <Toolbar
           editor={editor}
@@ -495,15 +545,27 @@ export default function CharCountProEditor() {
                 : ""
             }`}
           >
-            {/* エディター */}
+            {/* 分割エディターレイアウト */}
             <div
               className={`${
                 isPreviewVisible ? "w-1/2" : "w-full"
               } relative h-full overflow-hidden`}
             >
-              <EditorContent
-                editor={editor}
-                className="h-full overflow-y-auto prose prose-slate dark:prose-invert max-w-none"
+              <SplitLayoutRenderer
+                layout={splitLayout}
+                files={fileTabs}
+                activePaneId={activePaneId}
+                onPaneActivate={setActivePaneId}
+                onPaneClose={closePane}
+                onPaneSplit={splitPane}
+                onContentChange={updateFileContent}
+                onFileTabClose={removeFileFromPane}
+                onFileTabActivate={setActiveFileInPane}
+                onTabReorder={reorderTabsInPane}
+                onTabMove={moveTabBetweenPanes}
+                onUpdateSplitSizes={updateSplitSizes}
+                showNewlineMarkers={showNewlineMarkers}
+                showFullWidthSpaces={showFullWidthSpaces}
               />
             </div>
 
@@ -564,6 +626,25 @@ export default function CharCountProEditor() {
         content={activeFile?.content || ""}
         filename={activeFile?.name || "document"}
       />
+
+      {/* フローティングウィンドウ */}
+      {editorWindows.map((window) => {
+        const windowFile = window.fileId
+          ? fileTabs.find((f) => f.id === window.fileId) || null
+          : null;
+        return (
+          <FloatingWindow
+            key={window.id}
+            window={window}
+            file={windowFile}
+            onClose={closeWindow}
+            onMinimize={toggleWindowMinimize}
+            onUpdatePosition={updateWindowPosition}
+            onUpdateSize={updateWindowSize}
+            onContentChange={updateFileContent}
+          />
+        );
+      })}
 
       {/* カスタムスタイル */}
       <style jsx global>{`
