@@ -123,8 +123,8 @@ export function Toolbar({
   // スペースをチェックしてツールバーの表示を動的に調整
   useLayoutEffect(() => {
     // 初期状態でtextTransformは必ず表示する
-    setShowGroups(prev => ({ ...prev, textTransform: true }));
-    
+    setShowGroups((prev) => ({ ...prev, textTransform: true }));
+
     const checkOverflow = () => {
       if (!toolbarRef.current || !leftSideRef.current || !rightSideRef.current)
         return;
@@ -214,8 +214,8 @@ export function Toolbar({
   // リサイズイベントとタイマーベースの再チェック
   useEffect(() => {
     // 初期状態でtextTransformは必ず表示する（保険）
-    setShowGroups(prev => ({ ...prev, textTransform: true }));
-    
+    setShowGroups((prev) => ({ ...prev, textTransform: true }));
+
     const checkOverflow = () => {
       if (!toolbarRef.current || !leftSideRef.current || !rightSideRef.current)
         return;
@@ -288,24 +288,24 @@ export function Toolbar({
 
       setShowGroups(newShowGroups);
     };
-    
+
     // 複数のタイミングでチェック（ローカルストレージ読み込み完了まで保険をかける）
     const timeoutIds = [
-      setTimeout(checkOverflow, 0),    // 即座に
-      setTimeout(checkOverflow, 50),   // 50ms後
-      setTimeout(checkOverflow, 100),  // 100ms後
-      setTimeout(checkOverflow, 200),  // 200ms後
-      setTimeout(checkOverflow, 500),  // 500ms後（ローカルストレージ読み込み保険）
+      setTimeout(checkOverflow, 0), // 即座に
+      setTimeout(checkOverflow, 50), // 50ms後
+      setTimeout(checkOverflow, 100), // 100ms後
+      setTimeout(checkOverflow, 200), // 200ms後
+      setTimeout(checkOverflow, 500), // 500ms後（ローカルストレージ読み込み保険）
       setTimeout(checkOverflow, 1000), // 1秒後（最終保険）
     ];
-    
+
     // ResizeObserverを使用してより正確な検知
     let resizeObserver: ResizeObserver | null = null;
     if (toolbarRef.current) {
       resizeObserver = new ResizeObserver(checkOverflow);
       resizeObserver.observe(toolbarRef.current);
     }
-    
+
     window.addEventListener("resize", checkOverflow);
 
     return () => {
@@ -359,13 +359,13 @@ export function Toolbar({
 
   const handleFontSize = (fontSize: string) => {
     if (!editor) return;
-    
+
     // 選択範囲がある場合のみフォントサイズを変更
     const { from, to } = editor.state.selection;
     if (from === to) {
       return; // 選択範囲がない場合は何もしない
     }
-    
+
     editor.chain().focus().setMark("textStyle", { fontSize }).run();
   };
 
@@ -442,7 +442,7 @@ export function Toolbar({
             onClick={() => editor?.chain().focus().toggleStrike().run()}
             isActive={editor?.isActive("strike")}
           />
-          
+
           {/* Font Size Dropdown */}
           <TooltipProvider>
             <Tooltip>
