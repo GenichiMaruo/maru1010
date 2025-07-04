@@ -299,6 +299,7 @@ export default function CharCountProEditor() {
         exportFile={exportFile}
         instantSave={instantSave}
         handleFileImport={handleFileImport}
+        onLatexExport={handleLatexExport}
         editor={editor}
         targetLength={targetLength}
         showAdvancedStats={showAdvancedStats}
@@ -336,7 +337,6 @@ export default function CharCountProEditor() {
           showNewlineMarkers={showNewlineMarkers}
           setShowNewlineMarkers={setShowNewlineMarkers}
           onLinkClick={openLinkModal}
-          onLatexExport={handleLatexExport}
           stats={stats}
           targetLength={targetLength}
           setTargetLength={setTargetLength}

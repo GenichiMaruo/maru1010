@@ -40,6 +40,7 @@ interface SidebarProps {
   exportFile: (file: FileTab, format?: "txt" | "md" | "json") => void;
   instantSave: () => void;
   handleFileImport: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  onLatexExport: () => void;
 
   // Editor and stats
   editor: Editor | null;
@@ -69,6 +70,7 @@ export function Sidebar({
   exportFile,
   instantSave,
   handleFileImport,
+  onLatexExport,
   editor,
   targetLength,
   showAdvancedStats,
@@ -291,6 +293,33 @@ export function Sidebar({
                 </div>
               </div>
 
+              {/* インポートセクション */}
+              <div className="mt-4 space-y-1.5">
+                <div className="text-xs font-medium text-slate-600 dark:text-slate-400 uppercase tracking-wide">
+                  IMPORT
+                </div>
+                <div>
+                  <input
+                    type="file"
+                    accept=".txt,.md,.json"
+                    onChange={handleFileImport}
+                    className="hidden"
+                    id="file-import"
+                  />
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full text-xs h-6"
+                    onClick={() =>
+                      document.getElementById("file-import")?.click()
+                    }
+                  >
+                    <FaFileImport className="w-2.5 h-2.5 mr-1" />
+                    Import File
+                  </Button>
+                </div>
+              </div>
+
               {/* エクスポートセクション */}
               <div className="mt-4 space-y-1.5">
                 <div className="text-xs font-medium text-slate-600 dark:text-slate-400 uppercase tracking-wide">
@@ -316,27 +345,15 @@ export function Sidebar({
                     .md
                   </Button>
                 </div>
-
-                <div>
-                  <input
-                    type="file"
-                    accept=".txt,.md,.json"
-                    onChange={handleFileImport}
-                    className="hidden"
-                    id="file-import"
-                  />
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="w-full text-xs h-6"
-                    onClick={() =>
-                      document.getElementById("file-import")?.click()
-                    }
-                  >
-                    <FaFileImport className="w-2.5 h-2.5 mr-1" />
-                    Import
-                  </Button>
-                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={onLatexExport}
+                  className="w-full text-xs h-6"
+                  disabled={!activeFile}
+                >
+                  LaTeX (.tex)
+                </Button>
               </div>
             </div>
           </div>
