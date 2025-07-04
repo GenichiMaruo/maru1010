@@ -37,6 +37,7 @@ import {
   FaEllipsisH,
 } from "react-icons/fa";
 import { MdOutlineSubdirectoryArrowLeft } from "react-icons/md";
+import { TbBorderCorners } from "react-icons/tb";
 
 interface ToolbarProps {
   editor: Editor | null;
@@ -301,12 +302,25 @@ export function Toolbar({
 
         {/* 表示設定 - 特大画面で表示 */}
         <div className="hidden xl:flex items-center gap-0.5 bg-white dark:bg-slate-900 rounded p-0.5 shadow-sm border border-slate-200 dark:border-slate-700 flex-shrink-0">
-          <ToolButton
-            icon={() => <span className="text-xs font-bold">　</span>}
-            tooltip="Show Full-width Spaces"
-            onClick={() => setShowFullWidthSpaces(!showFullWidthSpaces)}
-            isActive={showFullWidthSpaces}
-          />
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowFullWidthSpaces(!showFullWidthSpaces)}
+                  className={`h-6 w-6 p-0 rounded-sm ${
+                    showFullWidthSpaces
+                      ? "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300"
+                      : "hover:bg-slate-100 dark:hover:bg-slate-800"
+                  }`}
+                >
+                  <TbBorderCorners className="w-3 h-3" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Show Full-width Spaces</TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
           <ToolButton
             icon={MdOutlineSubdirectoryArrowLeft}
             tooltip="Show Line Breaks"
@@ -405,8 +419,9 @@ export function Toolbar({
               <DropdownMenuSeparator />
               <DropdownMenuItem
                 onClick={() => setShowFullWidthSpaces(!showFullWidthSpaces)}
+                className="flex items-center"
               >
-                <span className="text-xs font-bold mr-2">　</span>
+                <TbBorderCorners className="w-3 h-3 mr-2" />
                 Show Full-width Spaces
               </DropdownMenuItem>
               <DropdownMenuItem
