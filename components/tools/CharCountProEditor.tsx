@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
-import { useEditor } from "@tiptap/react";
+import { useEditor, Editor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import TextStyle from "@tiptap/extension-text-style";
 import Underline from "@tiptap/extension-underline";
@@ -68,7 +68,6 @@ export default function CharCountProEditor() {
   const [searchTerm, setSearchTerm] = useState("");
   const [replaceTerm, setReplaceTerm] = useState("");
   const [isSearchVisible] = useState(false);
-  const [isTextTransformVisible] = useState(false);
   const [isTableMenuVisible, setIsTableMenuVisible] = useState(false);
   const [isCodeBlockMenuVisible, setIsCodeBlockMenuVisible] = useState(false);
   const [isPreviewVisible, setIsPreviewVisible] = useState(false);
@@ -78,6 +77,16 @@ export default function CharCountProEditor() {
   const [isMathModalVisible, setIsMathModalVisible] = useState(false);
   // ドラッグ&ドロップ用のstate
   const [isDragOver, setIsDragOver] = useState(false);
+  // 現在編集中のファイルを追跡
+  const [currentEditingFileId, setCurrentEditingFileId] = useState<
+    string | null
+  >(null);
+  // アクティブなエディターインスタンスを管理
+  const [activeEditorInstance, setActiveEditorInstance] =
+    useState<Editor | null>(null);
+  const [paneEditors, setPaneEditors] = useState<Map<string, Editor | null>>(
+    new Map()
+  );
 
   // カスタムフックの使用
   const fileManager = useFileManager();
@@ -179,10 +188,30 @@ export default function CharCountProEditor() {
         style: `line-height: 1.6; padding: 2rem; min-height: 100%;`,
         spellcheck: "false",
       },
+      handleClick: () => {
+        if (activeFileId) {
+          setCurrentEditingFileId(activeFileId);
+        }
+      },
+    },
+    onFocus: () => {
+      if (activeFileId) {
+        setCurrentEditingFileId(activeFileId);
+      }
+    },
+    onCreate: () => {
+      // エディター作成時にも現在編集中のファイルを設定
+      if (activeFileId) {
+        setCurrentEditingFileId(activeFileId);
+      }
     },
     onUpdate: ({ editor }) => {
       const content = editor.getHTML();
       updateFileContent(activeFileId, content);
+      // エディター更新時にも現在編集中のファイルを確認
+      if (activeFileId) {
+        setCurrentEditingFileId(activeFileId);
+      }
     },
     immediatelyRender: false,
   });
@@ -210,12 +239,87 @@ export default function CharCountProEditor() {
   );
   useAutoSave(fileTabs, activeFileId);
 
+  // エディターとファイル状態の監視
+  useEffect(() => {
+    console.log("🎯 Editor-File State Monitor:", {
+      editorExists: !!editor,
+      editorIsFocused: editor?.isFocused,
+      editorContent: editor?.getHTML()?.substring(0, 50) + "...",
+      activeEditorExists: !!activeEditorInstance,
+      activeEditorIsFocused: activeEditorInstance?.isFocused,
+      activeFileId,
+      activeFileName: activeFile?.name,
+      currentEditingFileId,
+      activePaneId,
+      paneEditorsCount: paneEditors.size,
+      areFilesSynced: activeFileId === currentEditingFileId,
+    });
+  }, [
+    editor,
+    activeEditorInstance,
+    activeFileId,
+    activeFile,
+    currentEditingFileId,
+    activePaneId,
+    paneEditors,
+  ]);
+
+  // エディターがマウントされた後の初期化
+  useEffect(() => {
+    if (mounted && editor && activeFileId) {
+      setCurrentEditingFileId(activeFileId);
+    }
+  }, [mounted, editor, activeFileId]);
+
+  // 初期化時に現在編集中のファイルを設定
+  useEffect(() => {
+    if (activeFileId) {
+      setCurrentEditingFileId(activeFileId);
+    }
+  }, [activeFileId]);
+
   // アクティブファイルが変更された時にメインペインに割り当て
   useEffect(() => {
     if (activeFileId) {
       assignFileToPane("main", activeFileId);
+      setCurrentEditingFileId(activeFileId);
     }
   }, [activeFileId, assignFileToPane]);
+
+  // エディターインスタンス管理のコールバック
+  const handleEditorReady = useCallback(
+    (paneId: string, editor: Editor | null) => {
+      console.log("📝 Editor Ready:", { paneId, editorExists: !!editor });
+
+      setPaneEditors((prev) => {
+        const newMap = new Map(prev);
+        newMap.set(paneId, editor);
+        return newMap;
+      });
+
+      // アクティブペインのエディターを更新
+      if (paneId === activePaneId && editor) {
+        console.log("🎯 Setting active editor instance for pane:", paneId);
+        setActiveEditorInstance(editor);
+      }
+    },
+    [activePaneId]
+  );
+
+  // アクティブペインが変更された時にアクティブエディターも更新
+  useEffect(() => {
+    if (activePaneId) {
+      const activeEditor = paneEditors.get(activePaneId);
+      if (activeEditor && activeEditor !== activeEditorInstance) {
+        console.log(
+          "🔄 Switching active editor instance to pane:",
+          activePaneId
+        );
+        setActiveEditorInstance(activeEditor);
+      }
+    }
+  }, [activePaneId, paneEditors, activeEditorInstance]);
+
   useEffect(() => {
     if (editor) {
       editor.extensionManager.extensions.forEach((extension) => {
@@ -349,42 +453,39 @@ export default function CharCountProEditor() {
     }
   };
 
-  // アクティブファイルの内容から統計を計算（プレーンテキストに変換）
-  const getPlainTextFromHtml = useCallback((html: string): string => {
-    if (!html) return "";
+  // エディターの現在のテキストから統計を計算
+  const getCurrentEditorText = useCallback((): string => {
+    const currentEditor = activeEditorInstance || editor;
+    if (!currentEditor) return "";
+    return currentEditor.getText();
+  }, [activeEditorInstance, editor]);
 
-    // 簡単なHTMLタグ除去（より正確にテキストを抽出）
-    return html
-      .replace(/<\/p>/g, "\n")
-      .replace(/<br\s*\/?>/g, "\n")
-      .replace(/<\/div>/g, "\n")
-      .replace(/<\/li>/g, "\n")
-      .replace(/<[^>]*>/g, "")
-      .replace(/&nbsp;/g, " ")
-      .replace(/&lt;/g, "<")
-      .replace(/&gt;/g, ">")
-      .replace(/&amp;/g, "&")
-      .trim();
-  }, []);
-
-  // 基本統計計算（アクティブファイルの内容から直接計算）
-  const stats = activeFile
-    ? calculateTextStats(getPlainTextFromHtml(activeFile.content))
-    : {
-        characters: 0,
-        charactersNoSpaces: 0,
-        words: 0,
-        sentences: 0,
-        paragraphs: 0,
-        lines: 0,
-        bytes: 0,
-        readingTime: 0,
-        syllables: 0,
-        readabilityScore: 0,
-      };
+  // 基本統計計算（現在編集中のエディターの内容から直接計算）
+  const stats =
+    activeEditorInstance || editor
+      ? calculateTextStats(getCurrentEditorText())
+      : {
+          characters: 0,
+          charactersNoSpaces: 0,
+          words: 0,
+          sentences: 0,
+          paragraphs: 0,
+          lines: 0,
+          bytes: 0,
+          readingTime: 0,
+          syllables: 0,
+          readabilityScore: 0,
+        };
 
   const targetProgress =
     targetLength > 0 ? (stats.characters / targetLength) * 100 : 0;
+
+  // 現在編集中のファイルの内容を取得
+  const getCurrentEditingFileContent = useCallback((): string => {
+    if (!currentEditingFileId) return "";
+    const editingFile = fileTabs.find((f) => f.id === currentEditingFileId);
+    return editingFile?.content || "";
+  }, [currentEditingFileId, fileTabs]);
 
   return (
     <div className="h-screen flex bg-slate-50 dark:bg-slate-900 overflow-hidden fixed inset-0">
@@ -400,6 +501,8 @@ export default function CharCountProEditor() {
         handleStatisticsResizeStart={handleStatisticsResizeStart}
         fileTabs={fileTabs}
         activeFileId={activeFileId}
+        currentEditingFileId={currentEditingFileId}
+        currentEditingFileContent={getCurrentEditingFileContent()}
         activeFile={activeFile}
         setActiveFileId={setActiveFileId}
         addNewFile={addNewFile}
@@ -434,7 +537,7 @@ export default function CharCountProEditor() {
       >
         {/* VS Code風ツールバー */}
         <Toolbar
-          editor={editor}
+          editor={activeEditorInstance || editor}
           isCodeBlockMenuVisible={isCodeBlockMenuVisible}
           setIsCodeBlockMenuVisible={setIsCodeBlockMenuVisible}
           isTableMenuVisible={isTableMenuVisible}
@@ -491,7 +594,7 @@ export default function CharCountProEditor() {
 
         {/* テキスト変換パネル */}
         {/* TODO: Text transformation functionality will be restored later */}
-        {false && isTextTransformVisible && (
+        {false && (
           <div className="p-3 bg-slate-50 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700">
             <div className="flex flex-wrap gap-2 max-w-4xl">
               {/* テキスト変換ボタンがここに入る */}
@@ -553,12 +656,20 @@ export default function CharCountProEditor() {
                 onPaneActivate={setActivePaneId}
                 onPaneClose={closePane}
                 onPaneSplit={splitPane}
-                onContentChange={updateFileContent}
+                onContentChange={(fileId, content) => {
+                  updateFileContent(fileId, content);
+                }}
                 onFileTabClose={removeFileFromPane}
-                onFileTabActivate={setActiveFileInPane}
+                onFileTabActivate={(paneId, fileId) => {
+                  setActiveFileInPane(paneId, fileId);
+                  // タブでファイルを選択した時も現在編集中ファイルを更新
+                  setCurrentEditingFileId(fileId);
+                  setActiveFileId(fileId);
+                }}
                 onTabReorder={reorderTabsInPane}
                 onTabMove={moveTabBetweenPanes}
                 onUpdateSplitSizes={updateSplitSizes}
+                onEditorReady={handleEditorReady}
                 showNewlineMarkers={showNewlineMarkers}
                 showFullWidthSpaces={showFullWidthSpaces}
               />
@@ -570,9 +681,7 @@ export default function CharCountProEditor() {
                 <div
                   className="prose prose-slate dark:prose-invert max-w-none"
                   dangerouslySetInnerHTML={{
-                    __html: marked(
-                      getPlainTextFromHtml(activeFile?.content || "")
-                    ),
+                    __html: marked(getCurrentEditorText()),
                   }}
                 />
               </div>

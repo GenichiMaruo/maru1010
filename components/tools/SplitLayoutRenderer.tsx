@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useCallback } from "react";
+import { Editor } from "@tiptap/react";
 import { SplitEditorPane } from "./SplitEditorPane";
 import { SplitContainer } from "./SplitContainer";
 import type { SplitLayout } from "@/hooks/useEditorLayout";
@@ -24,6 +25,7 @@ interface SplitLayoutRendererProps {
     targetIndex?: number
   ) => void;
   onUpdateSplitSizes: (splitId: string, sizes: number[]) => void;
+  onEditorReady?: (paneId: string, editor: Editor | null) => void;
   showNewlineMarkers?: boolean;
   showFullWidthSpaces?: boolean;
   className?: string;
@@ -42,6 +44,7 @@ export function SplitLayoutRenderer({
   onTabReorder,
   onTabMove,
   onUpdateSplitSizes,
+  onEditorReady,
   showNewlineMarkers = false,
   showFullWidthSpaces = false,
   className = "",
@@ -67,6 +70,7 @@ export function SplitLayoutRenderer({
               onTabReorder(pane.id, fromIndex, toIndex)
             }
             onTabMove={onTabMove}
+            onEditorReady={onEditorReady}
             showNewlineMarkers={showNewlineMarkers}
             showFullWidthSpaces={showFullWidthSpaces}
           />
@@ -101,6 +105,7 @@ export function SplitLayoutRenderer({
       onTabReorder,
       onTabMove,
       onUpdateSplitSizes,
+      onEditorReady,
       showNewlineMarkers,
       showFullWidthSpaces,
     ]

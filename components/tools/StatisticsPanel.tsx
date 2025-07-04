@@ -18,7 +18,7 @@ interface StatisticsPanelProps {
   targetLength: number;
   showAdvancedStats: boolean;
   onToggleAdvancedStats: () => void;
-  activeFileContent?: string; // アクティブファイルの内容
+  currentEditingFileContent?: string;
 }
 
 export const StatisticsPanel: React.FC<StatisticsPanelProps> = ({
@@ -26,7 +26,7 @@ export const StatisticsPanel: React.FC<StatisticsPanelProps> = ({
   targetLength,
   showAdvancedStats,
   onToggleAdvancedStats,
-  activeFileContent,
+  currentEditingFileContent,
 }) => {
   const [cachedStats, setCachedStats] = useState<TextStats>({
     characters: 0,
@@ -66,29 +66,27 @@ export const StatisticsPanel: React.FC<StatisticsPanelProps> = ({
 
   const statsTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // HTMLをプレーンテキストに変換
-  const getPlainTextFromHtml = useCallback((html: string): string => {
-    if (!html) return "";
-
-    return html
-      .replace(/<\/p>/g, "\n")
-      .replace(/<br\s*\/?>/g, "\n")
-      .replace(/<\/div>/g, "\n")
-      .replace(/<\/li>/g, "\n")
-      .replace(/<[^>]*>/g, "")
-      .replace(/&nbsp;/g, " ")
-      .replace(/&lt;/g, "<")
-      .replace(/&gt;/g, ">")
-      .replace(/&amp;/g, "&")
-      .trim();
-  }, []);
-
   // 統計計算の更新
   const updateStats = useCallback(() => {
-    // activeFileContentが提供されている場合はそれを使用、そうでなければエディターから取得
-    const text = activeFileContent
-      ? getPlainTextFromHtml(activeFileContent)
-      : editor?.getText() || "";
+    let text = "";
+
+    // 現在編集中のファイルの内容があればそれを使用、なければエディターから取得
+    if (currentEditingFileContent) {
+      // HTMLコンテンツからプレーンテキストに変換
+      text = currentEditingFileContent
+        .replace(/<\/p>/g, "\n")
+        .replace(/<br\s*\/?>/g, "\n")
+        .replace(/<\/div>/g, "\n")
+        .replace(/<\/li>/g, "\n")
+        .replace(/<[^>]*>/g, "")
+        .replace(/&nbsp;/g, " ")
+        .replace(/&lt;/g, "<")
+        .replace(/&gt;/g, ">")
+        .replace(/&amp;/g, "&")
+        .trim();
+    } else if (editor) {
+      text = editor.getText();
+    }
 
     const newStats = calculateTextStats(text);
     const newLanguageStats = calculateLanguageStats(text);
@@ -97,7 +95,7 @@ export const StatisticsPanel: React.FC<StatisticsPanelProps> = ({
     setCachedStats(newStats);
     setCachedLanguageStats(newLanguageStats);
     setCachedAdvancedStats(newAdvancedStats);
-  }, [editor, activeFileContent, getPlainTextFromHtml]);
+  }, [editor, currentEditingFileContent]);
 
   // エディター内容変更時の統計更新（遅延実行）
   useEffect(() => {
@@ -107,28 +105,39 @@ export const StatisticsPanel: React.FC<StatisticsPanelProps> = ({
       if (statsTimeoutRef.current) {
         clearTimeout(statsTimeoutRef.current);
       }
-      statsTimeoutRef.current = setTimeout(updateStats, 150);
+      statsTimeoutRef.current = setTimeout(updateStats, 50); // 遅延を短縮
+    };
+
+    const handleSelectionUpdate = () => {
+      updateStats(); // 選択時は即座に更新
     };
 
     editor.on("update", handleUpdate);
+    editor.on("selectionUpdate", handleSelectionUpdate);
 
     // 初期計算
     updateStats();
 
     return () => {
       editor.off("update", handleUpdate);
+      editor.off("selectionUpdate", handleSelectionUpdate);
       if (statsTimeoutRef.current) {
         clearTimeout(statsTimeoutRef.current);
       }
     };
   }, [editor, updateStats]);
 
-  // activeFileContentが変更された時の統計更新（即座に実行）
+  // エディターが変更された時の統計更新
   useEffect(() => {
-    if (activeFileContent !== undefined) {
+    updateStats();
+  }, [updateStats]);
+
+  // 現在編集中のファイル内容が変更された時の統計更新
+  useEffect(() => {
+    if (currentEditingFileContent !== undefined) {
       updateStats();
     }
-  }, [activeFileContent, updateStats]);
+  }, [currentEditingFileContent, updateStats]);
 
   const stats = cachedStats;
   const languageStats = cachedLanguageStats;

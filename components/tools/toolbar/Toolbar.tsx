@@ -108,6 +108,8 @@ export function Toolbar({
 }: ToolbarProps) {
   const [isOverflowMenuOpen, setIsOverflowMenuOpen] = useState(false);
   const [mathEquation, setMathEquation] = useState("");
+  // エディターの状態変更を追跡するためのstate
+  const [, forceUpdate] = useState(0);
   const [showGroups, setShowGroups] = useState({
     common: true, // Math、Preview、Shortcuts - 最優先で隠れる
     lists: true,
@@ -119,6 +121,28 @@ export function Toolbar({
   const toolbarRef = useRef<HTMLDivElement>(null);
   const leftSideRef = useRef<HTMLDivElement>(null);
   const rightSideRef = useRef<HTMLDivElement>(null);
+
+  // エディターの状態変更を監視してボタンの状態を更新
+  useEffect(() => {
+    if (!editor) return;
+
+    const handleSelectionUpdate = () => {
+      // エディターの選択状態が変更された時に再レンダリングをトリガー
+      forceUpdate((prev) => prev + 1);
+    };
+
+    // エディターの選択変更イベントをリッスン
+    editor.on("selectionUpdate", handleSelectionUpdate);
+    editor.on("update", handleSelectionUpdate);
+    editor.on("focus", handleSelectionUpdate);
+
+    return () => {
+      // クリーンアップ
+      editor.off("selectionUpdate", handleSelectionUpdate);
+      editor.off("update", handleSelectionUpdate);
+      editor.off("focus", handleSelectionUpdate);
+    };
+  }, [editor]);
 
   // スペースをチェックしてツールバーの表示を動的に調整
   useLayoutEffect(() => {
@@ -421,19 +445,37 @@ export function Toolbar({
           <ToolButton
             icon={FaBold}
             tooltip="Bold (Ctrl+B)"
-            onClick={() => editor?.chain().focus().toggleBold().run()}
+            onClick={() => {
+              console.log("🔧 Bold:", {
+                focused: editor?.isFocused,
+                active: editor?.isActive("bold"),
+              });
+              editor?.chain().focus().toggleBold().run();
+            }}
             isActive={editor?.isActive("bold")}
           />
           <ToolButton
             icon={FaItalic}
             tooltip="Italic (Ctrl+I)"
-            onClick={() => editor?.chain().focus().toggleItalic().run()}
+            onClick={() => {
+              console.log("🔧 Italic:", {
+                focused: editor?.isFocused,
+                active: editor?.isActive("italic"),
+              });
+              editor?.chain().focus().toggleItalic().run();
+            }}
             isActive={editor?.isActive("italic")}
           />
           <ToolButton
             icon={FaUnderline}
             tooltip="Underline (Ctrl+U)"
-            onClick={() => editor?.chain().focus().toggleUnderline().run()}
+            onClick={() => {
+              console.log("🔧 Underline:", {
+                focused: editor?.isFocused,
+                active: editor?.isActive("underline"),
+              });
+              editor?.chain().focus().toggleUnderline().run();
+            }}
             isActive={editor?.isActive("underline")}
           />
           <ToolButton
@@ -517,18 +559,46 @@ export function Toolbar({
               icon={FaCode}
               tooltip={
                 editor?.isActive("codeBlock")
-                  ? "Code Block Settings"
+                  ? "Exit Code Block (Ctrl+Alt+C)"
                   : "Code Block (Ctrl+Alt+C)"
               }
               onClick={() => {
-                if (editor?.isActive("codeBlock")) {
-                  setIsCodeBlockMenuVisible(!isCodeBlockMenuVisible);
-                } else {
-                  editor?.chain().focus().toggleCodeBlock().run();
+                console.log("🔧 CodeBlock:", {
+                  focused: editor?.isFocused,
+                  active: editor?.isActive("codeBlock"),
+                  beforeToggle: true,
+                });
+
+                const wasActive = editor?.isActive("codeBlock");
+                editor?.chain().focus().toggleCodeBlock().run();
+
+                // 状態変更後のログ
+                setTimeout(() => {
+                  console.log("🔧 CodeBlock After:", {
+                    wasActive,
+                    nowActive: editor?.isActive("codeBlock"),
+                    afterToggle: true,
+                  });
+                }, 10);
+
+                // コードブロックが解除されたら、設定メニューを閉じる
+                if (wasActive) {
+                  setIsCodeBlockMenuVisible(false);
                 }
               }}
-              isActive={editor?.isActive("codeBlock") || isCodeBlockMenuVisible}
+              isActive={editor?.isActive("codeBlock")}
             />
+            {/* コードブロック設定ボタン（コードブロック内でのみ表示） */}
+            {editor?.isActive("codeBlock") && (
+              <ToolButton
+                icon={TbBorderCorners}
+                tooltip="Code Block Settings"
+                onClick={() =>
+                  setIsCodeBlockMenuVisible(!isCodeBlockMenuVisible)
+                }
+                isActive={isCodeBlockMenuVisible}
+              />
+            )}
             <ToolButton
               icon={FaQuoteRight}
               tooltip="Blockquote (Ctrl+Shift+B)"

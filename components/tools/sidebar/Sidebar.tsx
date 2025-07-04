@@ -42,6 +42,8 @@ interface SidebarProps {
   // File management
   fileTabs: FileTab[];
   activeFileId: string;
+  currentEditingFileId: string | null;
+  currentEditingFileContent: string;
   activeFile: FileTab | undefined;
   setActiveFileId: (id: string) => void;
   addNewFile: () => void;
@@ -81,7 +83,9 @@ export function Sidebar({
   isStatisticsResizing,
   handleStatisticsResizeStart,
   fileTabs,
-  activeFileId,
+  activeFileId, // eslint-disable-line @typescript-eslint/no-unused-vars
+  currentEditingFileId,
+  currentEditingFileContent,
   activeFile,
   setActiveFileId,
   addNewFile,
@@ -195,8 +199,8 @@ export function Sidebar({
       }
       setSelectedFiles(newSelection);
     } else {
-      // 通常のクリック
-      setSelectedFiles(new Set([fileId]));
+      // 通常のクリック: 選択状態をクリアしてアクティブファイルを設定
+      setSelectedFiles(new Set()); // 選択状態をクリア
       setActiveFileId(fileId);
     }
   };
@@ -312,16 +316,6 @@ export function Sidebar({
 
       const availableHeight =
         sidebarHeight - headerHeight - fileTabsHeight - 40; // 40px for padding/borders
-
-      // Debug logging (remove in production)
-      console.log("Sidebar height calc:", {
-        sidebarHeight,
-        headerHeight,
-        fileTabsHeight,
-        availableHeight,
-        estimatedStatsMinHeight,
-        shouldExpand: availableHeight >= estimatedStatsMinHeight,
-      });
 
       // Only collapse if there's insufficient space
       // Default to expanded unless space is really tight
@@ -480,7 +474,7 @@ export function Sidebar({
                 className={`flex items-center gap-2 px-2 py-1.5 rounded cursor-pointer text-sm transition-all duration-200 group relative ${
                   selectedFiles.has(file.id)
                     ? "bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 ring-1 ring-blue-400"
-                    : file.id === activeFileId
+                    : file.id === currentEditingFileId
                     ? "bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300"
                     : "hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300"
                 } ${draggedFileId === file.id ? "opacity-50 scale-95" : ""} ${
@@ -602,7 +596,7 @@ export function Sidebar({
                 onToggleAdvancedStats={() =>
                   setShowAdvancedStats(!showAdvancedStats)
                 }
-                activeFileContent={activeFile?.content}
+                currentEditingFileContent={currentEditingFileContent}
               />
 
               {/* 保存状態 */}
