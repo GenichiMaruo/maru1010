@@ -1,5 +1,16 @@
 // テキスト変換とフォーマット用ユーティリティ
 
+// Type definitions
+export type CaseConversionType =
+  | "camelCase"
+  | "PascalCase"
+  | "snake_case"
+  | "kebab-case";
+export type CommentLanguage =
+  | "generic_block_line"
+  | "hash_comments"
+  | "html_comments";
+
 export const toWords = (str: string): string[] => {
   if (!str) return [];
   str = str.replace(/([a-z])([A-Z])/g, "$1 $2");
@@ -60,4 +71,17 @@ export const removeWhitespace = (
     // 空白をすべて削除
     return text.replace(/[ \t\u3000]/g, "");
   }
+};
+
+// 空白文字の正規化（様々な空白を半角スペース1つにまとめる）
+export const normalizeWhitespace = (text: string): string => {
+  // 様々な空白文字を正規化
+  // \s: 標準空白文字（スペース、タブ、改行など）
+  // \u3000: 全角スペース
+  // \u00A0: ノーブレークスペース
+  // \u2000-\u200F: 各種Unicode空白文字
+  // \u2028-\u2029: ライン/パラグラフセパレータ
+  return text
+    .replace(/[\s\u3000\u00A0\u2000-\u200F\u2028-\u2029]+/g, " ")
+    .trim();
 };

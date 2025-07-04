@@ -47,6 +47,7 @@ import {
 } from "react-icons/fa";
 import { MdOutlineSubdirectoryArrowLeft } from "react-icons/md";
 import { TbBorderCorners } from "react-icons/tb";
+import { TextTransformTools } from "../TextTransformTools";
 
 interface ToolbarProps {
   editor: Editor | null;
@@ -417,6 +418,19 @@ export function Toolbar({
           </div>
         )}
 
+        {/* テキスト変換ツール - 高度な機能として表示 */}
+        {showGroups.advanced && (
+          <div className="flex items-center gap-0.5 bg-white dark:bg-slate-900 rounded p-0.5 shadow-sm border border-slate-200 dark:border-slate-700 flex-shrink-0">
+            <TextTransformTools
+              editor={editor}
+              onUpdate={() => {
+                // 統計を更新するためのコールバック
+              }}
+              className=""
+            />
+          </div>
+        )}
+
         {/* 表示設定 - 動的表示 */}
         {showGroups.display && (
           <div className="flex items-center gap-0.5 bg-white dark:bg-slate-900 rounded p-0.5 shadow-sm border border-slate-200 dark:border-slate-700 flex-shrink-0">
@@ -598,6 +612,20 @@ export function Toolbar({
                     <FaLink className="w-3 h-3 mr-2" />
                     Insert Link
                   </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  {/* テキスト変換機能 */}
+                  <div className="px-2 py-2">
+                    <div className="text-xs font-medium text-slate-600 dark:text-slate-400 mb-2">
+                      Text Transform
+                    </div>
+                    <div className="bg-slate-50 dark:bg-slate-800 rounded p-1.5">
+                      <TextTransformTools
+                        editor={editor}
+                        onUpdate={() => {}}
+                        className=""
+                      />
+                    </div>
+                  </div>
                   <DropdownMenuSeparator />
                 </>
               )}
