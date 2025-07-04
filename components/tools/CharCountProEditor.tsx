@@ -17,13 +17,13 @@ import Image from "@tiptap/extension-image";
 import Link from "@tiptap/extension-link";
 import Mathematics from "@tiptap/extension-mathematics";
 import { common, createLowlight } from "lowlight";
-import "katex/dist/katex.min.css";
 
 // Custom components and hooks
 import { Sidebar } from "./sidebar/Sidebar";
 import { FileTabBar } from "./layout/FileTabBar";
 import { Toolbar } from "./toolbar/Toolbar";
 import LinkModal from "./LinkModal";
+import LaTeXExportModal from "./LaTeXExportModal";
 import { FontSizeExtension, VisibilityExtension } from "./extensions";
 import { useFileManager } from "@/hooks/useFileManager";
 import { useEditorOperations } from "@/hooks/useEditorOperations";
@@ -32,6 +32,11 @@ import { useLinkModal } from "@/hooks/useLinkModal";
 import { useEditorSync } from "@/hooks/useEditorSync";
 import { useAutoSave } from "@/hooks/useAutoSave";
 import { calculateTextStats } from "@/utils/statsUtils";
+import {
+  generateLaTeXDocument,
+  downloadLaTeXFile,
+  type LaTeXExportOptions,
+} from "@/utils/latexExport";
 import { marked } from "marked";
 
 // コードブロック用のlowlightインスタンスを作成
@@ -58,6 +63,8 @@ export default function CharCountProEditor() {
   const [isCodeBlockMenuVisible, setIsCodeBlockMenuVisible] = useState(false);
   const [isPreviewVisible, setIsPreviewVisible] = useState(false);
   const [isShortcutsVisible, setIsShortcutsVisible] = useState(false);
+  const [isLatexExportModalVisible, setIsLatexExportModalVisible] =
+    useState(false);
   const [isMathModalVisible, setIsMathModalVisible] = useState(false);
 
   // カスタムフックの使用
@@ -213,6 +220,26 @@ export default function CharCountProEditor() {
     }
   };
 
+  // LaTeXエクスポート処理
+  const handleLatexExport = () => {
+    setIsLatexExportModalVisible(true);
+  };
+
+  const handleLatexExportConfirm = (
+    options: LaTeXExportOptions,
+    content: string
+  ) => {
+    if (activeFile) {
+      try {
+        const latexContent = generateLaTeXDocument(content, options);
+        downloadLaTeXFile(latexContent, activeFile.name || "document");
+      } catch (error) {
+        console.error("LaTeX export failed:", error);
+        alert("LaTeXエクスポートに失敗しました。");
+      }
+    }
+  };
+
   // アクティブファイルの内容から統計を計算（プレーンテキストに変換）
   const getPlainTextFromHtml = useCallback((html: string): string => {
     if (!html) return "";
@@ -309,6 +336,7 @@ export default function CharCountProEditor() {
           showNewlineMarkers={showNewlineMarkers}
           setShowNewlineMarkers={setShowNewlineMarkers}
           onLinkClick={openLinkModal}
+          onLatexExport={handleLatexExport}
           stats={stats}
           targetLength={targetLength}
           setTargetLength={setTargetLength}
@@ -441,6 +469,15 @@ export default function CharCountProEditor() {
         onRemove={handleLinkRemove}
       />
 
+      {/* LaTeXエクスポートモーダル */}
+      <LaTeXExportModal
+        isOpen={isLatexExportModalVisible}
+        onClose={() => setIsLatexExportModalVisible(false)}
+        onExport={handleLatexExportConfirm}
+        content={activeFile?.content || ""}
+        filename={activeFile?.name || "document"}
+      />
+
       {/* カスタムスタイル */}
       <style jsx global>{`
         /* 全角スペースの強調表示 */
@@ -565,27 +602,12 @@ export default function CharCountProEditor() {
           font-size: 1em !important;
         }
 
-        .tiptap-editor .katex-display {
-          margin: 1em 0 !important;
-          text-align: center !important;
-        }
-
-        .tiptap-editor .katex-inline {
-          display: inline !important;
-        }
-
         /* 数式のインライン表示 */
         .tiptap-editor .math-inline {
           display: inline-flex !important;
           align-items: center !important;
           justify-content: center !important;
           vertical-align: baseline !important;
-        }
-
-        .tiptap-editor .math-display {
-          display: block !important;
-          text-align: center !important;
-          margin: 1em 0 !important;
         }
 
         /* カスタムスクロールバー */

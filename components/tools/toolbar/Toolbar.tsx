@@ -44,6 +44,7 @@ import {
   FaEye,
   FaKeyboard,
   FaEllipsisH,
+  FaFileExport,
 } from "react-icons/fa";
 import { MdOutlineSubdirectoryArrowLeft } from "react-icons/md";
 import { TbBorderCorners } from "react-icons/tb";
@@ -72,6 +73,9 @@ interface ToolbarProps {
   // Link handlers
   onLinkClick: () => void;
 
+  // LaTeX Export
+  onLatexExport?: () => void;
+
   // Statistics
   stats: {
     characters: number;
@@ -99,6 +103,7 @@ export function Toolbar({
   showNewlineMarkers,
   setShowNewlineMarkers,
   onLinkClick,
+  onLatexExport,
   stats,
   targetLength,
   setTargetLength,
@@ -471,6 +476,12 @@ export function Toolbar({
               <FaKeyboard className="w-3 h-3 mr-2" />
               Keyboard Shortcuts
             </DropdownMenuItem>
+            {onLatexExport && (
+              <DropdownMenuItem onClick={onLatexExport}>
+                <FaFileExport className="w-3 h-3 mr-2" />
+                Export as LaTeX
+              </DropdownMenuItem>
+            )}
             {editor?.isActive("link") && (
               <>
                 <DropdownMenuSeparator />
@@ -482,6 +493,28 @@ export function Toolbar({
             )}
           </DropdownMenuContent>
         </DropdownMenu>
+
+        {/* LaTeX Export Button - 大画面でのみ表示 */}
+        {onLatexExport && (
+          <div className="hidden lg:flex items-center bg-white dark:bg-slate-900 rounded p-0.5 shadow-sm border border-slate-200 dark:border-slate-700 flex-shrink-0">
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={onLatexExport}
+                    className="h-6 px-2 text-xs rounded-sm hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300"
+                  >
+                    <FaFileExport className="w-3 h-3 mr-1" />
+                    LaTeX
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Export as LaTeX</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
+        )}
       </div>
 
       {/* 右側: 統計とターゲット - 常に表示 */}
