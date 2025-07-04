@@ -333,6 +333,16 @@ export const useFileManager = () => {
     [renameFile]
   );
 
+  // ファイルの順序変更
+  const reorderFiles = useCallback((fromIndex: number, toIndex: number) => {
+    setFileTabs((prev) => {
+      const newTabs = [...prev];
+      const [movedFile] = newTabs.splice(fromIndex, 1);
+      newTabs.splice(toIndex, 0, movedFile);
+      return newTabs;
+    });
+  }, []);
+
   return {
     fileTabs,
     activeFileId,
@@ -349,5 +359,6 @@ export const useFileManager = () => {
     isSaving,
     isRestoredFromStorage,
     resetRestoredFlag,
+    reorderFiles,
   };
 };

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useCallback } from "react";
 import { useTheme } from "next-themes";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -20,6 +20,7 @@ import {
   ChevronLeft,
   ChevronUp,
   ChevronDown,
+  Globe,
 } from "lucide-react";
 import { Editor } from "@tiptap/react";
 import { FileTab } from "@/hooks/useFileManager";
@@ -49,6 +50,7 @@ interface SidebarProps {
   instantSave: () => void;
   handleFileImport: (event: React.ChangeEvent<HTMLInputElement>) => void;
   onLatexExport: () => void;
+  reorderFiles: (fromIndex: number, toIndex: number) => void;
 
   // Editor and stats
   editor: Editor | null;
@@ -79,6 +81,7 @@ export function Sidebar({
   instantSave,
   handleFileImport,
   onLatexExport,
+  reorderFiles,
   editor,
   targetLength,
   showAdvancedStats,
@@ -89,9 +92,171 @@ export function Sidebar({
   const { theme, setTheme } = useTheme();
   const router = useRouter();
   const [shouldExpandStats, setShouldExpandStats] = useState(true); // Default to expanded
+  const [language, setLanguage] = useState<"en" | "ja">("en"); // 言語状態を追加
+  const [selectedFiles, setSelectedFiles] = useState<Set<string>>(new Set()); // 複数選択
+  const [draggedFileId, setDraggedFileId] = useState<string | null>(null); // ドラッグ中のファイル
+  const [dragOverFileId, setDragOverFileId] = useState<string | null>(null); // ドラッグオーバー中のファイル
   const sidebarRef = useRef<HTMLDivElement>(null);
   const headerRef = useRef<HTMLDivElement>(null);
   const fileTabsRef = useRef<HTMLDivElement>(null);
+
+  // 言語切り替え関数
+  const toggleLanguage = () => {
+    setLanguage((prev) => (prev === "en" ? "ja" : "en"));
+  };
+
+  // 多言語対応テキスト
+  const texts = {
+    en: {
+      header: "CHAR COUNT PRO",
+      files: "FILES",
+      statistics: "STATISTICS",
+      autoSave: "AUTO-SAVE",
+      saving: "Saving...",
+      modified: "Modified",
+      saved: "Saved",
+      last: "Last",
+      import: "IMPORT",
+      importFile: "Import File",
+      export: "EXPORT",
+      collapse: "Collapse",
+      expand: "Expand",
+      toggleTheme: "Toggle Theme",
+      home: "Home",
+      toggleLanguage: "Toggle Language",
+      selectedFiles: "selected",
+      deleteSelected: "Delete Selected",
+    },
+    ja: {
+      header: "CHAR COUNT PRO",
+      files: "ファイル",
+      statistics: "統計",
+      autoSave: "自動保存",
+      saving: "保存中...",
+      modified: "変更済み",
+      saved: "保存済み",
+      last: "最終保存",
+      import: "インポート",
+      importFile: "ファイルを読み込み",
+      export: "エクスポート",
+      collapse: "折りたたむ",
+      expand: "展開する",
+      toggleTheme: "テーマ切り替え",
+      home: "ホーム",
+      toggleLanguage: "言語切り替え",
+      selectedFiles: "個選択中",
+      deleteSelected: "選択したファイルを削除",
+    },
+  };
+
+  const t = texts[language];
+
+  // ファイル選択・操作のハンドラー
+  const handleFileSelect = (fileId: string, event: React.MouseEvent) => {
+    if (event.ctrlKey || event.metaKey) {
+      // Ctrl/Cmd + クリックで複数選択切り替え
+      setSelectedFiles((prev) => {
+        const newSelection = new Set(prev);
+        if (newSelection.has(fileId)) {
+          newSelection.delete(fileId);
+        } else {
+          newSelection.add(fileId);
+        }
+        return newSelection;
+      });
+    } else if (event.shiftKey && selectedFiles.size > 0) {
+      // Shift + クリックで範囲選択
+      const lastSelectedIndex = fileTabs.findIndex((f) =>
+        selectedFiles.has(f.id)
+      );
+      const currentIndex = fileTabs.findIndex((f) => f.id === fileId);
+      const start = Math.min(lastSelectedIndex, currentIndex);
+      const end = Math.max(lastSelectedIndex, currentIndex);
+
+      const newSelection = new Set<string>();
+      for (let i = start; i <= end; i++) {
+        newSelection.add(fileTabs[i].id);
+      }
+      setSelectedFiles(newSelection);
+    } else {
+      // 通常のクリック
+      setSelectedFiles(new Set([fileId]));
+      setActiveFileId(fileId);
+    }
+  };
+
+  // ドラッグ開始
+  const handleDragStart = (e: React.DragEvent, fileId: string) => {
+    setDraggedFileId(fileId);
+    e.dataTransfer.effectAllowed = "move";
+    e.dataTransfer.setData("text/plain", fileId);
+  };
+
+  // ドラッグオーバー
+  const handleDragOver = (e: React.DragEvent, fileId: string) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+    setDragOverFileId(fileId);
+  };
+
+  // ドラッグリーブ
+  const handleDragLeave = () => {
+    setDragOverFileId(null);
+  };
+
+  // ドロップ
+  const handleDrop = (e: React.DragEvent, targetFileId: string) => {
+    e.preventDefault();
+
+    if (draggedFileId && draggedFileId !== targetFileId) {
+      const fromIndex = fileTabs.findIndex((f) => f.id === draggedFileId);
+      const toIndex = fileTabs.findIndex((f) => f.id === targetFileId);
+
+      if (fromIndex !== -1 && toIndex !== -1) {
+        reorderFiles(fromIndex, toIndex);
+      }
+    }
+
+    setDraggedFileId(null);
+    setDragOverFileId(null);
+  };
+
+  // 複数ファイル削除
+  const handleDeleteSelected = useCallback(() => {
+    if (selectedFiles.size > 0) {
+      selectedFiles.forEach((fileId) => {
+        if (fileTabs.length > 1) {
+          closeFile(fileId);
+        }
+      });
+      setSelectedFiles(new Set());
+    }
+  }, [selectedFiles, fileTabs.length, closeFile]);
+
+  // キーボードショートカット
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (
+        (e.ctrlKey || e.metaKey) &&
+        e.key === "a" &&
+        e.target === document.body
+      ) {
+        // Ctrl/Cmd + A で全選択
+        e.preventDefault();
+        setSelectedFiles(new Set(fileTabs.map((f) => f.id)));
+      } else if (e.key === "Delete" && selectedFiles.size > 0) {
+        // Delete キーで選択したファイルを削除
+        e.preventDefault();
+        handleDeleteSelected();
+      } else if (e.key === "Escape") {
+        // Escape キーで選択解除
+        setSelectedFiles(new Set());
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [selectedFiles, fileTabs, handleDeleteSelected]);
 
   // Calculate available space and determine if statistics area should expand
   useEffect(() => {
@@ -172,9 +337,25 @@ export function Sidebar({
           className="flex items-center justify-between p-3 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900"
         >
           <h3 className="font-semibold text-slate-800 dark:text-white text-sm">
-            CHAR COUNT PRO
+            {t.header}
           </h3>
           <div className="flex items-center gap-1">
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={toggleLanguage}
+                    className="h-6 w-6 p-0 text-slate-600 dark:text-slate-300"
+                  >
+                    <Globe className="w-3 h-3" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>{t.toggleLanguage}</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -195,7 +376,7 @@ export function Sidebar({
                     )}
                   </Button>
                 </TooltipTrigger>
-                <TooltipContent>Toggle Theme</TooltipContent>
+                <TooltipContent>{t.toggleTheme}</TooltipContent>
               </Tooltip>
             </TooltipProvider>
 
@@ -211,7 +392,7 @@ export function Sidebar({
                     <Home className="w-3 h-3" />
                   </Button>
                 </TooltipTrigger>
-                <TooltipContent>Home</TooltipContent>
+                <TooltipContent>{t.home}</TooltipContent>
               </Tooltip>
             </TooltipProvider>
 
@@ -231,27 +412,56 @@ export function Sidebar({
           <div className="space-y-1">
             <div className="flex items-center justify-between mb-2">
               <span className="text-xs font-medium text-slate-600 dark:text-slate-400 uppercase tracking-wide">
-                FILES
+                {t.files}
+                {selectedFiles.size > 1 && (
+                  <span className="ml-2 text-blue-600 dark:text-blue-400">
+                    ({selectedFiles.size} {t.selectedFiles})
+                  </span>
+                )}
               </span>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={addNewFile}
-                className="h-5 w-5 p-0 text-slate-600 dark:text-slate-300"
-              >
-                <FaPlus className="w-2.5 h-2.5" />
-              </Button>
+              <div className="flex items-center gap-1">
+                {selectedFiles.size > 1 && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleDeleteSelected}
+                    className="h-5 w-5 p-0 text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300"
+                    title={t.deleteSelected}
+                  >
+                    <FaTimes className="w-2.5 h-2.5" />
+                  </Button>
+                )}
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={addNewFile}
+                  className="h-5 w-5 p-0 text-slate-600 dark:text-slate-300"
+                >
+                  <FaPlus className="w-2.5 h-2.5" />
+                </Button>
+              </div>
             </div>
 
             {fileTabs.map((file) => (
               <div
                 key={file.id}
-                className={`flex items-center gap-2 px-2 py-1.5 rounded cursor-pointer text-sm transition-colors group ${
-                  file.id === activeFileId
-                    ? "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300"
+                className={`flex items-center gap-2 px-2 py-1.5 rounded cursor-pointer text-sm transition-all duration-200 group relative ${
+                  selectedFiles.has(file.id)
+                    ? "bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 ring-1 ring-blue-400"
+                    : file.id === activeFileId
+                    ? "bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300"
                     : "hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300"
+                } ${draggedFileId === file.id ? "opacity-50 scale-95" : ""} ${
+                  dragOverFileId === file.id && draggedFileId !== file.id
+                    ? "ring-2 ring-blue-400 ring-offset-1 dark:ring-offset-slate-800"
+                    : ""
                 }`}
-                onClick={() => setActiveFileId(file.id)}
+                onClick={(e) => handleFileSelect(file.id, e)}
+                draggable
+                onDragStart={(e) => handleDragStart(e, file.id)}
+                onDragOver={(e) => handleDragOver(e, file.id)}
+                onDragLeave={handleDragLeave}
+                onDrop={(e) => handleDrop(e, file.id)}
               >
                 <div className="w-4 h-4 flex items-center justify-center">
                   <div className="w-2 h-2 bg-slate-400 dark:bg-slate-500 rounded-sm"></div>
@@ -319,7 +529,7 @@ export function Sidebar({
             <div className="flex-shrink-0 p-2 pt-4">
               <div className="flex items-center justify-between mb-2">
                 <div className="text-xs font-medium text-slate-600 dark:text-slate-400 uppercase tracking-wide">
-                  STATISTICS
+                  {t.statistics}
                 </div>
                 <TooltipProvider>
                   <Tooltip>
@@ -338,7 +548,7 @@ export function Sidebar({
                       </Button>
                     </TooltipTrigger>
                     <TooltipContent>
-                      {shouldExpandStats ? "Collapse" : "Expand"} Statistics
+                      {shouldExpandStats ? t.collapse : t.expand} {t.statistics}
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
@@ -364,7 +574,7 @@ export function Sidebar({
               {/* 保存状態 */}
               <div className="mt-3 p-2 bg-slate-100 dark:bg-slate-800 rounded-md">
                 <div className="text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
-                  AUTO-SAVE
+                  {t.autoSave}
                 </div>
                 <div className="flex items-center gap-2 text-xs">
                   <div
@@ -378,14 +588,14 @@ export function Sidebar({
                   ></div>
                   <span className="text-slate-700 dark:text-slate-300">
                     {isSaving
-                      ? "Saving..."
+                      ? t.saving
                       : activeFile?.isDirty
-                      ? "Modified"
-                      : "Saved"}
+                      ? t.modified
+                      : t.saved}
                   </span>
                 </div>
                 <div className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                  Last:{" "}
+                  {t.last}:{" "}
                   {mounted && activeFile?.lastSaved
                     ? activeFile.lastSaved.toLocaleTimeString()
                     : "--:--:--"}
@@ -395,7 +605,7 @@ export function Sidebar({
               {/* インポートセクション */}
               <div className="mt-4 space-y-1.5">
                 <div className="text-xs font-medium text-slate-600 dark:text-slate-400 uppercase tracking-wide">
-                  IMPORT
+                  {t.import}
                 </div>
                 <div>
                   <input
@@ -414,7 +624,7 @@ export function Sidebar({
                     }
                   >
                     <FaFileImport className="w-2.5 h-2.5 mr-1" />
-                    Import File
+                    {t.importFile}
                   </Button>
                 </div>
               </div>
@@ -422,7 +632,7 @@ export function Sidebar({
               {/* エクスポートセクション */}
               <div className="mt-4 space-y-1.5">
                 <div className="text-xs font-medium text-slate-600 dark:text-slate-400 uppercase tracking-wide">
-                  EXPORT
+                  {t.export}
                 </div>
                 <div className="grid grid-cols-2 gap-1">
                   <Button

@@ -92,6 +92,7 @@ export default function CharCountProEditor() {
     renameFile,
     exportFile,
     importFile,
+    reorderFiles,
     instantSave,
     isSaving,
     isRestoredFromStorage,
@@ -361,6 +362,7 @@ export default function CharCountProEditor() {
         instantSave={instantSave}
         handleFileImport={handleFileImport}
         onLatexExport={handleLatexExport}
+        reorderFiles={reorderFiles}
         editor={editor}
         targetLength={targetLength}
         showAdvancedStats={showAdvancedStats}
