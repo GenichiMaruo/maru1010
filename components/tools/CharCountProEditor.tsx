@@ -17,6 +17,7 @@ import Image from "@tiptap/extension-image";
 import Link from "@tiptap/extension-link";
 import Mathematics from "@tiptap/extension-mathematics";
 import { common, createLowlight } from "lowlight";
+import "katex/dist/katex.min.css";
 
 // Custom components and hooks
 import { Sidebar } from "./sidebar/Sidebar";
@@ -36,7 +37,7 @@ import { marked } from "marked";
 // コードブロック用のlowlightインスタンスを作成
 const lowlight = createLowlight(common);
 
-export default function CharCountProEditorNew() {
+export default function CharCountProEditor() {
   const [mounted, setMounted] = useState(false);
 
   // Hydration対策：クライアントサイドでマウント完了を追跡
@@ -57,6 +58,7 @@ export default function CharCountProEditorNew() {
   const [isCodeBlockMenuVisible, setIsCodeBlockMenuVisible] = useState(false);
   const [isPreviewVisible, setIsPreviewVisible] = useState(false);
   const [isShortcutsVisible, setIsShortcutsVisible] = useState(false);
+  const [isMathModalVisible, setIsMathModalVisible] = useState(false);
 
   // カスタムフックの使用
   const fileManager = useFileManager();
@@ -300,6 +302,8 @@ export default function CharCountProEditorNew() {
           setIsPreviewVisible={setIsPreviewVisible}
           isShortcutsVisible={isShortcutsVisible}
           setIsShortcutsVisible={setIsShortcutsVisible}
+          isMathModalVisible={isMathModalVisible}
+          setIsMathModalVisible={setIsMathModalVisible}
           showFullWidthSpaces={showFullWidthSpaces}
           setShowFullWidthSpaces={setShowFullWidthSpaces}
           showNewlineMarkers={showNewlineMarkers}
@@ -561,12 +565,27 @@ export default function CharCountProEditorNew() {
           font-size: 1em !important;
         }
 
+        .tiptap-editor .katex-display {
+          margin: 1em 0 !important;
+          text-align: center !important;
+        }
+
+        .tiptap-editor .katex-inline {
+          display: inline !important;
+        }
+
         /* 数式のインライン表示 */
         .tiptap-editor .math-inline {
           display: inline-flex !important;
           align-items: center !important;
           justify-content: center !important;
           vertical-align: baseline !important;
+        }
+
+        .tiptap-editor .math-display {
+          display: block !important;
+          text-align: center !important;
+          margin: 1em 0 !important;
         }
 
         /* カスタムスクロールバー */

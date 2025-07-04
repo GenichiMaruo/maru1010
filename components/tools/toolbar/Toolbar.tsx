@@ -11,6 +11,15 @@ import {
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
@@ -51,6 +60,8 @@ interface ToolbarProps {
   setIsPreviewVisible: (visible: boolean) => void;
   isShortcutsVisible: boolean;
   setIsShortcutsVisible: (visible: boolean) => void;
+  isMathModalVisible: boolean;
+  setIsMathModalVisible: (visible: boolean) => void;
 
   // Visibility settings
   showFullWidthSpaces: boolean;
@@ -81,6 +92,8 @@ export function Toolbar({
   setIsPreviewVisible,
   isShortcutsVisible,
   setIsShortcutsVisible,
+  isMathModalVisible,
+  setIsMathModalVisible,
   showFullWidthSpaces,
   setShowFullWidthSpaces,
   showNewlineMarkers,
@@ -92,6 +105,7 @@ export function Toolbar({
   targetProgress,
 }: ToolbarProps) {
   const [isOverflowMenuOpen, setIsOverflowMenuOpen] = useState(false);
+  const [mathEquation, setMathEquation] = useState("");
   const toolbarRef = useRef<HTMLDivElement>(null);
 
   // 画面サイズをチェックしてオーバーフローメニューの表示を決定
@@ -127,10 +141,17 @@ export function Toolbar({
   };
 
   const handleMathInsert = () => {
-    const equation = prompt("Enter LaTeX equation (e.g., E = mc^2):");
-    if (equation) {
-      editor?.chain().focus().insertContent(`$$${equation}$$`).run();
+    setIsMathModalVisible(true);
+  };
+
+  const handleMathSubmit = () => {
+    if (mathEquation.trim()) {
+      // インライン数式として挿入
+      const inlineMath = `$${mathEquation.trim()}$`;
+      editor?.chain().focus().insertContent(inlineMath).run();
     }
+    setMathEquation("");
+    setIsMathModalVisible(false);
   };
 
   const handleUnlink = () => {
@@ -517,6 +538,51 @@ export function Toolbar({
           </div>
         )}
       </div>
+
+      {/* Math Equation Modal */}
+      <Dialog open={isMathModalVisible} onOpenChange={setIsMathModalVisible}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Insert Math Equation</DialogTitle>
+          </DialogHeader>
+          <div className="flex flex-col gap-4 py-4">
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="equation">LaTeX Equation</Label>
+              <Input
+                id="equation"
+                placeholder="E = mc^2"
+                value={mathEquation}
+                onChange={(e) => setMathEquation(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    handleMathSubmit();
+                  } else if (e.key === "Escape") {
+                    setIsMathModalVisible(false);
+                  }
+                }}
+                autoFocus
+              />
+              <p className="text-sm text-slate-500 dark:text-slate-400">
+                Enter a LaTeX equation. It will be wrapped in $$ delimiters.
+              </p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setMathEquation("");
+                setIsMathModalVisible(false);
+              }}
+            >
+              Cancel
+            </Button>
+            <Button onClick={handleMathSubmit} disabled={!mathEquation.trim()}>
+              Insert
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
