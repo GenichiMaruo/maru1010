@@ -76,6 +76,8 @@ export default function CharCountProEditor() {
   const [isLatexExportModalVisible, setIsLatexExportModalVisible] =
     useState(false);
   const [isMathModalVisible, setIsMathModalVisible] = useState(false);
+  // ドラッグ&ドロップ用のstate
+  const [isDragOver, setIsDragOver] = useState(false);
 
   // カスタムフックの使用
   const fileManager = useFileManager();
@@ -89,6 +91,7 @@ export default function CharCountProEditor() {
     closeFile,
     renameFile,
     exportFile,
+    importFile,
     instantSave,
     isSaving,
     isRestoredFromStorage,
@@ -219,16 +222,64 @@ export default function CharCountProEditor() {
   const handleFileImport = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const content = e.target?.result as string;
-        updateFileContent(activeFileId, content);
-        const newName = file.name.replace(/\.[^/.]+$/, "");
-        renameFile(activeFileId, newName);
-      };
-      reader.readAsText(file);
+      importFileContent(file);
     }
   };
+
+  // ファイルコンテンツのインポート処理を共通化
+  const importFileContent = useCallback(
+    async (file: File) => {
+      try {
+        const content = await importFile(file, activeFileId);
+        updateFileContent(activeFileId, content);
+      } catch (error) {
+        console.error("Failed to import file:", error);
+        alert("ファイルの読み込みに失敗しました。");
+      }
+    },
+    [importFile, activeFileId, updateFileContent]
+  );
+
+  // ドラッグ&ドロップイベントハンドラー
+  const handleDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(true);
+  }, []);
+
+  const handleDragLeave = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    // ドラッグがエディター領域から完全に出た時のみfalseにする
+    if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+      setIsDragOver(false);
+    }
+  }, []);
+
+  const handleDrop = useCallback(
+    async (e: React.DragEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      setIsDragOver(false);
+
+      const files = e.dataTransfer.files;
+      if (files.length > 0) {
+        const file = files[0];
+        // テキストファイルのみ許可
+        if (
+          file.type.startsWith("text/") ||
+          file.name.endsWith(".txt") ||
+          file.name.endsWith(".md") ||
+          file.name.endsWith(".json")
+        ) {
+          await importFileContent(file);
+        } else {
+          alert("テキストファイル（.txt、.md、.json）のみ対応しています。");
+        }
+      }
+    },
+    [importFileContent]
+  );
 
   // LaTeXエクスポート処理
   const handleLatexExport = () => {
@@ -319,7 +370,12 @@ export default function CharCountProEditor() {
       />
 
       {/* メインエディター領域 */}
-      <div className="flex-1 flex flex-col bg-white dark:bg-slate-900 min-h-0">
+      <div
+        className="flex-1 flex flex-col bg-white dark:bg-slate-900 min-h-0"
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
+      >
         {/* VS Code風ファイルタブバー */}
         <FileTabBar
           fileTabs={fileTabs}
@@ -412,6 +468,23 @@ export default function CharCountProEditor() {
 
         {/* エディター本体 */}
         <div className="flex-1 relative bg-white dark:bg-slate-900 min-h-0 overflow-hidden">
+          {/* ドラッグオーバー時のオーバーレイ */}
+          {isDragOver && (
+            <div className="absolute inset-0 bg-blue-500/10 border-2 border-dashed border-blue-500 flex items-center justify-center z-50">
+              <div className="bg-white dark:bg-slate-800 rounded-lg p-6 shadow-lg border border-blue-500">
+                <div className="text-center">
+                  <div className="text-blue-500 text-4xl mb-2">📁</div>
+                  <p className="text-lg font-semibold text-slate-900 dark:text-white mb-1">
+                    ファイルをドロップしてください
+                  </p>
+                  <p className="text-sm text-slate-600 dark:text-slate-400">
+                    対応形式: .txt, .md, .json
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* プレビューと分割表示 */}
           <div
             className={`flex h-full ${

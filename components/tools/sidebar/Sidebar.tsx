@@ -172,7 +172,7 @@ export function Sidebar({
           className="flex items-center justify-between p-3 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900"
         >
           <h3 className="font-semibold text-slate-800 dark:text-white text-sm">
-            EXPLORER
+            CHAR COUNT PRO
           </h3>
           <div className="flex items-center gap-1">
             <TooltipProvider>
