@@ -106,12 +106,99 @@ export function Toolbar({
 }: ToolbarProps) {
   const [isOverflowMenuOpen, setIsOverflowMenuOpen] = useState(false);
   const [mathEquation, setMathEquation] = useState("");
+  const [showGroups, setShowGroups] = useState({
+    common: true, // Math、Preview、Shortcuts - 最優先で隠れる
+    lists: true,
+    markdown: true,
+    advanced: true,
+    display: true,
+  });
   const toolbarRef = useRef<HTMLDivElement>(null);
+  const leftSideRef = useRef<HTMLDivElement>(null);
+  const rightSideRef = useRef<HTMLDivElement>(null);
 
-  // 画面サイズをチェックしてオーバーフローメニューの表示を決定
+  // スペースをチェックしてツールバーの表示を動的に調整
   useEffect(() => {
     const checkOverflow = () => {
-      // この機能は将来の拡張のために残しておく
+      if (!toolbarRef.current || !leftSideRef.current || !rightSideRef.current)
+        return;
+
+      const toolbarWidth = toolbarRef.current.clientWidth;
+      const rightSideWidth = rightSideRef.current.clientWidth;
+      const availableWidth = toolbarWidth - rightSideWidth - 60; // マージンとオーバーフローボタン用のスペース
+
+      // 各グループの最小幅を推定（概算）
+      const baseWidth = 160; // 基本的なテキスト装飾
+      const commonWidth = 120; // 共通機能（Math、Preview、Shortcuts）
+      const listsWidth = 80;
+      const markdownWidth = 120;
+      const advancedWidth = 160;
+      const displayWidth = 80;
+
+      const newShowGroups = {
+        common: true,
+        lists: true,
+        markdown: true,
+        advanced: true,
+        display: true,
+      };
+
+      // 利用可能な幅に基づいて表示するグループを決定（優先度順で隠す）
+      // 必要な幅を逆順で計算して、収まらない場合は隠す
+
+      // 全体の必要幅を計算
+      const totalNeededWidth =
+        baseWidth +
+        commonWidth +
+        displayWidth +
+        advancedWidth +
+        markdownWidth +
+        listsWidth;
+
+      // スペースが十分ある場合は全て表示
+      if (availableWidth >= totalNeededWidth) {
+        // 全て表示（デフォルトのtrue値をそのまま使用）
+      } else {
+        // スペース不足の場合、優先度順で隠していく
+        let currentWidth = baseWidth; // 基本機能は常に表示
+
+        // 1. リストを追加できるかチェック
+        if (availableWidth >= currentWidth + listsWidth) {
+          currentWidth += listsWidth;
+        } else {
+          newShowGroups.lists = false;
+        }
+
+        // 2. マークダウン機能を追加できるかチェック
+        if (availableWidth >= currentWidth + markdownWidth) {
+          currentWidth += markdownWidth;
+        } else {
+          newShowGroups.markdown = false;
+        }
+
+        // 3. 高度な機能を追加できるかチェック
+        if (availableWidth >= currentWidth + advancedWidth) {
+          currentWidth += advancedWidth;
+        } else {
+          newShowGroups.advanced = false;
+        }
+
+        // 4. 表示設定を追加できるかチェック
+        if (availableWidth >= currentWidth + displayWidth) {
+          currentWidth += displayWidth;
+        } else {
+          newShowGroups.display = false;
+        }
+
+        // 5. 共通機能を最後に追加（最初に隠れる）
+        if (availableWidth >= currentWidth + commonWidth) {
+          currentWidth += commonWidth;
+        } else {
+          newShowGroups.common = false;
+        }
+      }
+
+      setShowGroups(newShowGroups);
     };
 
     checkOverflow();
@@ -203,7 +290,10 @@ export function Toolbar({
       className="flex items-center justify-between p-2 bg-slate-50/80 dark:bg-slate-800/80 border-b border-slate-200/50 dark:border-slate-700/50 min-h-[44px]"
     >
       {/* 左側: 編集ツール */}
-      <div className="flex items-center gap-1 flex-1 overflow-hidden">
+      <div
+        ref={leftSideRef}
+        className="flex items-center gap-1 flex-1 overflow-hidden"
+      >
         {/* 基本的なテキスト装飾 - 常に表示 */}
         <div className="flex items-center gap-0.5 bg-white dark:bg-slate-900 rounded p-0.5 shadow-sm border border-slate-200 dark:border-slate-700 flex-shrink-0">
           <ToolButton
@@ -232,260 +322,325 @@ export function Toolbar({
           />
         </div>
 
-        {/* リスト - 中画面以上で表示 */}
-        <div className="hidden md:flex items-center gap-0.5 bg-white dark:bg-slate-900 rounded p-0.5 shadow-sm border border-slate-200 dark:border-slate-700 flex-shrink-0">
-          <ToolButton
-            icon={FaListUl}
-            tooltip="Bullet List"
-            onClick={() => editor?.chain().focus().toggleBulletList().run()}
-            isActive={editor?.isActive("bulletList")}
-          />
-          <ToolButton
-            icon={FaListOl}
-            tooltip="Numbered List"
-            onClick={() => editor?.chain().focus().toggleOrderedList().run()}
-            isActive={editor?.isActive("orderedList")}
-          />
-        </div>
+        {/* リスト - 動的表示 */}
+        {showGroups.lists && (
+          <div className="flex items-center gap-0.5 bg-white dark:bg-slate-900 rounded p-0.5 shadow-sm border border-slate-200 dark:border-slate-700 flex-shrink-0">
+            <ToolButton
+              icon={FaListUl}
+              tooltip="Bullet List"
+              onClick={() => editor?.chain().focus().toggleBulletList().run()}
+              isActive={editor?.isActive("bulletList")}
+            />
+            <ToolButton
+              icon={FaListOl}
+              tooltip="Numbered List"
+              onClick={() => editor?.chain().focus().toggleOrderedList().run()}
+              isActive={editor?.isActive("orderedList")}
+            />
+          </div>
+        )}
 
-        {/* マークダウン機能 - 大画面で表示 */}
-        <div className="hidden lg:flex items-center gap-0.5 bg-white dark:bg-slate-900 rounded p-0.5 shadow-sm border border-slate-200 dark:border-slate-700 flex-shrink-0">
-          <ToolButton
-            icon={FaHeading}
-            tooltip="Heading 1 (Ctrl+Alt+1)"
-            onClick={() =>
-              editor?.chain().focus().toggleHeading({ level: 1 }).run()
-            }
-            isActive={editor?.isActive("heading", { level: 1 })}
-          />
-          <ToolButton
-            icon={FaCode}
-            tooltip={
-              editor?.isActive("codeBlock")
-                ? "Code Block Settings"
-                : "Code Block (Ctrl+Alt+C)"
-            }
-            onClick={() => {
-              if (editor?.isActive("codeBlock")) {
-                setIsCodeBlockMenuVisible(!isCodeBlockMenuVisible);
-              } else {
-                editor?.chain().focus().toggleCodeBlock().run();
+        {/* マークダウン機能 - 動的表示 */}
+        {showGroups.markdown && (
+          <div className="flex items-center gap-0.5 bg-white dark:bg-slate-900 rounded p-0.5 shadow-sm border border-slate-200 dark:border-slate-700 flex-shrink-0">
+            <ToolButton
+              icon={FaHeading}
+              tooltip="Heading 1 (Ctrl+Alt+1)"
+              onClick={() =>
+                editor?.chain().focus().toggleHeading({ level: 1 }).run()
               }
-            }}
-            isActive={editor?.isActive("codeBlock") || isCodeBlockMenuVisible}
-          />
-          <ToolButton
-            icon={FaQuoteRight}
-            tooltip="Blockquote (Ctrl+Shift+B)"
-            onClick={() => editor?.chain().focus().toggleBlockquote().run()}
-            isActive={editor?.isActive("blockquote")}
-          />
-        </div>
-
-        {/* 高度な機能 - 特大画面で表示 */}
-        <div className="hidden xl:flex items-center gap-0.5 bg-white dark:bg-slate-900 rounded p-0.5 shadow-sm border border-slate-200 dark:border-slate-700 flex-shrink-0">
-          <ToolButton
-            icon={FaTable}
-            tooltip={
-              editor?.isActive("table") ? "Table Operations" : "Insert Table"
-            }
-            onClick={() => {
-              if (editor?.isActive("table")) {
-                setIsTableMenuVisible(!isTableMenuVisible);
-              } else {
-                editor
-                  ?.chain()
-                  .focus()
-                  .insertTable({ rows: 3, cols: 3, withHeaderRow: true })
-                  .run();
+              isActive={editor?.isActive("heading", { level: 1 })}
+            />
+            <ToolButton
+              icon={FaCode}
+              tooltip={
+                editor?.isActive("codeBlock")
+                  ? "Code Block Settings"
+                  : "Code Block (Ctrl+Alt+C)"
               }
-            }}
-            isActive={editor?.isActive("table") || isTableMenuVisible}
-          />
-          <ToolButton
-            icon={FaCheckSquare}
-            tooltip="Task List"
-            onClick={() => editor?.chain().focus().toggleTaskList().run()}
-            isActive={editor?.isActive("taskList")}
-          />
-          <ToolButton
-            icon={FaImage}
-            tooltip="Insert Image (Upload or URL)"
-            onClick={handleImageInsert}
-          />
-          <ToolButton
-            icon={FaLink}
-            tooltip="Insert/Edit Link"
-            onClick={onLinkClick}
-            isActive={editor?.isActive("link")}
-          />
-        </div>
-
-        {/* 表示設定 - 特大画面で表示 */}
-        <div className="hidden xl:flex items-center gap-0.5 bg-white dark:bg-slate-900 rounded p-0.5 shadow-sm border border-slate-200 dark:border-slate-700 flex-shrink-0">
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setShowFullWidthSpaces(!showFullWidthSpaces)}
-                  className={`h-6 w-6 p-0 rounded-sm ${
-                    showFullWidthSpaces
-                      ? "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300"
-                      : "hover:bg-slate-100 dark:hover:bg-slate-800"
-                  }`}
-                >
-                  <TbBorderCorners className="w-3 h-3" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>Show Full-width Spaces</TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-          <ToolButton
-            icon={MdOutlineSubdirectoryArrowLeft}
-            tooltip="Show Line Breaks"
-            onClick={() => setShowNewlineMarkers(!showNewlineMarkers)}
-            isActive={showNewlineMarkers}
-          />
-        </div>
-
-        {/* オーバーフローメニュー */}
-        <DropdownMenu
-          open={isOverflowMenuOpen}
-          onOpenChange={setIsOverflowMenuOpen}
-        >
-          <DropdownMenuTrigger asChild>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-6 w-6 p-0 ml-1 hover:bg-slate-100 dark:hover:bg-slate-800 flex-shrink-0"
-            >
-              <FaEllipsisH className="w-3 h-3" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="start" className="w-48">
-            {/* 中画面未満で隠れるアイテム */}
-            <div className="md:hidden">
-              <DropdownMenuItem
-                onClick={() => editor?.chain().focus().toggleBulletList().run()}
-              >
-                <FaListUl className="w-3 h-3 mr-2" />
-                Bullet List
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() =>
-                  editor?.chain().focus().toggleOrderedList().run()
+              onClick={() => {
+                if (editor?.isActive("codeBlock")) {
+                  setIsCodeBlockMenuVisible(!isCodeBlockMenuVisible);
+                } else {
+                  editor?.chain().focus().toggleCodeBlock().run();
                 }
-              >
-                <FaListOl className="w-3 h-3 mr-2" />
-                Numbered List
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-            </div>
+              }}
+              isActive={editor?.isActive("codeBlock") || isCodeBlockMenuVisible}
+            />
+            <ToolButton
+              icon={FaQuoteRight}
+              tooltip="Blockquote (Ctrl+Shift+B)"
+              onClick={() => editor?.chain().focus().toggleBlockquote().run()}
+              isActive={editor?.isActive("blockquote")}
+            />
+          </div>
+        )}
 
-            {/* 大画面未満で隠れるアイテム */}
-            <div className="lg:hidden">
-              <DropdownMenuItem
-                onClick={() =>
-                  editor?.chain().focus().toggleHeading({ level: 1 }).run()
-                }
-              >
-                <FaHeading className="w-3 h-3 mr-2" />
-                Heading 1
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => editor?.chain().focus().toggleCodeBlock().run()}
-              >
-                <FaCode className="w-3 h-3 mr-2" />
-                Code Block
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => editor?.chain().focus().toggleBlockquote().run()}
-              >
-                <FaQuoteRight className="w-3 h-3 mr-2" />
-                Blockquote
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-            </div>
-
-            {/* 特大画面未満で隠れるアイテム */}
-            <div className="xl:hidden">
-              <DropdownMenuItem
-                onClick={() =>
+        {/* 高度な機能 - 動的表示 */}
+        {showGroups.advanced && (
+          <div className="flex items-center gap-0.5 bg-white dark:bg-slate-900 rounded p-0.5 shadow-sm border border-slate-200 dark:border-slate-700 flex-shrink-0">
+            <ToolButton
+              icon={FaTable}
+              tooltip={
+                editor?.isActive("table") ? "Table Operations" : "Insert Table"
+              }
+              onClick={() => {
+                if (editor?.isActive("table")) {
+                  setIsTableMenuVisible(!isTableMenuVisible);
+                } else {
                   editor
                     ?.chain()
                     .focus()
                     .insertTable({ rows: 3, cols: 3, withHeaderRow: true })
-                    .run()
+                    .run();
                 }
-              >
-                <FaTable className="w-3 h-3 mr-2" />
-                Insert Table
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => editor?.chain().focus().toggleTaskList().run()}
-              >
-                <FaCheckSquare className="w-3 h-3 mr-2" />
-                Task List
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={handleImageInsert}>
-                <FaImage className="w-3 h-3 mr-2" />
-                Insert Image
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={onLinkClick}>
-                <FaLink className="w-3 h-3 mr-2" />
-                Insert Link
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                onClick={() => setShowFullWidthSpaces(!showFullWidthSpaces)}
-                className="flex items-center"
-              >
-                <TbBorderCorners className="w-3 h-3 mr-2" />
-                Show Full-width Spaces
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => setShowNewlineMarkers(!showNewlineMarkers)}
-              >
-                <MdOutlineSubdirectoryArrowLeft className="w-3 h-3 mr-2" />
-                Show Line Breaks
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-            </div>
+              }}
+              isActive={editor?.isActive("table") || isTableMenuVisible}
+            />
+            <ToolButton
+              icon={FaCheckSquare}
+              tooltip="Task List"
+              onClick={() => editor?.chain().focus().toggleTaskList().run()}
+              isActive={editor?.isActive("taskList")}
+            />
+            <ToolButton
+              icon={FaImage}
+              tooltip="Insert Image (Upload or URL)"
+              onClick={handleImageInsert}
+            />
+            <ToolButton
+              icon={FaLink}
+              tooltip="Insert/Edit Link"
+              onClick={onLinkClick}
+              isActive={editor?.isActive("link")}
+            />
+          </div>
+        )}
 
-            {/* その他の機能 - 常に表示 */}
-            <DropdownMenuItem onClick={handleMathInsert}>
-              <FaCalculator className="w-3 h-3 mr-2" />
-              Math Equation
-            </DropdownMenuItem>
-            <DropdownMenuItem
+        {/* 表示設定 - 動的表示 */}
+        {showGroups.display && (
+          <div className="flex items-center gap-0.5 bg-white dark:bg-slate-900 rounded p-0.5 shadow-sm border border-slate-200 dark:border-slate-700 flex-shrink-0">
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setShowFullWidthSpaces(!showFullWidthSpaces)}
+                    className={`h-6 w-6 p-0 rounded-sm ${
+                      showFullWidthSpaces
+                        ? "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300"
+                        : "hover:bg-slate-100 dark:hover:bg-slate-800"
+                    }`}
+                  >
+                    <TbBorderCorners className="w-3 h-3" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Show Full-width Spaces</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+            <ToolButton
+              icon={MdOutlineSubdirectoryArrowLeft}
+              tooltip="Show Line Breaks"
+              onClick={() => setShowNewlineMarkers(!showNewlineMarkers)}
+              isActive={showNewlineMarkers}
+            />
+          </div>
+        )}
+
+        {/* 共通機能 - 動的表示（最優先で隠れる） */}
+        {showGroups.common && (
+          <div className="flex items-center gap-0.5 bg-white dark:bg-slate-900 rounded p-0.5 shadow-sm border border-slate-200 dark:border-slate-700 flex-shrink-0">
+            <ToolButton
+              icon={FaCalculator}
+              tooltip="Insert Math Equation"
+              onClick={handleMathInsert}
+            />
+            <ToolButton
+              icon={FaEye}
+              tooltip="Toggle Preview"
               onClick={() => setIsPreviewVisible(!isPreviewVisible)}
-            >
-              <FaEye className="w-3 h-3 mr-2" />
-              Toggle Preview
-            </DropdownMenuItem>
-            <DropdownMenuItem
+              isActive={isPreviewVisible}
+            />
+            <ToolButton
+              icon={FaKeyboard}
+              tooltip="Keyboard Shortcuts"
               onClick={() => setIsShortcutsVisible(!isShortcutsVisible)}
-            >
-              <FaKeyboard className="w-3 h-3 mr-2" />
-              Keyboard Shortcuts
-            </DropdownMenuItem>
-            {editor?.isActive("link") && (
-              <>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleUnlink}>
-                  <FaUnlink className="w-3 h-3 mr-2" />
-                  Remove Link
-                </DropdownMenuItem>
-              </>
-            )}
-          </DropdownMenuContent>
-        </DropdownMenu>
+            />
+          </div>
+        )}
+
+        {/* オーバーフローメニュー - 隠れている機能がある場合のみ表示 */}
+        {(!showGroups.common ||
+          !showGroups.lists ||
+          !showGroups.markdown ||
+          !showGroups.advanced ||
+          !showGroups.display) && (
+          <DropdownMenu
+            open={isOverflowMenuOpen}
+            onOpenChange={setIsOverflowMenuOpen}
+          >
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-6 w-6 p-0 ml-1 hover:bg-slate-100 dark:hover:bg-slate-800 flex-shrink-0"
+              >
+                <FaEllipsisH className="w-3 h-3" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="w-48">
+              {/* 共通機能が隠れている場合 */}
+              {!showGroups.common && (
+                <>
+                  <DropdownMenuItem onClick={handleMathInsert}>
+                    <FaCalculator className="w-3 h-3 mr-2" />
+                    Insert Math
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => setIsPreviewVisible(!isPreviewVisible)}
+                  >
+                    <FaEye className="w-3 h-3 mr-2" />
+                    Toggle Preview
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => setIsShortcutsVisible(!isShortcutsVisible)}
+                  >
+                    <FaKeyboard className="w-3 h-3 mr-2" />
+                    Keyboard Shortcuts
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                </>
+              )}
+
+              {/* リストが隠れている場合 */}
+              {!showGroups.lists && (
+                <>
+                  <DropdownMenuItem
+                    onClick={() =>
+                      editor?.chain().focus().toggleBulletList().run()
+                    }
+                  >
+                    <FaListUl className="w-3 h-3 mr-2" />
+                    Bullet List
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() =>
+                      editor?.chain().focus().toggleOrderedList().run()
+                    }
+                  >
+                    <FaListOl className="w-3 h-3 mr-2" />
+                    Numbered List
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                </>
+              )}
+
+              {/* マークダウン機能が隠れている場合 */}
+              {!showGroups.markdown && (
+                <>
+                  <DropdownMenuItem
+                    onClick={() =>
+                      editor?.chain().focus().toggleHeading({ level: 1 }).run()
+                    }
+                  >
+                    <FaHeading className="w-3 h-3 mr-2" />
+                    Heading 1
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() =>
+                      editor?.chain().focus().toggleCodeBlock().run()
+                    }
+                  >
+                    <FaCode className="w-3 h-3 mr-2" />
+                    Code Block
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() =>
+                      editor?.chain().focus().toggleBlockquote().run()
+                    }
+                  >
+                    <FaQuoteRight className="w-3 h-3 mr-2" />
+                    Blockquote
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                </>
+              )}
+
+              {/* 高度な機能が隠れている場合 */}
+              {!showGroups.advanced && (
+                <>
+                  <DropdownMenuItem
+                    onClick={() =>
+                      editor
+                        ?.chain()
+                        .focus()
+                        .insertTable({ rows: 3, cols: 3, withHeaderRow: true })
+                        .run()
+                    }
+                  >
+                    <FaTable className="w-3 h-3 mr-2" />
+                    Insert Table
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() =>
+                      editor?.chain().focus().toggleTaskList().run()
+                    }
+                  >
+                    <FaCheckSquare className="w-3 h-3 mr-2" />
+                    Task List
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={handleImageInsert}>
+                    <FaImage className="w-3 h-3 mr-2" />
+                    Insert Image
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={onLinkClick}>
+                    <FaLink className="w-3 h-3 mr-2" />
+                    Insert Link
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                </>
+              )}
+
+              {/* 表示設定が隠れている場合 */}
+              {!showGroups.display && (
+                <>
+                  <DropdownMenuItem
+                    onClick={() => setShowFullWidthSpaces(!showFullWidthSpaces)}
+                    className="flex items-center"
+                  >
+                    <TbBorderCorners className="w-3 h-3 mr-2" />
+                    Show Full-width Spaces
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => setShowNewlineMarkers(!showNewlineMarkers)}
+                  >
+                    <MdOutlineSubdirectoryArrowLeft className="w-3 h-3 mr-2" />
+                    Show Line Breaks
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                </>
+              )}
+
+              {editor?.isActive("link") && (
+                <>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleUnlink}>
+                    <FaUnlink className="w-3 h-3 mr-2" />
+                    Remove Link
+                  </DropdownMenuItem>
+                </>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
       </div>
 
       {/* 右側: 統計とターゲット - 常に表示 */}
-      <div className="flex items-center gap-2 text-xs flex-shrink-0 ml-2">
+      <div
+        ref={rightSideRef}
+        className="flex items-center gap-2 text-xs flex-shrink-0 ml-2"
+      >
         {/* Target入力 - 小画面では幅を縮小 */}
         <div className="flex items-center gap-1">
           <span className="text-slate-600 dark:text-slate-400 font-medium hidden sm:inline">

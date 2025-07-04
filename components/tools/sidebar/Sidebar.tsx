@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useTheme } from "next-themes";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -12,7 +12,15 @@ import {
 } from "@/components/ui/tooltip";
 import { StatisticsPanel } from "../StatisticsPanel";
 import { FaPlus, FaTimes, FaFileImport } from "react-icons/fa";
-import { Menu, Home, Sun, Moon, ChevronLeft } from "lucide-react";
+import {
+  Menu,
+  Home,
+  Sun,
+  Moon,
+  ChevronLeft,
+  ChevronUp,
+  ChevronDown,
+} from "lucide-react";
 import { Editor } from "@tiptap/react";
 import { FileTab } from "@/hooks/useFileManager";
 
@@ -80,6 +88,60 @@ export function Sidebar({
 }: SidebarProps) {
   const { theme, setTheme } = useTheme();
   const router = useRouter();
+  const [shouldExpandStats, setShouldExpandStats] = useState(true); // Default to expanded
+  const sidebarRef = useRef<HTMLDivElement>(null);
+  const headerRef = useRef<HTMLDivElement>(null);
+  const fileTabsRef = useRef<HTMLDivElement>(null);
+
+  // Calculate available space and determine if statistics area should expand
+  useEffect(() => {
+    const calculateSpace = () => {
+      if (!sidebarRef.current || !headerRef.current || !fileTabsRef.current) {
+        return;
+      }
+
+      const sidebarHeight = sidebarRef.current.clientHeight;
+      const headerHeight = headerRef.current.offsetHeight;
+      const fileTabsHeight = fileTabsRef.current.offsetHeight;
+
+      // Calculate actual content height more accurately
+      // Statistics panel includes:
+      // - Statistics content (~150-200px)
+      // - Auto-save section (~60px)
+      // - Import section (~50px)
+      // - Export section (~80px)
+      // - Padding and margins (~50px)
+      const estimatedStatsMinHeight = 350; // Reduced to be more permissive
+
+      const availableHeight =
+        sidebarHeight - headerHeight - fileTabsHeight - 40; // 40px for padding/borders
+
+      // Debug logging (remove in production)
+      console.log("Sidebar height calc:", {
+        sidebarHeight,
+        headerHeight,
+        fileTabsHeight,
+        availableHeight,
+        estimatedStatsMinHeight,
+        shouldExpand: availableHeight >= estimatedStatsMinHeight,
+      });
+
+      // Only collapse if there's insufficient space
+      // Default to expanded unless space is really tight
+      setShouldExpandStats(availableHeight >= estimatedStatsMinHeight);
+    };
+
+    calculateSpace();
+
+    const resizeObserver = new ResizeObserver(calculateSpace);
+    if (sidebarRef.current) {
+      resizeObserver.observe(sidebarRef.current);
+    }
+
+    return () => {
+      resizeObserver.disconnect();
+    };
+  }, []);
 
   if (sidebarCollapsed) {
     return (
@@ -98,13 +160,17 @@ export function Sidebar({
 
   return (
     <div
+      ref={sidebarRef}
       className="flex-shrink-0 bg-slate-100 dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 relative"
       style={{ width: sidebarWidth }}
     >
       {/* サイドバーコンテンツ */}
       <div className="h-full flex flex-col">
         {/* サイドバーヘッダー */}
-        <div className="flex items-center justify-between p-3 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900">
+        <div
+          ref={headerRef}
+          className="flex items-center justify-between p-3 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900"
+        >
           <h3 className="font-semibold text-slate-800 dark:text-white text-sm">
             EXPLORER
           </h3>
@@ -161,7 +227,7 @@ export function Sidebar({
         </div>
 
         {/* ファイルリスト */}
-        <div className="flex-1 overflow-y-auto p-2 min-h-0">
+        <div ref={fileTabsRef} className="flex-1 overflow-y-auto p-2 min-h-0">
           <div className="space-y-1">
             <div className="flex items-center justify-between mb-2">
               <span className="text-xs font-medium text-slate-600 dark:text-slate-400 uppercase tracking-wide">
@@ -221,37 +287,70 @@ export function Sidebar({
         {/* 統計パネル */}
         <div className="group flex-shrink-0 border-t border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50 relative">
           {/* 統計パネルリサイザー */}
-          <div
-            className={`statistics-resizer absolute top-0 left-0 right-0 h-2 cursor-row-resize hover:bg-blue-500/20 transition-all duration-200 z-10 flex items-center justify-center ${
-              isStatisticsResizing
-                ? "bg-blue-500/30 resizing"
-                : "bg-transparent"
-            }`}
-            onMouseDown={handleStatisticsResizeStart}
-            title="Drag to resize statistics panel"
-          >
+          {!shouldExpandStats && (
             <div
-              className={`w-8 h-0.5 bg-slate-400 dark:bg-slate-500 rounded transition-opacity duration-200 ${
+              className={`statistics-resizer absolute top-0 left-0 right-0 h-2 cursor-row-resize hover:bg-blue-500/20 transition-all duration-200 z-10 flex items-center justify-center ${
                 isStatisticsResizing
-                  ? "opacity-100"
-                  : "opacity-0 group-hover:opacity-50"
+                  ? "bg-blue-500/30 resizing"
+                  : "bg-transparent"
               }`}
-            />
-          </div>
+              onMouseDown={handleStatisticsResizeStart}
+              title="Drag to resize statistics panel"
+            >
+              <div
+                className={`w-8 h-0.5 bg-slate-400 dark:bg-slate-500 rounded transition-opacity duration-200 ${
+                  isStatisticsResizing
+                    ? "opacity-100"
+                    : "opacity-0 group-hover:opacity-50"
+                }`}
+              />
+            </div>
+          )}
 
           {/* 統計パネルコンテンツ */}
           <div
             className="flex flex-col"
-            style={{ height: `${statisticsHeight}px` }}
+            style={{
+              height: shouldExpandStats ? "auto" : `${statisticsHeight}px`,
+              minHeight: shouldExpandStats ? "400px" : `${statisticsHeight}px`, // Ensure minimum height when expanded
+              maxHeight: shouldExpandStats ? "none" : `${statisticsHeight}px`,
+            }}
           >
             <div className="flex-shrink-0 p-2 pt-4">
-              <div className="text-xs font-medium text-slate-600 dark:text-slate-400 uppercase tracking-wide mb-2">
-                STATISTICS
+              <div className="flex items-center justify-between mb-2">
+                <div className="text-xs font-medium text-slate-600 dark:text-slate-400 uppercase tracking-wide">
+                  STATISTICS
+                </div>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setShouldExpandStats(!shouldExpandStats)}
+                        className="h-4 w-4 p-0 text-slate-600 dark:text-slate-300"
+                      >
+                        {shouldExpandStats ? (
+                          <ChevronUp className="w-2.5 h-2.5" />
+                        ) : (
+                          <ChevronDown className="w-2.5 h-2.5" />
+                        )}
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      {shouldExpandStats ? "Collapse" : "Expand"} Statistics
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               </div>
             </div>
 
             {/* スクロール可能な統計エリア */}
-            <div className="statistics-scrollbar flex-1 overflow-y-auto px-2 pb-2 min-h-0">
+            <div
+              className={`statistics-scrollbar flex-1 px-2 pb-2 min-h-0 ${
+                shouldExpandStats ? "overflow-visible" : "overflow-y-auto"
+              }`}
+            >
               <StatisticsPanel
                 editor={editor}
                 targetLength={targetLength}

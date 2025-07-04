@@ -48,6 +48,16 @@ export default function CharCountProEditor() {
   // Hydration対策：クライアントサイドでマウント完了を追跡
   useEffect(() => {
     setMounted(true);
+
+    // ページ全体のスクロールを無効化
+    document.body.style.overflow = "hidden";
+    document.documentElement.style.overflow = "hidden";
+
+    return () => {
+      // クリーンアップ時にスクロールを復元
+      document.body.style.overflow = "";
+      document.documentElement.style.overflow = "";
+    };
   }, []);
 
   // UI状態管理
@@ -149,7 +159,7 @@ export default function CharCountProEditor() {
     editorProps: {
       attributes: {
         class: "tiptap-editor",
-        style: `line-height: 1.6; padding: 2rem; min-height: calc(100vh - 200px);`,
+        style: `line-height: 1.6; padding: 2rem; min-height: 100%;`,
         spellcheck: "false",
       },
     },
@@ -278,7 +288,7 @@ export default function CharCountProEditor() {
     targetLength > 0 ? (stats.characters / targetLength) * 100 : 0;
 
   return (
-    <div className="h-full flex bg-slate-50 dark:bg-slate-900">
+    <div className="h-screen flex bg-slate-50 dark:bg-slate-900 overflow-hidden fixed inset-0">
       {/* VS Code風サイドバー */}
       <Sidebar
         sidebarWidth={sidebarWidth}
@@ -309,7 +319,7 @@ export default function CharCountProEditor() {
       />
 
       {/* メインエディター領域 */}
-      <div className="flex-1 flex flex-col bg-white dark:bg-slate-900">
+      <div className="flex-1 flex flex-col bg-white dark:bg-slate-900 min-h-0">
         {/* VS Code風ファイルタブバー */}
         <FileTabBar
           fileTabs={fileTabs}
@@ -401,7 +411,7 @@ export default function CharCountProEditor() {
         )}
 
         {/* エディター本体 */}
-        <div className="flex-1 relative bg-white dark:bg-slate-900">
+        <div className="flex-1 relative bg-white dark:bg-slate-900 min-h-0 overflow-hidden">
           {/* プレビューと分割表示 */}
           <div
             className={`flex h-full ${
@@ -412,7 +422,9 @@ export default function CharCountProEditor() {
           >
             {/* エディター */}
             <div
-              className={`${isPreviewVisible ? "w-1/2" : "w-full"} relative`}
+              className={`${
+                isPreviewVisible ? "w-1/2" : "w-full"
+              } relative h-full overflow-hidden`}
             >
               <EditorContent
                 editor={editor}
@@ -422,7 +434,7 @@ export default function CharCountProEditor() {
 
             {/* プレビュー */}
             {isPreviewVisible && (
-              <div className="w-1/2 overflow-y-auto bg-slate-50 dark:bg-slate-900/50 p-4">
+              <div className="w-1/2 h-full overflow-y-auto bg-slate-50 dark:bg-slate-900/50 p-4">
                 <div
                   className="prose prose-slate dark:prose-invert max-w-none"
                   dangerouslySetInnerHTML={{
