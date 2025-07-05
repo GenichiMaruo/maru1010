@@ -25,7 +25,8 @@ import {
 import { Editor } from "@tiptap/react";
 import { FileTab } from "@/hooks/useFileManager";
 import { SplitLayout, EditorPane } from "@/hooks/useEditorLayout";
-import styles from "../CharCountProEditor.module.css";
+// Tiptapスタイルを読み込み
+// CSS imports removed - styles are now in globals.css
 
 interface SidebarProps {
   // Layout state
@@ -528,9 +529,7 @@ export function Sidebar({
           {/* 統計パネルリサイザー */}
           {!shouldExpandStats && (
             <div
-              className={`${
-                styles.statisticsResizer
-              } absolute top-0 left-0 right-0 h-2 cursor-row-resize hover:bg-blue-500/20 transition-all duration-200 z-10 flex items-center justify-center ${
+              className={`statistics-resizer absolute top-0 left-0 right-0 h-2 cursor-row-resize hover:bg-blue-500/20 transition-all duration-200 z-10 flex items-center justify-center ${
                 isStatisticsResizing
                   ? "bg-blue-500/30 resizing"
                   : "bg-transparent"
@@ -588,9 +587,7 @@ export function Sidebar({
 
             {/* スクロール可能な統計エリア */}
             <div
-              className={`${
-                styles.statisticsScrollbar
-              } flex-1 px-2 pb-2 min-h-0 ${
+              className={`statistics-scrollbar flex-1 px-2 pb-2 min-h-0 ${
                 shouldExpandStats ? "overflow-visible" : "overflow-y-auto"
               }`}
             >

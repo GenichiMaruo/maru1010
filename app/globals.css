@@ -274,3 +274,535 @@ body,
     opacity: 1;
   }
 }
+
+/* CharCountPro Editor Styles */
+/* 全角スペースの強調表示 */
+.full-width-space-highlight {
+  background: rgba(255, 0, 0, 0.3) !important;
+  border-radius: 2px !important;
+}
+
+/* 改行マーカー */
+.hard-break-marker,
+.paragraph-end-marker {
+  color: rgba(148, 163, 184, 0.6) !important;
+  font-size: 10px !important;
+  font-weight: bold !important;
+  pointer-events: none !important;
+  user-select: none !important;
+}
+
+.dark .hard-break-marker,
+.dark .paragraph-end-marker {
+  color: rgba(148, 163, 184, 0.4) !important;
+}
+
+/* 段落マーカー */
+.paragraph-marker {
+  color: rgba(148, 163, 184, 0.6) !important;
+  font-size: 12px !important;
+  font-weight: bold !important;
+  pointer-events: none !important;
+  user-select: none !important;
+}
+
+.dark .paragraph-marker {
+  color: rgba(148, 163, 184, 0.4) !important;
+}
+
+/* Tiptapエディターのスタイリング */
+.tiptap-editor {
+  outline: none !important;
+  white-space: pre-wrap !important;
+  word-wrap: break-word !important;
+  overflow-wrap: break-word !important;
+  tab-size: 4 !important;
+  -moz-tab-size: 4 !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, "Noto Color Emoji", "Apple Color Emoji",
+    "Segoe UI Emoji", "Segoe UI Symbol", sans-serif !important;
+}
+
+.tiptap-editor .ProseMirror {
+  outline: none !important;
+  padding: 1rem !important;
+  min-height: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  overflow-wrap: break-word !important;
+  font-family: inherit !important;
+}
+
+.tiptap-editor p {
+  margin: 0.5em 0 !important;
+}
+
+.tiptap-editor ul,
+.tiptap-editor ol {
+  padding-left: 1.25rem !important;
+  margin: 0.5em 0 !important;
+}
+
+.tiptap-editor li {
+  margin: 0.25em 0 !important;
+}
+
+.tiptap-editor pre {
+  background: rgba(148, 163, 184, 0.1) !important;
+  border-radius: 6px !important;
+  padding: 1em !important;
+  margin: 1em 0 !important;
+  overflow-x: auto !important;
+  max-width: 100% !important;
+  white-space: pre !important;
+  position: relative !important;
+}
+
+/* コードブロック内のProseMirror要素の位置調整 */
+.tiptap-editor pre .ProseMirror {
+  padding: 0 !important;
+  margin: 0 !important;
+  background: transparent !important;
+  font-family: "Fira Code", "Monaco", "Menlo", "Ubuntu Mono", monospace !important;
+  font-size: 0.9em !important;
+  line-height: 1.5 !important;
+  text-indent: 0 !important;
+}
+
+/* コードブロック内のProseMirrorの直接の子要素 */
+.tiptap-editor pre .ProseMirror > * {
+  margin: 0 !important;
+  text-indent: 0 !important;
+  margin-left: 0 !important;
+}
+
+/* コードブロック内の行の統一された位置設定 */
+.tiptap-editor pre p {
+  margin: 0 !important;
+  line-height: 1.5 !important;
+  text-indent: 0 !important;
+}
+
+/* コードブロック内のテキストノードの位置統一 */
+.tiptap-editor pre * {
+  margin: 0 !important;
+  text-indent: 0 !important;
+}
+
+/* コードブロック内の最初の行と他の行の位置を完全に統一 */
+.tiptap-editor pre p:first-child {
+  margin: 0 !important;
+  text-indent: 0 !important;
+}
+
+/* コードブロック内での全ての子要素の位置リセット */
+.tiptap-editor pre > * {
+  margin: 0 !important;
+  text-indent: 0 !important;
+  display: block !important;
+}
+
+/* CodeBlockLowlight拡張機能用の追加スタイル */
+.tiptap-editor .hljs {
+  background: transparent !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  display: block !important;
+  overflow-x: visible !important;
+  text-indent: 0 !important;
+}
+
+/* コードブロック内でのhljsクラス内の要素統一 */
+.tiptap-editor .hljs * {
+  margin: 0 !important;
+  text-indent: 0 !important;
+}
+
+/* ===== Syntax Highlighting Colors ===== */
+
+/* GitHub-like theme for light mode */
+.tiptap-editor .hljs-comment,
+.tiptap-editor .hljs-quote {
+  color: #6a737d !important;
+  font-style: italic !important;
+}
+
+.tiptap-editor .hljs-keyword,
+.tiptap-editor .hljs-selector-tag,
+.tiptap-editor .hljs-subst {
+  color: #d73a49 !important;
+  font-weight: bold !important;
+}
+
+.tiptap-editor .hljs-number,
+.tiptap-editor .hljs-literal,
+.tiptap-editor .hljs-variable,
+.tiptap-editor .hljs-template-variable,
+.tiptap-editor .hljs-tag .hljs-attr {
+  color: #005cc5 !important;
+}
+
+.tiptap-editor .hljs-string,
+.tiptap-editor .hljs-doctag {
+  color: #032f62 !important;
+}
+
+.tiptap-editor .hljs-title,
+.tiptap-editor .hljs-section,
+.tiptap-editor .hljs-selector-id {
+  color: #6f42c1 !important;
+  font-weight: bold !important;
+}
+
+.tiptap-editor .hljs-subst {
+  font-weight: normal !important;
+}
+
+.tiptap-editor .hljs-type,
+.tiptap-editor .hljs-class .hljs-title {
+  color: #d73a49 !important;
+  font-weight: bold !important;
+}
+
+.tiptap-editor .hljs-tag,
+.tiptap-editor .hljs-name,
+.tiptap-editor .hljs-attribute {
+  color: #22863a !important;
+  font-weight: normal !important;
+}
+
+.tiptap-editor .hljs-regexp,
+.tiptap-editor .hljs-link {
+  color: #e36209 !important;
+}
+
+.tiptap-editor .hljs-symbol,
+.tiptap-editor .hljs-bullet {
+  color: #005cc5 !important;
+}
+
+.tiptap-editor .hljs-built_in,
+.tiptap-editor .hljs-builtin-name {
+  color: #005cc5 !important;
+}
+
+.tiptap-editor .hljs-meta {
+  color: #005cc5 !important;
+}
+
+.tiptap-editor .hljs-deletion {
+  background: #ffeef0 !important;
+}
+
+.tiptap-editor .hljs-addition {
+  background: #f0fff4 !important;
+}
+
+.tiptap-editor .hljs-emphasis {
+  font-style: italic !important;
+}
+
+.tiptap-editor .hljs-strong {
+  font-weight: bold !important;
+}
+
+/* Dark mode colors */
+.dark .tiptap-editor .hljs-comment,
+.dark .tiptap-editor .hljs-quote {
+  color: #8b949e !important;
+  font-style: italic !important;
+}
+
+.dark .tiptap-editor .hljs-keyword,
+.dark .tiptap-editor .hljs-selector-tag,
+.dark .tiptap-editor .hljs-subst {
+  color: #ff7b72 !important;
+  font-weight: bold !important;
+}
+
+.dark .tiptap-editor .hljs-number,
+.dark .tiptap-editor .hljs-literal,
+.dark .tiptap-editor .hljs-variable,
+.dark .tiptap-editor .hljs-template-variable,
+.dark .tiptap-editor .hljs-tag .hljs-attr {
+  color: #79c0ff !important;
+}
+
+.dark .tiptap-editor .hljs-string,
+.dark .tiptap-editor .hljs-doctag {
+  color: #a5d6ff !important;
+}
+
+.dark .tiptap-editor .hljs-title,
+.dark .tiptap-editor .hljs-section,
+.dark .tiptap-editor .hljs-selector-id {
+  color: #d2a8ff !important;
+  font-weight: bold !important;
+}
+
+.dark .tiptap-editor .hljs-subst {
+  font-weight: normal !important;
+}
+
+.dark .tiptap-editor .hljs-type,
+.dark .tiptap-editor .hljs-class .hljs-title {
+  color: #ff7b72 !important;
+  font-weight: bold !important;
+}
+
+.dark .tiptap-editor .hljs-tag,
+.dark .tiptap-editor .hljs-name,
+.dark .tiptap-editor .hljs-attribute {
+  color: #7ee787 !important;
+  font-weight: normal !important;
+}
+
+.dark .tiptap-editor .hljs-regexp,
+.dark .tiptap-editor .hljs-link {
+  color: #ffa657 !important;
+}
+
+.dark .tiptap-editor .hljs-symbol,
+.dark .tiptap-editor .hljs-bullet {
+  color: #79c0ff !important;
+}
+
+.dark .tiptap-editor .hljs-built_in,
+.dark .tiptap-editor .hljs-builtin-name {
+  color: #79c0ff !important;
+}
+
+.dark .tiptap-editor .hljs-meta {
+  color: #79c0ff !important;
+}
+
+.dark .tiptap-editor .hljs-deletion {
+  background: #490202 !important;
+}
+
+.dark .tiptap-editor .hljs-addition {
+  background: #04260f !important;
+}
+
+.dark .tiptap-editor .hljs-emphasis {
+  font-style: italic !important;
+}
+
+.dark .tiptap-editor .hljs-strong {
+  font-weight: bold !important;
+}
+
+/* ===== Language Label Styles ===== */
+.tiptap-editor pre[data-language] {
+  position: relative !important;
+}
+
+.tiptap-editor pre[data-language]::before {
+  content: attr(data-language) !important;
+  position: absolute !important;
+  top: 0.5rem !important;
+  right: 0.5rem !important;
+  background: rgba(0, 0, 0, 0.1) !important;
+  color: rgba(0, 0, 0, 0.6) !important;
+  padding: 0.2rem 0.5rem !important;
+  border-radius: 0.25rem !important;
+  font-size: 0.75rem !important;
+  font-weight: 500 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+  z-index: 10 !important;
+  pointer-events: none !important;
+  user-select: none !important;
+}
+
+.dark .tiptap-editor pre[data-language]::before {
+  background: rgba(255, 255, 255, 0.1) !important;
+  color: rgba(255, 255, 255, 0.6) !important;
+}
+
+/* コードブロック内の全ての段落とテキストの左端統一 */
+.tiptap-editor pre *,
+.tiptap-editor pre p,
+.tiptap-editor pre span,
+.tiptap-editor pre div {
+  text-align: left !important;
+  text-indent: 0 !important;
+  margin-left: 0 !important;
+}
+
+/* コードブロック内での改行の統一 */
+.tiptap-editor pre br {
+  line-height: 1.5 !important;
+}
+
+/* コードブロック内のスパン要素の位置統一 */
+.tiptap-editor pre span {
+  display: inline !important;
+  vertical-align: baseline !important;
+}
+
+.tiptap-editor code {
+  background: rgba(148, 163, 184, 0.1) !important;
+  border-radius: 3px !important;
+  padding: 0.2em 0.4em !important;
+  font-size: 0.9em !important;
+}
+
+.tiptap-editor blockquote {
+  border-left: 4px solid rgba(148, 163, 184, 0.3) !important;
+  padding-left: 1em !important;
+  margin: 1em 0 !important;
+  font-style: italic !important;
+}
+
+.tiptap-editor hr {
+  border: none !important;
+  border-top: 2px solid rgba(148, 163, 184, 0.3) !important;
+  margin: 2em 0 !important;
+}
+
+.tiptap-editor table {
+  border-collapse: collapse !important;
+  width: 100% !important;
+  margin: 1em 0 !important;
+  table-layout: fixed !important;
+}
+
+.tiptap-editor th,
+.tiptap-editor td {
+  border: 1px solid rgba(148, 163, 184, 0.3) !important;
+  padding: 0.5em !important;
+  text-align: left !important;
+  word-wrap: break-word !important;
+  overflow-wrap: break-word !important;
+  vertical-align: top !important;
+  min-width: 120px !important;
+}
+
+.tiptap-editor th {
+  background: rgba(148, 163, 184, 0.1) !important;
+  font-weight: bold !important;
+}
+
+/* テーブルセルの編集可能状態でのスタイル */
+.tiptap-editor table p {
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+/* テーブルのリサイズ可能な列 */
+.tiptap-editor .tableWrapper {
+  overflow-x: auto !important;
+  margin: 1em 0 !important;
+}
+
+.tiptap-editor .resize-cursor {
+  cursor: col-resize !important;
+}
+
+/* テーブルの選択状態のスタイル */
+.tiptap-editor .selectedCell {
+  background: rgba(59, 130, 246, 0.2) !important;
+}
+
+/* テーブルのホバー状態 */
+.tiptap-editor table:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* テーブルのアクティブな状態 */
+.tiptap-editor table .has-focus {
+  outline: 2px solid rgba(59, 130, 246, 0.5) !important;
+  outline-offset: 2px !important;
+}
+
+.tiptap-editor .task-list {
+  list-style: none !important;
+  padding-left: 0 !important;
+}
+
+.tiptap-editor .task-item {
+  display: flex !important;
+  align-items: flex-start !important;
+  gap: 0.5em !important;
+}
+
+.tiptap-editor .task-item input[type="checkbox"] {
+  margin: 0 !important;
+  margin-top: 0.2em !important;
+}
+
+/* Math expressions */
+.tiptap-editor .katex {
+  font-size: 1em !important;
+}
+
+/* 数式のインライン表示 */
+.tiptap-editor .math-inline {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  vertical-align: baseline !important;
+}
+
+/* カスタムスクロールバー */
+.statistics-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.statistics-scrollbar::-webkit-scrollbar-track {
+  background: rgba(148, 163, 184, 0.1);
+  border-radius: 3px;
+}
+
+.statistics-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.3);
+  border-radius: 3px;
+  transition: background 0.2s ease;
+}
+
+.statistics-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(148, 163, 184, 0.5);
+}
+
+.dark .statistics-scrollbar::-webkit-scrollbar-track {
+  background: rgba(71, 85, 105, 0.1);
+}
+
+.dark .statistics-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(71, 85, 105, 0.4);
+}
+
+.dark .statistics-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(71, 85, 105, 0.6);
+}
+
+/* リサイザーのホバー効果 */
+.statistics-resizer {
+  position: relative;
+}
+
+.statistics-resizer::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 20px;
+  height: 2px;
+  background: rgba(148, 163, 184, 0.4);
+  border-radius: 1px;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.statistics-resizer:hover::before,
+.statistics-resizer.resizing::before {
+  opacity: 1;
+}
+
+.dark .statistics-resizer::before {
+  background: rgba(203, 213, 225, 0.4);
+}

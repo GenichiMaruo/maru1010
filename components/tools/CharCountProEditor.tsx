@@ -70,7 +70,7 @@ if (typeof window !== "undefined") {
 }
 
 // CSSモジュールのimport
-import styles from "./CharCountProEditor.module.css";
+// CSS imports removed - styles are now in globals.css
 
 export default function CharCountProEditor() {
   const [mounted, setMounted] = useState(false);
@@ -252,7 +252,7 @@ export default function CharCountProEditor() {
     content: "<p></p>", // 初期値はシンプルに
     editorProps: {
       attributes: {
-        class: styles.tiptapEditor,
+        class: "tiptap-editor",
         style: `line-height: 1.6; padding: 2rem; min-height: 100%;`,
         spellcheck: "false",
       },

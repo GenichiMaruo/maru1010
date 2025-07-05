@@ -21,6 +21,8 @@ import { FontSizeExtension, VisibilityExtension } from "./extensions";
 import type { EditorPane } from "@/hooks/useEditorLayout";
 import type { FileTab } from "@/hooks/useFileManager";
 import { Button } from "@/components/ui/button";
+// Tiptapスタイルを読み込み
+// CSS imports removed - styles are now in globals.css
 
 const lowlight = createLowlight(common);
 
