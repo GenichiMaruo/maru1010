@@ -106,7 +106,7 @@ export function SplitContainer({
         return (
           <React.Fragment key={index}>
             <div
-              className="relative flex-shrink-0"
+              className="relative flex-shrink-0 min-w-0"
               style={{
                 [direction === "horizontal" ? "width" : "height"]: `${size}%`,
               }}

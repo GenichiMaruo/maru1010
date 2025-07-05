@@ -581,7 +581,7 @@ export default function CharCountProEditor() {
 
       {/* メインエディター領域 */}
       <div
-        className="flex-1 flex flex-col bg-white dark:bg-slate-900 min-h-0"
+        className="flex-1 flex flex-col bg-white dark:bg-slate-900 min-h-0 min-w-0 overflow-hidden"
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
@@ -668,7 +668,7 @@ export default function CharCountProEditor() {
         )}
 
         {/* エディター本体 */}
-        <div className="flex-1 relative bg-white dark:bg-slate-900 min-h-0 overflow-hidden">
+        <div className="flex-1 relative bg-white dark:bg-slate-900 min-h-0 min-w-0 overflow-hidden">
           {/* ドラッグオーバー時のオーバーレイ */}
           {isDragOver && (
             <div className="absolute inset-0 bg-blue-500/10 border-2 border-dashed border-blue-500 flex items-center justify-center z-50">
@@ -698,7 +698,7 @@ export default function CharCountProEditor() {
             <div
               className={`${
                 isPreviewVisible ? "w-1/2" : "w-full"
-              } relative h-full overflow-hidden`}
+              } relative h-full min-w-0 overflow-hidden`}
             >
               <SplitLayoutRenderer
                 layout={splitLayout}
@@ -728,9 +728,9 @@ export default function CharCountProEditor() {
 
             {/* プレビュー */}
             {isPreviewVisible && (
-              <div className="w-1/2 h-full overflow-y-auto bg-slate-50 dark:bg-slate-900/50 p-4">
+              <div className="w-1/2 h-full min-w-0 overflow-y-auto bg-slate-50 dark:bg-slate-900/50 p-4">
                 <div
-                  className="prose prose-slate dark:prose-invert max-w-none"
+                  className="prose prose-slate dark:prose-invert max-w-none min-w-0"
                   dangerouslySetInnerHTML={{
                     __html: marked(getCurrentEditorText()),
                   }}
@@ -823,8 +823,20 @@ export default function CharCountProEditor() {
           outline: none !important;
           white-space: pre-wrap !important;
           word-wrap: break-word !important;
+          overflow-wrap: break-word !important;
           tab-size: 4 !important; /* タブ文字のサイズを4スペース相当に設定 */
           -moz-tab-size: 4 !important;
+          max-width: 100% !important;
+          min-width: 0 !important;
+        }
+
+        .tiptap-editor .ProseMirror {
+          outline: none !important;
+          padding: 1rem !important;
+          min-height: 100% !important;
+          max-width: 100% !important;
+          min-width: 0 !important;
+          overflow-wrap: break-word !important;
         }
 
         .tiptap-editor p {
@@ -847,6 +859,8 @@ export default function CharCountProEditor() {
           padding: 1em !important;
           margin: 1em 0 !important;
           overflow-x: auto !important;
+          max-width: 100% !important;
+          white-space: pre !important;
         }
 
         .tiptap-editor code {

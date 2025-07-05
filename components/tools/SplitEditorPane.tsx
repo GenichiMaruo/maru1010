@@ -452,7 +452,7 @@ export function SplitEditorPane({
 
   return (
     <div
-      className={`h-full flex flex-col border-2 ${
+      className={`h-full flex flex-col min-w-0 border-2 ${
         isActive ? "border-blue-500 dark:border-blue-400" : "border-transparent"
       } ${
         isDragOverPane
@@ -629,11 +629,11 @@ export function SplitEditorPane({
       </div>
 
       {/* エディター */}
-      <div className="flex-1 overflow-hidden">
+      <div className="flex-1 min-w-0 overflow-hidden">
         {activeFile ? (
           <EditorContent
             editor={editor}
-            className="h-full overflow-y-auto prose prose-slate dark:prose-invert max-w-none"
+            className="h-full min-w-0 overflow-y-auto prose prose-slate dark:prose-invert max-w-none"
           />
         ) : (
           <div className="h-full flex items-center justify-center text-slate-500 dark:text-slate-400">

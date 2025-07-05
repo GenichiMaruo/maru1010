@@ -111,5 +111,5 @@ export function SplitLayoutRenderer({
     ]
   );
 
-  return <div className={`h-full ${className}`}>{renderLayout(layout)}</div>;
+  return <div className={`h-full min-w-0 ${className}`}>{renderLayout(layout)}</div>;
 }
