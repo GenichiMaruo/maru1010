@@ -220,9 +220,13 @@ export default function CharCountProEditor() {
   // エディター設定
   const editor = useEditor({
     extensions: [
+      // StarterKitを基本として使用し、絵文字を含むUnicode文字をサポート
       StarterKit.configure({
-        codeBlock: false, // デフォルトのcodeBlockを無効化してCodeBlockLowlightを使用
+        // codeBlockのみ無効化してCodeBlockLowlightを使用
+        codeBlock: false,
+        // 他の基本ノードはデフォルトのものを使用（絵文字サポートのため）
       }),
+      // 追加のスタイル拡張
       TextStyle,
       Underline,
       Strike,
@@ -271,9 +275,16 @@ export default function CharCountProEditor() {
         },
       }),
       // タスクリスト関連の拡張機能
-      TaskList,
+      TaskList.configure({
+        HTMLAttributes: {
+          class: "task-list",
+        },
+      }),
       TaskItem.configure({
         nested: true,
+        HTMLAttributes: {
+          class: "task-item",
+        },
       }),
       // 画像とリンクの拡張機能
       Image.configure({
@@ -303,19 +314,62 @@ export default function CharCountProEditor() {
         class: "tiptap-editor",
         style: `line-height: 1.6; padding: 2rem; min-height: 100%;`,
         spellcheck: "false",
+        // 絵文字と日本語入力をサポートするための属性
+        contenteditable: "true",
+        // IME入力モードを適切に設定
+        inputmode: "text",
+        // Unicodeサポートを明示的に有効化
+        "data-unicode-support": "true",
+      },
+      transformPastedText: (text: string) => {
+        console.log("🎯 Transform pasted text:", text);
+        // テキストをそのまま返して変換を行わない
+        return text;
+      },
+      transformPastedHTML: (html: string) => {
+        console.log("🎯 Transform pasted HTML:", html);
+        // HTMLをそのまま返して変換を行わない
+        return html;
       },
       handleClick: () => {
         handleMainEditorClick();
       },
       handleDOMEvents: {
-        // composition events（IME入力）を適切に処理
-        compositionstart: () => false,
-        compositionupdate: () => false,
-        compositionend: () => false,
-        // input events（絵文字を含む）を適切に処理
-        input: () => false,
+        // 顔文字と日本語入力をサポートするためのイベント処理
+        // composition events（IME入力）を適切に処理 - 絵文字と日本語入力をサポート
+        compositionstart: (view, event) => {
+          console.log("🎯 Composition start:", event);
+          // IME入力開始時の処理 - デフォルトの動作を許可して顔文字入力をサポート
+          return false;
+        },
+        compositionupdate: (view, event) => {
+          console.log("🎯 Composition update:", event);
+          // IME入力更新時の処理 - デフォルトの動作を許可して顔文字入力をサポート
+          return false;
+        },
+        compositionend: (view, event) => {
+          console.log("🎯 Composition end:", event);
+          // IME入力終了時の処理 - デフォルトの動作を許可して顔文字入力をサポート
+          return false;
+        },
+        // input events（絵文字を含む）を適切に処理 - すべての文字入力をサポート
+        input: (view, event) => {
+          const inputEvent = event as InputEvent;
+          console.log("🎯 Input event:", event, inputEvent.data);
+          // 入力イベントをエディターが自然に処理できるようにして顔文字入力をサポート
+          return false;
+        },
+        // 絵文字ピッカーや他の入力方法をサポート
+        beforeinput: (view, event) => {
+          const inputEvent = event as InputEvent;
+          console.log("🎯 Before input event:", event, inputEvent.data);
+          // beforeinputイベントもエディターに任せて顔文字入力をサポート
+          return false;
+        },
       },
       handleKeyDown: (view, event) => {
+        console.log("🎯 Key down:", event.key, event.code, event);
+
         // 絵文字を含むUnicode文字の入力をサポート
         // 特殊文字（絵文字、アクセント文字など）の入力を妨げないようにする
 

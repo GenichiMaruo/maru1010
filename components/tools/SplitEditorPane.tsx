@@ -306,6 +306,7 @@ export function SplitEditorPane({
     extensions: [
       StarterKit.configure({
         codeBlock: false,
+        // Textノードはデフォルトで有効（絵文字・特殊文字のサポート）
       }),
       TextStyle,
       Underline,
@@ -321,9 +322,16 @@ export function SplitEditorPane({
       TableRow,
       TableHeader,
       TableCell,
-      TaskList,
+      TaskList.configure({
+        HTMLAttributes: {
+          class: "task-list",
+        },
+      }),
       TaskItem.configure({
         nested: true,
+        HTMLAttributes: {
+          class: "task-item",
+        },
       }),
       Image.configure({
         inline: false,
