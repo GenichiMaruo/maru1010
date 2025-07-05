@@ -85,7 +85,7 @@ export default function TimerTab() {
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
-  }, [isRunning]);
+  }, [isRunning, timeLeft]);
 
   const targetTimeRef = useRef<number>(0);
 
@@ -93,7 +93,7 @@ export default function TimerTab() {
     if (!isRunning && !showVisualAlarm) {
       setTimeLeft(getTotalInitialSeconds());
     }
-  }, [initialTime, getTotalInitialSeconds, showVisualAlarm]);
+  }, [initialTime, getTotalInitialSeconds, showVisualAlarm, isRunning]);
 
   const handleTimeChange = useCallback(
     (unit: "h" | "m" | "s", newValue: number) => {

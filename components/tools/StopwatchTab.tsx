@@ -60,7 +60,7 @@ export default function StopwatchTab() {
         clearInterval(timerRef.current);
       }
     };
-  }, [isRunning]); // time is needed here to correctly calculate startTimeRef on resume
+  }, [isRunning, time]); // time is needed here to correctly calculate startTimeRef on resume
 
   // Keyboard shortcuts effect
   useEffect(() => {

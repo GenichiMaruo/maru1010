@@ -1,5 +1,21 @@
 [
   {
+    "title": "CHAR COUNT PRO",
+    "description": "リアルタイム文字数カウント、diff表示、タスク管理機能を備えた高機能マークダウンエディタ。Tiptapベースのリッチな編集体験と、カスタムUI/UXにこだわったWebアプリ。",
+    "technologies": [
+      "Next.js",
+      "TypeScript",
+      "Tailwind CSS",
+      "Tiptap",
+      "Shadcn/ui"
+    ],
+    "imageUrl": "/portfolio/char-count-pro.png",
+    "link": ["/tools/char-count-pro"],
+    "github": ["https://github.com/GenichiMaruo/maru1010"],
+    "details": "\n**プロダクト概要**\n\nCHAR COUNT PROは、ライターや開発者のために設計された高機能なマークダウンエディタです。リアルタイムでの文字数・単語数カウント、変更差分の視覚化、タスクリスト管理など、テキスト作業を効率化する機能を豊富に搭載しています。\n\n**技術的特徴**\n\n- **Tiptapベースのリッチエディタ**: Markdown記法・タスクリスト・数式・コードブロックなど多彩な拡張\n- **リアルタイム統計**: 文字数・単語数・行数・タスク進捗などを即時集計\n- **diff表示**: 編集前後の差分を色分けで可視化\n- **カスタムUI/UX**: Tailwind CSSとshadcn/uiで直感的かつ美しい操作感を実現\n- **LaTeXエクスポート**: 数式や文章をそのままLaTeX形式で出力可能\n\n**成長したこと**\n\n- **エディタ拡張の実装力**: Tiptapのカスタムノード・拡張機能の開発経験\n- **UI/UXデザイン**: ユーザー目線での使いやすさ・美しさの両立\n- **リアルタイム集計・差分処理**: パフォーマンスと正確性を両立した実装\n- **モダンWeb技術の活用**: Next.js, TypeScript, Tailwind CSS, shadcn/uiの実践的な活用\n",
+    "duration": "2025年7月"
+  },
+  {
     "title": "PICO-88",
     "description": "教育・ホビー用途を目的とした仮想の8ビットマイクロプロセッサおよびコンピュータアーキテクチャ。1980年代の8ビットコンピュータにインスパイアされながら、現代的な学習環境で使いやすいように設計。WebベースシミュレータでCISCアーキテクチャ、アセンブリ言語、グラフィックシステムをブラウザ上で体験可能。GitHub ActionsによるCI/CDで自動デプロイを実現。",
     "technologies": [

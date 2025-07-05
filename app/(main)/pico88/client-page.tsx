@@ -75,7 +75,7 @@ HLT             ; プログラム終了`;
   ];
 
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-900">
+    <div className="min-h-screen bg-white dark:bg-gray-900 transition-colors duration-300 ease-in-out">
       {/* Grid Background Pattern */}
       <div className="absolute inset-0 opacity-5 dark:opacity-10">
         <div className="grid-pattern"></div>

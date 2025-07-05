@@ -116,6 +116,8 @@
 @layer base {
   * {
     @apply border-border outline-ring/50;
+    transition: background-color 0.3s ease, color 0.3s ease,
+      border-color 0.3s ease, box-shadow 0.3s ease;
   }
   body {
     @apply bg-background text-foreground;
@@ -182,4 +184,1526 @@ body,
     ),
     linear-gradient(90deg, rgba(59, 130, 246, 0.1) 1px, transparent 1px);
   background-size: 20px 20px;
+}
+
+/* コイントス用の3Dアニメーション */
+@keyframes flip3d {
+  0% {
+    transform: rotateY(0deg) rotateX(0deg);
+  }
+  25% {
+    transform: rotateY(90deg) rotateX(180deg) scale(1.1);
+  }
+  50% {
+    transform: rotateY(180deg) rotateX(360deg) scale(1.2);
+  }
+  75% {
+    transform: rotateY(270deg) rotateX(540deg) scale(1.1);
+  }
+  100% {
+    transform: rotateY(360deg) rotateX(720deg);
+  }
+}
+
+@keyframes chargeGlow {
+  0%,
+  100% {
+    box-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 30px rgba(255, 215, 0, 0.8), 0 0 60px rgba(255, 215, 0, 0.4);
+  }
+}
+
+@keyframes shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  10%,
+  30%,
+  50%,
+  70%,
+  90% {
+    transform: translateX(-2px);
+  }
+  20%,
+  40%,
+  60%,
+  80% {
+    transform: translateX(2px);
+  }
+}
+
+@keyframes resultPop {
+  0% {
+    transform: scale(0) rotate(0deg);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.2) rotate(180deg);
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(1) rotate(360deg);
+    opacity: 1;
+  }
+}
+
+@keyframes glowPulse {
+  0%,
+  100% {
+    box-shadow: 0 0 20px currentColor;
+  }
+  50% {
+    box-shadow: 0 0 40px currentColor, 0 0 60px currentColor;
+  }
+}
+
+@keyframes fadeInBounce {
+  0% {
+    transform: translateY(-10px) scale(0.8);
+    opacity: 0;
+  }
+  60% {
+    transform: translateY(2px) scale(1.05);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+}
+
+/* CharCountPro Editor Styles */
+/* 全角スペースの強調表示 */
+.full-width-space-highlight {
+  background: rgba(255, 0, 0, 0.3) !important;
+  border-radius: 2px !important;
+}
+
+/* 改行マーカー */
+.hard-break-marker,
+.paragraph-end-marker {
+  color: rgba(148, 163, 184, 0.6) !important;
+  font-size: 10px !important;
+  font-weight: bold !important;
+  pointer-events: none !important;
+  user-select: none !important;
+}
+
+.dark .hard-break-marker,
+.dark .paragraph-end-marker {
+  color: rgba(148, 163, 184, 0.4) !important;
+}
+
+/* 段落マーカー */
+.paragraph-marker {
+  color: rgba(148, 163, 184, 0.6) !important;
+  font-size: 12px !important;
+  font-weight: bold !important;
+  pointer-events: none !important;
+  user-select: none !important;
+}
+
+.dark .paragraph-marker {
+  color: rgba(148, 163, 184, 0.4) !important;
+}
+
+/* Tiptapエディターのスタイリング */
+.tiptap-editor {
+  outline: none !important;
+  white-space: pre-wrap !important;
+  word-wrap: break-word !important;
+  overflow-wrap: break-word !important;
+  tab-size: 4 !important;
+  -moz-tab-size: 4 !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, "Noto Color Emoji", "Apple Color Emoji",
+    "Segoe UI Emoji", "Segoe UI Symbol", sans-serif !important;
+  pointer-events: auto !important; /* エディタ全体がクリック可能 */
+}
+
+.tiptap-editor .ProseMirror {
+  outline: none !important;
+  padding: 1rem !important;
+  min-height: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  overflow-wrap: break-word !important;
+  font-family: inherit !important;
+}
+
+.tiptap-editor p {
+  margin: 0.5em 0 !important;
+}
+
+/* ===== List Styles (Bullet & Numbered) ===== */
+
+/* Unordered List (Bullet List) */
+.tiptap-editor ul {
+  list-style: none !important;
+  padding-left: 1.5rem !important;
+  margin: 0.75em 0 !important;
+  position: relative !important;
+}
+
+.tiptap-editor ul li {
+  position: relative !important;
+  margin: 0.4em 0 !important;
+  padding-left: 0.5rem !important;
+  line-height: 1.6 !important;
+}
+
+.tiptap-editor ul li::before {
+  content: "•" !important;
+  position: absolute !important;
+  left: -1.2rem !important;
+  top: 0 !important;
+  color: #3b82f6 !important;
+  font-weight: bold !important;
+  font-size: 1.1em !important;
+  line-height: 1.6 !important;
+}
+
+/* Dark mode bullet color */
+.dark .tiptap-editor ul li::before {
+  color: #60a5fa !important;
+}
+
+/* Nested bullet lists */
+.tiptap-editor ul ul li::before {
+  content: "◦" !important;
+  color: #6b7280 !important;
+  font-size: 1em !important;
+}
+
+.dark .tiptap-editor ul ul li::before {
+  color: #9ca3af !important;
+}
+
+.tiptap-editor ul ul ul li::before {
+  content: "▪" !important;
+  color: #9ca3af !important;
+  font-size: 0.9em !important;
+}
+
+.dark .tiptap-editor ul ul ul li::before {
+  color: #6b7280 !important;
+}
+
+/* Ordered List (Numbered List) */
+.tiptap-editor ol {
+  list-style: none !important;
+  padding-left: 1.5rem !important;
+  margin: 0.75em 0 !important;
+  counter-reset: list-counter !important;
+}
+
+.tiptap-editor ol li {
+  position: relative !important;
+  margin: 0.4em 0 !important;
+  padding-left: 0.5rem !important;
+  line-height: 1.6 !important;
+  counter-increment: list-counter !important;
+}
+
+.tiptap-editor ol li::before {
+  content: counter(list-counter) "." !important;
+  position: absolute !important;
+  left: -1.3rem !important;
+  top: 0 !important;
+  color: #3b82f6 !important;
+  font-weight: 600 !important;
+  font-size: 0.9em !important;
+  line-height: 1.6 !important;
+  min-width: 1rem !important;
+  text-align: right !important;
+}
+
+/* Dark mode number color */
+.dark .tiptap-editor ol li::before {
+  color: #60a5fa !important;
+}
+
+/* Nested numbered lists */
+.tiptap-editor ol ol {
+  counter-reset: nested-counter !important;
+}
+
+.tiptap-editor ol ol li {
+  counter-increment: nested-counter !important;
+}
+
+.tiptap-editor ol ol li::before {
+  content: counter(nested-counter, lower-alpha) "." !important;
+  color: #6b7280 !important;
+  font-weight: 500 !important;
+}
+
+.dark .tiptap-editor ol ol li::before {
+  color: #9ca3af !important;
+}
+
+.tiptap-editor ol ol ol {
+  counter-reset: deep-counter !important;
+}
+
+.tiptap-editor ol ol ol li {
+  counter-increment: deep-counter !important;
+}
+
+.tiptap-editor ol ol ol li::before {
+  content: counter(deep-counter, lower-roman) "." !important;
+  color: #9ca3af !important;
+  font-weight: 400 !important;
+}
+
+.dark .tiptap-editor ol ol ol li::before {
+  color: #6b7280 !important;
+}
+
+/* List item content styling */
+.tiptap-editor li p {
+  margin: 0 !important;
+  display: inline !important;
+}
+
+.tiptap-editor li p:not(:first-child) {
+  display: block !important;
+  margin-top: 0.5em !important;
+}
+
+/* Nested lists spacing */
+.tiptap-editor li > ul,
+.tiptap-editor li > ol {
+  margin-top: 0.5em !important;
+  margin-bottom: 0.5em !important;
+}
+
+/* Hover effects for interactive lists */
+.tiptap-editor li:hover::before {
+  transform: scale(1.1) !important;
+  transition: transform 0.15s ease !important;
+}
+
+/* Focus styling for accessibility */
+.tiptap-editor li:focus-within::before {
+  color: #1d4ed8 !important;
+  font-weight: bold !important;
+}
+
+.dark .tiptap-editor li:focus-within::before {
+  color: #3b82f6 !important;
+}
+
+.tiptap-editor pre {
+  background: rgba(148, 163, 184, 0.1) !important;
+  border-radius: 6px !important;
+  padding: 1em !important;
+  margin: 1em 0 !important;
+  overflow-x: auto !important;
+  max-width: 100% !important;
+  white-space: pre !important;
+  position: relative !important;
+}
+
+/* コードブロック内のProseMirror要素の位置調整 */
+.tiptap-editor pre .ProseMirror {
+  padding: 0 !important;
+  margin: 0 !important;
+  background: transparent !important;
+  font-family: "Fira Code", "Monaco", "Menlo", "Ubuntu Mono", monospace !important;
+  font-size: 0.9em !important;
+  line-height: 1.5 !important;
+  text-indent: 0 !important;
+}
+
+/* コードブロック内のProseMirrorの直接の子要素 */
+.tiptap-editor pre .ProseMirror > * {
+  margin: 0 !important;
+  text-indent: 0 !important;
+  margin-left: 0 !important;
+}
+
+/* コードブロック内の行の統一された位置設定 */
+.tiptap-editor pre p {
+  margin: 0 !important;
+  line-height: 1.5 !important;
+  text-indent: 0 !important;
+}
+
+/* コードブロック内のテキストノードの位置統一 */
+.tiptap-editor pre * {
+  margin: 0 !important;
+  text-indent: 0 !important;
+}
+
+/* コードブロック内の最初の行と他の行の位置を完全に統一 */
+.tiptap-editor pre p:first-child {
+  margin: 0 !important;
+  text-indent: 0 !important;
+}
+
+/* コードブロック内での全ての子要素の位置リセット */
+.tiptap-editor pre > * {
+  margin: 0 !important;
+  text-indent: 0 !important;
+  display: block !important;
+}
+
+/* CodeBlockLowlight拡張機能用の追加スタイル */
+.tiptap-editor .hljs {
+  background: transparent !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  display: block !important;
+  overflow-x: visible !important;
+  text-indent: 0 !important;
+}
+
+/* コードブロック内でのhljsクラス内の要素統一 */
+.tiptap-editor .hljs * {
+  margin: 0 !important;
+  text-indent: 0 !important;
+}
+
+/* ===== Syntax Highlighting Colors ===== */
+
+/* GitHub-like theme for light mode */
+.tiptap-editor .hljs-comment,
+.tiptap-editor .hljs-quote {
+  color: #6a737d !important;
+  font-style: italic !important;
+}
+
+.tiptap-editor .hljs-keyword,
+.tiptap-editor .hljs-selector-tag,
+.tiptap-editor .hljs-subst {
+  color: #d73a49 !important;
+  font-weight: bold !important;
+}
+
+.tiptap-editor .hljs-number,
+.tiptap-editor .hljs-literal,
+.tiptap-editor .hljs-variable,
+.tiptap-editor .hljs-template-variable,
+.tiptap-editor .hljs-tag .hljs-attr {
+  color: #005cc5 !important;
+}
+
+.tiptap-editor .hljs-string,
+.tiptap-editor .hljs-doctag {
+  color: #032f62 !important;
+}
+
+.tiptap-editor .hljs-title,
+.tiptap-editor .hljs-section,
+.tiptap-editor .hljs-selector-id {
+  color: #6f42c1 !important;
+  font-weight: bold !important;
+}
+
+.tiptap-editor .hljs-subst {
+  font-weight: normal !important;
+}
+
+.tiptap-editor .hljs-type,
+.tiptap-editor .hljs-class .hljs-title {
+  color: #d73a49 !important;
+  font-weight: bold !important;
+}
+
+.tiptap-editor .hljs-tag,
+.tiptap-editor .hljs-name,
+.tiptap-editor .hljs-attribute {
+  color: #22863a !important;
+  font-weight: normal !important;
+}
+
+.tiptap-editor .hljs-regexp,
+.tiptap-editor .hljs-link {
+  color: #e36209 !important;
+}
+
+.tiptap-editor .hljs-symbol,
+.tiptap-editor .hljs-bullet {
+  color: #005cc5 !important;
+}
+
+.tiptap-editor .hljs-built_in,
+.tiptap-editor .hljs-builtin-name {
+  color: #005cc5 !important;
+}
+
+.tiptap-editor .hljs-meta {
+  color: #005cc5 !important;
+}
+
+.tiptap-editor .hljs-deletion {
+  background: rgba(239, 68, 68, 0.15) !important;
+}
+
+.tiptap-editor .hljs-addition {
+  background: rgba(16, 185, 129, 0.15) !important;
+}
+
+.tiptap-editor .hljs-emphasis {
+  font-style: italic !important;
+}
+
+.tiptap-editor .hljs-strong {
+  font-weight: bold !important;
+}
+
+/* Dark mode colors */
+.dark .tiptap-editor .hljs-comment,
+.dark .tiptap-editor .hljs-quote {
+  color: #8b949e !important;
+  font-style: italic !important;
+}
+
+.dark .tiptap-editor .hljs-keyword,
+.dark .tiptap-editor .hljs-selector-tag,
+.dark .tiptap-editor .hljs-subst {
+  color: #ff7b72 !important;
+  font-weight: bold !important;
+}
+
+.dark .tiptap-editor .hljs-number,
+.dark .tiptap-editor .hljs-literal,
+.dark .tiptap-editor .hljs-variable,
+.dark .tiptap-editor .hljs-template-variable,
+.dark .tiptap-editor .hljs-tag .hljs-attr {
+  color: #79c0ff !important;
+}
+
+.dark .tiptap-editor .hljs-string,
+.dark .tiptap-editor .hljs-doctag {
+  color: #a5d6ff !important;
+}
+
+.dark .tiptap-editor .hljs-title,
+.dark .tiptap-editor .hljs-section,
+.dark .tiptap-editor .hljs-selector-id {
+  color: #d2a8ff !important;
+  font-weight: bold !important;
+}
+
+.dark .tiptap-editor .hljs-subst {
+  font-weight: normal !important;
+}
+
+.dark .tiptap-editor .hljs-type,
+.dark .tiptap-editor .hljs-class .hljs-title {
+  color: #ff7b72 !important;
+  font-weight: bold !important;
+}
+
+.dark .tiptap-editor .hljs-tag,
+.dark .tiptap-editor .hljs-name,
+.dark .tiptap-editor .hljs-attribute {
+  color: #7ee787 !important;
+  font-weight: normal !important;
+}
+
+.dark .tiptap-editor .hljs-regexp,
+.dark .tiptap-editor .hljs-link {
+  color: #ffa657 !important;
+}
+
+.dark .tiptap-editor .hljs-symbol,
+.dark .tiptap-editor .hljs-bullet {
+  color: #79c0ff !important;
+}
+
+.dark .tiptap-editor .hljs-built_in,
+.dark .tiptap-editor .hljs-builtin-name {
+  color: #79c0ff !important;
+}
+
+.dark .tiptap-editor .hljs-meta {
+  color: #79c0ff !important;
+}
+
+.dark .tiptap-editor .hljs-deletion {
+  background: rgba(239, 68, 68, 0.2) !important;
+}
+
+.dark .tiptap-editor .hljs-addition {
+  background: rgba(16, 185, 129, 0.2) !important;
+}
+
+.dark .tiptap-editor .hljs-emphasis {
+  font-style: italic !important;
+}
+
+.dark .tiptap-editor .hljs-strong {
+  font-weight: bold !important;
+}
+
+/* ===== Language Label Styles ===== */
+.tiptap-editor pre[data-language] {
+  position: relative !important;
+}
+
+.tiptap-editor pre[data-language]::before {
+  content: attr(data-language) !important;
+  position: absolute !important;
+  top: 0.5rem !important;
+  right: 0.5rem !important;
+  background: rgba(0, 0, 0, 0.1) !important;
+  color: rgba(0, 0, 0, 0.6) !important;
+  padding: 0.2rem 0.5rem !important;
+  border-radius: 0.25rem !important;
+  font-size: 0.75rem !important;
+  font-weight: 500 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+  z-index: 10 !important;
+  pointer-events: none !important;
+  user-select: none !important;
+}
+
+.dark .tiptap-editor pre[data-language]::before {
+  background: rgba(255, 255, 255, 0.1) !important;
+  color: rgba(255, 255, 255, 0.6) !important;
+}
+
+/* コードブロック内の全ての段落とテキストの左端統一 */
+.tiptap-editor pre *,
+.tiptap-editor pre p,
+.tiptap-editor pre span,
+.tiptap-editor pre div {
+  text-align: left !important;
+  text-indent: 0 !important;
+  margin-left: 0 !important;
+}
+
+/* コードブロック内での改行の統一 */
+.tiptap-editor pre br {
+  line-height: 1.5 !important;
+}
+
+/* コードブロック内のスパン要素の位置統一 */
+.tiptap-editor pre span {
+  display: inline !important;
+  vertical-align: baseline !important;
+}
+
+.tiptap-editor code {
+  background: rgba(148, 163, 184, 0.1) !important;
+  border-radius: 3px !important;
+  padding: 0.2em 0.4em !important;
+  font-size: 0.9em !important;
+}
+
+.tiptap-editor blockquote {
+  border-left: 4px solid rgba(148, 163, 184, 0.3) !important;
+  padding-left: 1em !important;
+  margin: 1em 0 !important;
+  font-style: italic !important;
+}
+
+.tiptap-editor hr {
+  border: none !important;
+  border-top: 2px solid rgba(148, 163, 184, 0.3) !important;
+  margin: 2em 0 !important;
+}
+
+.tiptap-editor table {
+  border-collapse: collapse !important;
+  width: 100% !important;
+  margin: 0.75em 0 !important;
+  table-layout: fixed !important;
+  border-radius: 0.375rem !important;
+  overflow: hidden !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+}
+
+.tiptap-editor th,
+.tiptap-editor td {
+  border: 1px solid rgba(148, 163, 184, 0.3) !important;
+  padding: 0.375em 0.5em !important;
+  text-align: left !important;
+  word-wrap: break-word !important;
+  overflow-wrap: break-word !important;
+  vertical-align: top !important;
+  min-width: 100px !important;
+  font-size: 0.9em !important;
+  line-height: 1.4 !important;
+}
+
+.tiptap-editor th {
+  background: rgba(59, 130, 246, 0.08) !important;
+  font-weight: 600 !important;
+  color: rgba(30, 58, 138, 0.9) !important;
+  border-bottom: 2px solid rgba(59, 130, 246, 0.2) !important;
+}
+
+.dark .tiptap-editor th {
+  background: rgba(59, 130, 246, 0.15) !important;
+  color: rgba(147, 197, 253, 0.9) !important;
+  border-bottom: 2px solid rgba(59, 130, 246, 0.3) !important;
+}
+
+/* テーブルセルの編集可能状態でのスタイル */
+.tiptap-editor table p {
+  margin: 0 !important;
+  padding: 0 !important;
+  font-size: inherit !important;
+}
+
+/* テーブルのリサイズ可能な列 */
+.tiptap-editor .tableWrapper {
+  overflow-x: auto !important;
+  margin: 0.75em 0 !important;
+  border-radius: 0.375rem !important;
+}
+
+.tiptap-editor .resize-cursor {
+  cursor: col-resize !important;
+}
+
+/* テーブルの選択状態のスタイル */
+.tiptap-editor .selectedCell {
+  background: rgba(59, 130, 246, 0.15) !important;
+}
+
+/* テーブルのホバー状態 */
+.tiptap-editor table:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12) !important;
+  transform: translateY(-1px) !important;
+  transition: all 0.2s ease-in-out !important;
+}
+
+/* テーブルのアクティブな状態 */
+.tiptap-editor table .has-focus {
+  outline: 2px solid rgba(59, 130, 246, 0.6) !important;
+  outline-offset: 2px !important;
+}
+
+/* ===== Enhanced Task List Styles ===== */
+.tiptap-editor ul[data-type="taskList"],
+.tiptap-editor .task-list {
+  list-style: none !important;
+  padding-left: 0 !important;
+  margin: 1em 0 !important;
+  background: rgba(248, 250, 252, 0.5) !important;
+  border-radius: 0.75rem !important;
+  padding: 0.75rem !important;
+  border: 1px solid rgba(226, 232, 240, 0.8) !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05) !important;
+}
+
+.dark .tiptap-editor ul[data-type="taskList"],
+.dark .tiptap-editor .task-list {
+  background: rgba(30, 41, 59, 0.4) !important;
+  border-color: rgba(51, 65, 85, 0.6) !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2) !important;
+}
+
+/* タスクリスト内の各アイテムの配置を完全な横並びに */
+.tiptap-editor ul[data-type="taskList"] li[data-type="taskItem"],
+.tiptap-editor .task-list .task-item,
+.tiptap-editor li.task-item {
+  display: flex !important;
+  align-items: flex-start !important; /* 左端に寄せる */
+  flex-direction: row !important;
+  gap: 0.375rem !important; /* 統一されたgap */
+  margin: 0.2rem 0 !important;
+  padding: 0.25rem 0.5rem !important;
+  border-radius: 0.5rem !important;
+  transition: all 0.2s ease !important;
+  position: relative !important;
+  background: transparent !important;
+  min-height: 1.75rem !important;
+  line-height: 1.4 !important;
+  list-style: none !important;
+}
+
+/* 実際のHTML構造に対応した直接的なスタイル */
+.tiptap-editor li.task-item {
+  display: flex !important;
+  align-items: flex-start !important;
+  flex-direction: row !important;
+  gap: 0.375rem !important;
+  margin: 0.2rem 0 !important;
+  padding: 0.25rem 0.5rem !important;
+  border-radius: 0.5rem !important;
+  transition: all 0.2s ease !important;
+  position: relative !important;
+  background: transparent !important;
+  min-height: 1.75rem !important;
+  line-height: 1.4 !important;
+  list-style: none !important;
+}
+
+.tiptap-editor li.task-item label {
+  display: flex !important;
+  align-items: flex-start !important;
+  justify-content: flex-start !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  flex: 0 0 1rem !important; /* チェックボックスの幅（1rem）に固定 */
+  width: 1rem !important; /* 明示的に幅を制限 */
+  max-width: 1rem !important; /* 最大幅も制限 */
+  min-width: 1rem !important; /* 最小幅も制限 */
+  gap: 0 !important; /* labelとチェックボックスの間隔をなくす */
+  line-height: 1.4 !important;
+  pointer-events: none !important;
+  overflow: hidden !important; /* はみ出し防止 */
+}
+
+.tiptap-editor li.task-item > div {
+  display: flex !important;
+  align-items: flex-start !important;
+  flex: 1 !important; /* 残りの全ての幅を使用 */
+  min-width: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  line-height: 1.4 !important;
+}
+
+/* タスクアイテム内では最初のdiv以外を非表示 */
+.tiptap-editor li.task-item > div:not(:first-of-type) {
+  display: none !important;
+}
+
+.tiptap-editor li.task-item p {
+  margin: 0 !important;
+  padding: 0 !important;
+  line-height: 1.4 !important;
+  font-size: 0.95rem !important;
+  color: #374151 !important;
+  flex: 1 !important;
+  white-space: pre-wrap !important;
+}
+
+/* タスクアイテム内では最初のp要素のみ表示 */
+.tiptap-editor li.task-item p:not(:first-child) {
+  display: none !important;
+}
+
+/* タスクアイテム内で複数のp要素がある場合の処理 */
+.tiptap-editor li.task-item div {
+  position: relative !important;
+}
+
+/* 2番目以降のp要素の内容を最初のp要素の後に表示 */
+.tiptap-editor li.task-item p:first-child::after {
+  content: attr(data-additional-text) !important;
+  white-space: pre-wrap !important;
+}
+
+/* より強力な制御：最初のp要素以外を完全に隠す */
+.tiptap-editor li.task-item p:nth-child(n + 2) {
+  position: absolute !important;
+  left: -9999px !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+.tiptap-editor li.task-item input[type="checkbox"] {
+  appearance: none !important;
+  width: 1rem !important;
+  height: 1rem !important;
+  border: 2px solid #d1d5db !important;
+  border-radius: 0.25rem !important;
+  margin: 0 !important;
+  cursor: pointer !important;
+  position: relative !important;
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%) !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  flex-shrink: 0 !important;
+  flex-grow: 0 !important;
+  flex-basis: 1rem !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+  align-self: flex-start !important;
+  z-index: 999 !important;
+  pointer-events: auto !important;
+}
+
+/* チェックボックス自体を直接ターゲット - 最優先でクリック可能に */
+.tiptap-editor
+  ul[data-type="taskList"]
+  li[data-type="taskItem"]
+  input[type="checkbox"],
+.tiptap-editor .task-list .task-item input[type="checkbox"],
+.tiptap-editor li.task-item input[type="checkbox"] {
+  appearance: none !important;
+  width: 1rem !important;
+  height: 1rem !important;
+  border: 2px solid #d1d5db !important;
+  border-radius: 0.25rem !important;
+  margin: 0 !important;
+  cursor: pointer !important;
+  position: relative !important;
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%) !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  flex-shrink: 0 !important; /* 縮小しない */
+  flex-grow: 0 !important; /* 拡大しない */
+  flex-basis: 1rem !important; /* 固定幅 */
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+  align-self: flex-start !important; /* 左端に寄せる */
+  z-index: 999 !important; /* 最高優先度 */
+  pointer-events: auto !important; /* 強制的にクリック可能 */
+  order: -1 !important; /* flexで最初に配置 */
+}
+
+.tiptap-editor
+  ul[data-type="taskList"]
+  li[data-type="taskItem"]
+  input[type="checkbox"]:hover,
+.tiptap-editor .task-list .task-item input[type="checkbox"]:hover,
+.tiptap-editor li.task-item input[type="checkbox"]:hover {
+  border-color: #3b82f6 !important;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15),
+    0 2px 8px rgba(59, 130, 246, 0.1) !important;
+  transform: scale(1.05) !important;
+}
+
+.tiptap-editor
+  ul[data-type="taskList"]
+  li[data-type="taskItem"]
+  input[type="checkbox"]:checked,
+.tiptap-editor .task-list .task-item input[type="checkbox"]:checked,
+.tiptap-editor li.task-item input[type="checkbox"]:checked {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;
+  border-color: #2563eb !important;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2),
+    0 4px 12px rgba(59, 130, 246, 0.15) !important;
+  transform: scale(1.05) !important;
+}
+
+.tiptap-editor
+  ul[data-type="taskList"]
+  li[data-type="taskItem"]
+  input[type="checkbox"]:checked::before,
+.tiptap-editor .task-list .task-item input[type="checkbox"]:checked::before,
+.tiptap-editor li.task-item input[type="checkbox"]:checked::before {
+  content: "✓" !important;
+  position: absolute !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) scale(1.2) !important;
+  color: white !important;
+  font-size: 0.75em !important;
+  font-weight: 700 !important;
+  line-height: 1 !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1) !important;
+  animation: checkmark-pop 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55) !important;
+}
+
+/* タスクアイテム内のラベル要素を完全なflexコンテナに */
+.tiptap-editor li[data-type="taskItem"] label,
+.tiptap-editor .task-item label,
+.tiptap-editor li.task-item label {
+  display: flex !important;
+  align-items: flex-start !important; /* 左端に寄せる */
+  justify-content: flex-start !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  cursor: pointer !important;
+  flex: 0 0 1rem !important; /* チェックボックスサイズ（1rem）に固定 */
+  width: 1rem !important; /* 明示的に幅を制限 */
+  max-width: 1rem !important; /* 最大幅も制限 */
+  min-width: 1rem !important; /* 最小幅も制限 */
+  gap: 0 !important; /* 間隔をなくす */
+  line-height: 1.4 !important;
+  position: relative !important;
+  z-index: 1 !important;
+  pointer-events: none !important; /* labelのクリックイベントを無効化 */
+  overflow: hidden !important; /* はみ出し防止 */
+}
+
+/* チェックボックス以外の全要素のクリックを無効化 */
+.tiptap-editor li[data-type="taskItem"] > *:not(input[type="checkbox"]),
+.tiptap-editor .task-item > *:not(input[type="checkbox"]),
+.tiptap-editor li.task-item > *:not(input[type="checkbox"]) {
+  pointer-events: none !important;
+}
+
+/* チェックボックスだけは確実にクリック可能に */
+.tiptap-editor li[data-type="taskItem"] input[type="checkbox"],
+.tiptap-editor .task-item input[type="checkbox"],
+.tiptap-editor li.task-item input[type="checkbox"] {
+  pointer-events: auto !important;
+}
+
+/* ラベル内のspan要素（空の場合は非表示） */
+.tiptap-editor li[data-type="taskItem"] label span:empty,
+.tiptap-editor .task-item label span:empty,
+.tiptap-editor li.task-item label span:empty {
+  display: none !important;
+}
+
+/* ラベル内のspan要素（空でない場合）も非表示 - チェックボックスのみ表示 */
+.tiptap-editor li[data-type="taskItem"] label span:not(:empty),
+.tiptap-editor .task-item label span:not(:empty),
+.tiptap-editor li.task-item label span:not(:empty) {
+  display: none !important; /* 完全に非表示にしてlabelをチェックボックスサイズに */
+}
+
+/* span要素は非表示のためダークモード設定不要 */
+
+.tiptap-editor li[data-type="taskItem"]:hover {
+  background: rgba(59, 130, 246, 0.03) !important;
+  transform: translateX(2px) !important;
+}
+
+.dark .tiptap-editor li[data-type="taskItem"]:hover {
+  background: rgba(59, 130, 246, 0.08) !important;
+}
+
+.tiptap-editor li[data-type="taskItem"]::before {
+  content: "" !important;
+  position: absolute !important;
+  left: 0 !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  width: 3px !important;
+  height: 0 !important;
+  background: #3b82f6 !important;
+  border-radius: 2px !important;
+  transition: height 0.2s ease !important;
+}
+
+.tiptap-editor li[data-type="taskItem"]:hover::before {
+  height: 80% !important;
+}
+
+.tiptap-editor li[data-type="taskItem"] input[type="checkbox"]:checked {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;
+  border-color: #2563eb !important;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2),
+    0 4px 12px rgba(59, 130, 246, 0.15) !important;
+  transform: scale(1.05) !important;
+}
+
+/* チェックマークアニメーション */
+@keyframes checkmark-pop {
+  0% {
+    transform: translate(-50%, -50%) scale(0) rotate(-45deg) !important;
+    opacity: 0 !important;
+  }
+  50% {
+    transform: translate(-50%, -50%) scale(1.3) rotate(0deg) !important;
+    opacity: 1 !important;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1.2) rotate(0deg) !important;
+    opacity: 1 !important;
+  }
+}
+
+/* Dark mode enhanced checkbox styles */
+.dark .tiptap-editor li[data-type="taskItem"] input[type="checkbox"] {
+  border-color: #4b5563 !important;
+  background: linear-gradient(135deg, #374151 0%, #1f2937 100%) !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05) !important;
+}
+
+.dark .tiptap-editor li[data-type="taskItem"] input[type="checkbox"]:hover {
+  border-color: #60a5fa !important;
+  box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.2),
+    0 2px 8px rgba(96, 165, 250, 0.15) !important;
+  transform: scale(1.05) !important;
+}
+
+.dark .tiptap-editor li[data-type="taskItem"] input[type="checkbox"]:checked {
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%) !important;
+  border-color: #1d4ed8 !important;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25),
+    0 4px 12px rgba(59, 130, 246, 0.2) !important;
+  transform: scale(1.05) !important;
+}
+
+/* Enhanced task item content - div要素も適切に表示 */
+.tiptap-editor li[data-type="taskItem"] > div,
+.tiptap-editor .task-item > div,
+.tiptap-editor li.task-item > div {
+  display: flex !important;
+  align-items: flex-start !important; /* 左端に寄せる */
+  flex: 1 1 auto !important; /* 残りのスペースを最大限活用 */
+  min-width: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  line-height: 1.4 !important;
+  gap: 0.375rem !important; /* labelと同じgapに統一 */
+}
+
+/* タスクアイテム内では最初のdiv以外を非表示 */
+.tiptap-editor li[data-type="taskItem"] > div:not(:first-of-type),
+.tiptap-editor .task-item > div:not(:first-of-type),
+.tiptap-editor li.task-item > div:not(:first-of-type) {
+  display: none !important;
+}
+
+.tiptap-editor li[data-type="taskItem"] p,
+.tiptap-editor .task-item p,
+.tiptap-editor li.task-item p {
+  margin: 0 !important;
+  line-height: 1.4 !important;
+  font-size: 0.95rem !important;
+  color: #374151 !important;
+  transition: all 0.3s ease !important;
+  flex: 1 !important;
+  white-space: pre-wrap !important;
+}
+
+/* タスクアイテム内では最初のp要素のみ表示 */
+.tiptap-editor li[data-type="taskItem"] p:not(:first-child),
+.tiptap-editor .task-item p:not(:first-child),
+.tiptap-editor li.task-item p:not(:first-child) {
+  display: none !important;
+}
+
+.dark .tiptap-editor li[data-type="taskItem"] p,
+.dark .tiptap-editor .task-item p,
+.dark .tiptap-editor li.task-item p {
+  color: #d1d5db !important;
+}
+
+/* Enhanced completed task styling */
+.tiptap-editor li[data-type="taskItem"]:has(input[type="checkbox"]:checked) {
+  background: rgba(34, 197, 94, 0.03) !important;
+}
+
+.dark
+  .tiptap-editor
+  li[data-type="taskItem"]:has(input[type="checkbox"]:checked) {
+  background: rgba(34, 197, 94, 0.08) !important;
+}
+
+.tiptap-editor
+  li[data-type="taskItem"]:has(input[type="checkbox"]:checked)::before {
+  background: #22c55e !important;
+  height: 80% !important;
+}
+
+.tiptap-editor
+  li[data-type="taskItem"]:has(input[type="checkbox"]:checked)
+  > div {
+  opacity: 0.65 !important;
+  transition: all 0.3s ease !important;
+}
+
+.tiptap-editor
+  li[data-type="taskItem"]:has(input[type="checkbox"]:checked)
+  label {
+  opacity: 0.65 !important;
+  transition: all 0.3s ease !important;
+}
+
+.tiptap-editor
+  li[data-type="taskItem"]:has(input[type="checkbox"]:checked)
+  label
+  span:not(:empty) {
+  text-decoration: line-through !important;
+  text-decoration-color: #9ca3af !important;
+  text-decoration-thickness: 2px !important;
+  color: #6b7280 !important;
+}
+
+.dark
+  .tiptap-editor
+  li[data-type="taskItem"]:has(input[type="checkbox"]:checked)
+  label
+  span:not(:empty) {
+  text-decoration-color: #6b7280 !important;
+  color: #9ca3af !important;
+}
+
+.tiptap-editor li[data-type="taskItem"]:has(input[type="checkbox"]:checked) p {
+  text-decoration: line-through !important;
+  text-decoration-color: #9ca3af !important;
+  text-decoration-thickness: 2px !important;
+  color: #6b7280 !important;
+  position: relative !important;
+}
+
+.dark
+  .tiptap-editor
+  li[data-type="taskItem"]:has(input[type="checkbox"]:checked)
+  p {
+  text-decoration-color: #6b7280 !important;
+  color: #9ca3af !important;
+}
+
+/* Task completion celebration effect */
+.tiptap-editor li[data-type="taskItem"]:has(input[type="checkbox"]:checked) {
+  animation: task-complete 0.6s ease-out !important;
+}
+
+.dark
+  .tiptap-editor
+  li[data-type="taskItem"]:has(input[type="checkbox"]:checked) {
+  animation: task-complete-dark 0.6s ease-out !important;
+}
+
+@keyframes task-complete {
+  0% {
+    transform: scale(1) !important;
+  }
+  20% {
+    transform: scale(1.02) !important;
+    background: rgba(34, 197, 94, 0.1) !important;
+  }
+  100% {
+    transform: scale(1) !important;
+  }
+}
+
+@keyframes task-complete-dark {
+  0% {
+    transform: scale(1) !important;
+  }
+  20% {
+    transform: scale(1.02) !important;
+    background: rgba(34, 197, 94, 0.15) !important;
+  }
+  100% {
+    transform: scale(1) !important;
+  }
+}
+
+/* Math expressions */
+.tiptap-editor .katex {
+  font-size: 1em !important;
+}
+
+/* 数式のインライン表示 */
+.tiptap-editor .math-inline {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  vertical-align: baseline !important;
+}
+
+/* カスタムスクロールバー */
+.statistics-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.statistics-scrollbar::-webkit-scrollbar-track {
+  background: rgba(148, 163, 184, 0.1);
+  border-radius: 3px;
+}
+
+.statistics-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.3);
+  border-radius: 3px;
+  transition: background 0.2s ease;
+}
+
+.statistics-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(148, 163, 184, 0.5);
+}
+
+.dark .statistics-scrollbar::-webkit-scrollbar-track {
+  background: rgba(71, 85, 105, 0.1);
+}
+
+.dark .statistics-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(71, 85, 105, 0.4);
+}
+
+.dark .statistics-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(71, 85, 105, 0.6);
+}
+
+/* リサイザーのホバー効果 */
+.statistics-resizer {
+  position: relative;
+}
+
+.statistics-resizer::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 20px;
+  height: 2px;
+  background: rgba(148, 163, 184, 0.4);
+  border-radius: 1px;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.statistics-resizer:hover::before,
+.statistics-resizer.resizing::before {
+  opacity: 1;
+}
+
+.dark .statistics-resizer::before {
+  background: rgba(203, 213, 225, 0.4);
+}
+
+/* ===========================
+   Diff Syntax Highlighting
+   =========================== */
+
+/* diff言語のコードブロック用スタイル */
+.tiptap-editor pre.hljs.language-diff {
+  background: #f8fafc !important;
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 0.5rem !important;
+  overflow: hidden !important;
+  font-family: "Monaco", "Menlo", "Ubuntu Mono", monospace !important;
+  font-size: 0.875rem !important;
+  line-height: 1.3 !important;
+  padding: 0 !important;
+}
+
+.dark .tiptap-editor pre.hljs.language-diff {
+  background: #1e293b !important;
+  border-color: #334155 !important;
+}
+
+/* diff行のスタイリング - パディングを削除して行全体を使用 */
+.tiptap-editor pre.hljs.language-diff code {
+  display: block !important;
+  white-space: pre !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+/* diff行のクラス定義 - 完全に親要素の端まで拡張、連続行を繋げる */
+.tiptap-editor pre.hljs.language-diff code .diff-addition {
+  background: rgba(16, 185, 129, 0.15) !important;
+  border-left: 4px solid #10b981 !important;
+  color: #065f46 !important;
+  padding: 0.5rem 1rem !important;
+  display: block !important;
+  margin: 0 !important;
+  margin-left: -1rem !important;
+  margin-right: -1rem !important;
+  padding-left: calc(1rem + 4px) !important;
+  padding-right: 1rem !important;
+  width: calc(100% + 2rem) !important;
+  box-sizing: border-box !important;
+  position: relative !important;
+}
+
+/* 連続する追加行の間を完全に繋げる - 行間を詰める */
+.tiptap-editor pre.hljs.language-diff code .diff-addition + .diff-addition {
+  margin-top: 0 !important;
+  border-top: none !important;
+  padding-top: 0.125rem !important;
+}
+
+.tiptap-editor pre.hljs.language-diff code .diff-deletion {
+  background: rgba(239, 68, 68, 0.15) !important;
+  border-left: 4px solid #f87171 !important;
+  color: #991b1b !important;
+  padding: 0.5rem 1rem !important;
+  display: block !important;
+  margin: 0 !important;
+  margin-left: -1rem !important;
+  margin-right: -1rem !important;
+  padding-left: calc(1rem + 4px) !important;
+  padding-right: 1rem !important;
+  width: calc(100% + 2rem) !important;
+  box-sizing: border-box !important;
+  position: relative !important;
+}
+
+/* 連続する削除行の間を完全に繋げる - 行間を詰める */
+.tiptap-editor pre.hljs.language-diff code .diff-deletion + .diff-deletion {
+  margin-top: 0 !important;
+  border-top: none !important;
+  padding-top: 0.125rem !important;
+}
+
+.tiptap-editor pre.hljs.language-diff code .diff-header {
+  background: rgba(107, 114, 128, 0.15) !important;
+  border-left: 4px solid #6b7280 !important;
+  color: #374151 !important;
+  font-weight: 600 !important;
+  padding: 0.5rem 1rem !important;
+  display: block !important;
+  margin: 0 !important;
+  margin-left: -1rem !important;
+  margin-right: -1rem !important;
+  padding-left: calc(1rem + 4px) !important;
+  padding-right: 1rem !important;
+  width: calc(100% + 2rem) !important;
+  box-sizing: border-box !important;
+}
+
+/* より具体的なセレクタでdiff行の色を強制的に上書き */
+.tiptap-editor pre.hljs.language-diff .hljs-deletion {
+  background: rgba(239, 68, 68, 0.15) !important;
+  color: #991b1b !important;
+}
+
+.tiptap-editor pre.hljs.language-diff .hljs-addition {
+  background: rgba(16, 185, 129, 0.15) !important;
+  color: #065f46 !important;
+}
+
+.dark .tiptap-editor pre.hljs.language-diff .hljs-deletion {
+  background: rgba(239, 68, 68, 0.2) !important;
+  color: #f87171 !important;
+}
+
+.dark .tiptap-editor pre.hljs.language-diff .hljs-addition {
+  background: rgba(16, 185, 129, 0.2) !important;
+  color: #34d399 !important;
+}
+
+/* diff内のシンタックスハイライト */
+.tiptap-editor pre.hljs.language-diff code .diff-addition .hljs-keyword,
+.tiptap-editor pre.hljs.language-diff code .diff-deletion .hljs-keyword {
+  color: #8b5cf6 !important;
+  font-weight: bold !important;
+}
+
+.tiptap-editor pre.hljs.language-diff code .diff-addition .hljs-string,
+.tiptap-editor pre.hljs.language-diff code .diff-deletion .hljs-string {
+  color: #059669 !important;
+}
+
+.tiptap-editor pre.hljs.language-diff code .diff-addition .hljs-comment,
+.tiptap-editor pre.hljs.language-diff code .diff-deletion .hljs-comment {
+  color: #6b7280 !important;
+  font-style: italic !important;
+}
+
+.tiptap-editor pre.hljs.language-diff code .diff-addition .hljs-number,
+.tiptap-editor pre.hljs.language-diff code .diff-deletion .hljs-number {
+  color: #f59e0b !important;
+}
+
+.tiptap-editor pre.hljs.language-diff code .diff-addition .hljs-function,
+.tiptap-editor pre.hljs.language-diff code .diff-deletion .hljs-function {
+  color: #3b82f6 !important;
+}
+
+.tiptap-editor pre.hljs.language-diff code .diff-addition .hljs-variable,
+.tiptap-editor pre.hljs.language-diff code .diff-deletion .hljs-variable {
+  color: #ef4444 !important;
+}
+
+/* ダークモード用のdiffシンタックスハイライト */
+.dark .tiptap-editor pre.hljs.language-diff code .diff-addition .hljs-keyword,
+.dark .tiptap-editor pre.hljs.language-diff code .diff-deletion .hljs-keyword {
+  color: #a78bfa !important;
+}
+
+.dark .tiptap-editor pre.hljs.language-diff code .diff-addition .hljs-string,
+.dark .tiptap-editor pre.hljs.language-diff code .diff-deletion .hljs-string {
+  color: #34d399 !important;
+}
+
+.dark .tiptap-editor pre.hljs.language-diff code .diff-addition .hljs-comment,
+.dark .tiptap-editor pre.hljs.language-diff code .diff-deletion .hljs-comment {
+  color: #9ca3af !important;
+}
+
+.dark .tiptap-editor pre.hljs.language-diff code .diff-addition .hljs-number,
+.dark .tiptap-editor pre.hljs.language-diff code .diff-deletion .hljs-number {
+  color: #fbbf24 !important;
+}
+
+.dark .tiptap-editor pre.hljs.language-diff code .diff-addition .hljs-function,
+.dark .tiptap-editor pre.hljs.language-diff code .diff-deletion .hljs-function {
+  color: #60a5fa !important;
+}
+
+.dark .tiptap-editor pre.hljs.language-diff code .diff-addition .hljs-variable,
+.dark .tiptap-editor pre.hljs.language-diff code .diff-deletion .hljs-variable {
+  color: #f87171 !important;
+}
+
+/* 異なるタイプの行の間にスペースを追加 */
+.tiptap-editor pre.hljs.language-diff code .diff-addition + .diff-deletion,
+.tiptap-editor pre.hljs.language-diff code .diff-deletion + .diff-addition,
+.tiptap-editor pre.hljs.language-diff code .diff-header + .diff-addition,
+.tiptap-editor pre.hljs.language-diff code .diff-header + .diff-deletion,
+.tiptap-editor pre.hljs.language-diff code .diff-addition + .diff-header,
+.tiptap-editor pre.hljs.language-diff code .diff-deletion + .diff-header {
+  margin-top: 0.25rem !important;
+}
+
+/* Task priority and status indicators */
+.tiptap-editor .task-item[data-priority="high"]::before {
+  background: #ef4444 !important;
+}
+
+.tiptap-editor .task-item[data-priority="medium"]::before {
+  background: #f59e0b !important;
+}
+
+.tiptap-editor .task-item[data-priority="low"]::before {
+  background: #10b981 !important;
+}
+
+/* Interactive focus states */
+.tiptap-editor .task-item:focus-within {
+  background: rgba(59, 130, 246, 0.05) !important;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1) !important;
+  border-radius: 0.5rem !important;
+}
+
+.dark .tiptap-editor .task-item:focus-within {
+  background: rgba(59, 130, 246, 0.1) !important;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2) !important;
+}
+
+/* Nested task lists */
+.tiptap-editor .task-list .task-list {
+  margin-left: 1.5rem !important;
+  margin-top: 0.5rem !important;
+  padding: 0.75rem !important;
+  background: rgba(248, 250, 252, 0.3) !important;
+  border-left: 3px solid rgba(59, 130, 246, 0.2) !important;
+  border-radius: 0.5rem !important;
+}
+
+.dark .tiptap-editor .task-list .task-list {
+  background: rgba(30, 41, 59, 0.2) !important;
+  border-left-color: rgba(96, 165, 250, 0.3) !important;
+}
+
+/* Task list header styling (if any) */
+.tiptap-editor .task-list + h1,
+.tiptap-editor .task-list + h2,
+.tiptap-editor .task-list + h3,
+.tiptap-editor .task-list + h4,
+.tiptap-editor .task-list + h5,
+.tiptap-editor .task-list + h6 {
+  margin-top: 2rem !important;
+}
+
+/* Smooth transitions for all task elements */
+.tiptap-editor .task-list,
+.tiptap-editor .task-item,
+.tiptap-editor .task-item input[type="checkbox"],
+.tiptap-editor .task-item > div,
+.tiptap-editor .task-item p {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+/* Task list empty state */
+.tiptap-editor .task-list:empty::after {
+  content: "タスクを追加してください..." !important;
+  color: #9ca3af !important;
+  font-style: italic !important;
+  text-align: center !important;
+  display: block !important;
+  padding: 2rem !important;
+  opacity: 0.6 !important;
+}
+
+.dark .tiptap-editor .task-list:empty::after {
+  color: #6b7280 !important;
 }
