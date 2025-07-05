@@ -40,7 +40,21 @@ import {
   downloadLaTeXFile,
   type LaTeXExportOptions,
 } from "@/utils/latexExport";
+import { saveAppState, loadAppState, clearAppState, debounce } from "@/utils/appStateManager";
+import type { AppState, SavedFileTab, SavedSplitLayout } from "@/utils/appStateManager";
 import { marked } from "marked";
+
+// デバッグ用：グローバルに状態クリア機能を追加
+if (typeof window !== 'undefined') {
+  (window as typeof window & { clearCharCountProState: () => void }).clearCharCountProState = () => {
+    clearAppState();
+    localStorage.removeItem('char-count-pro-files');
+    localStorage.removeItem('char-count-pro-active-file');
+    console.log('🗑️ CharCountPro state cleared. Please reload the page.');
+    window.location.reload();
+  };
+  console.log('💡 Debug: Use window.clearCharCountProState() to clear all saved state');
+}
 
 export default function CharCountProEditor() {
   const [mounted, setMounted] = useState(false);
@@ -108,6 +122,7 @@ export default function CharCountProEditor() {
     isSaving,
     isRestoredFromStorage,
     resetRestoredFlag,
+    restoreFilesFromState,
   } = fileManager;
 
   const layout = useEditorLayout();
@@ -133,6 +148,9 @@ export default function CharCountProEditor() {
     getAllPanes,
     updateSplitSizes,
     cleanupInvalidFileIds,
+    restoreLayoutState,
+    serializeSplitLayout,
+    deserializeSplitLayout,
   } = layout;
 
   // エディター設定
@@ -437,6 +455,27 @@ export default function CharCountProEditor() {
     }
   }, [editor, showNewlineMarkers, showFullWidthSpaces]);
 
+  // ファイル状態のシリアライゼーション（早期定義）
+  const serializeFileTabs = useCallback((tabs: typeof fileTabs) => {
+    return tabs.map(tab => ({
+      id: tab.id,
+      name: tab.name,
+      content: tab.content,
+      isDirty: tab.isDirty,
+      lastSaved: tab.lastSaved.toISOString(),
+    }));
+  }, []);
+
+  const deserializeFileTabs = useCallback((savedTabs: SavedFileTab[]) => {
+    return savedTabs.map(tab => ({
+      id: tab.id,
+      name: tab.name,
+      content: tab.content,
+      isDirty: tab.isDirty,
+      lastSaved: new Date(tab.lastSaved),
+    }));
+  }, []);
+
   // 無効なファイルIDのクリーンアップ
   useEffect(() => {
     const validFileIds = fileTabs.map((file) => file.id);
@@ -582,6 +621,149 @@ export default function CharCountProEditor() {
     const editingFile = fileTabs.find((f) => f.id === currentEditingFileId);
     return editingFile?.content || "";
   }, [currentEditingFileId, fileTabs]);
+
+  // 状態復元とデバウンス保存の設定
+  const debouncedSaveState = useCallback((state: Partial<AppState>) => {
+    const debouncedFn = debounce(() => {
+      saveAppState(state);
+    }, 1000);
+    debouncedFn();
+  }, []);
+
+  // 初期化時に状態を復元
+  useEffect(() => {
+    if (!mounted) return;
+
+    const savedState = loadAppState();
+    if (savedState) {
+      console.log('🔄 Loading saved app state:', {
+        filesCount: savedState.fileTabs?.length || 0,
+        activeFileId: savedState.activeFileId,
+        activePaneId: savedState.activePaneId,
+        splitLayoutType: savedState.splitLayout?.type,
+        lastSaved: savedState.lastSaved ? new Date(savedState.lastSaved).toLocaleString() : 'unknown',
+      });
+      
+      // UI状態の復元
+      if (typeof savedState.showNewlineMarkers === 'boolean') {
+        setShowNewlineMarkers(savedState.showNewlineMarkers);
+      }
+      if (typeof savedState.showFullWidthSpaces === 'boolean') {
+        setShowFullWidthSpaces(savedState.showFullWidthSpaces);
+      }
+      if (typeof savedState.targetLength === 'number') {
+        setTargetLength(savedState.targetLength);
+      }
+      if (typeof savedState.showAdvancedStats === 'boolean') {
+        setShowAdvancedStats(savedState.showAdvancedStats);
+      }
+      if (typeof savedState.isPreviewVisible === 'boolean') {
+        setIsPreviewVisible(savedState.isPreviewVisible);
+      }
+
+      // ファイル状態の復元
+      if (savedState.fileTabs && Array.isArray(savedState.fileTabs) && savedState.fileTabs.length > 0) {
+        const restoredFiles = deserializeFileTabs(savedState.fileTabs);
+        restoreFilesFromState(restoredFiles, savedState.activeFileId || null);
+        console.log('📂 Restored files:', restoredFiles.map(f => ({ id: f.id, name: f.name, contentLength: f.content.length })));
+      }
+
+      // レイアウト状態の復元
+      if (savedState.splitLayout) {
+        const restoredLayout = deserializeSplitLayout(savedState.splitLayout as unknown as Record<string, unknown>);
+        console.log('🖼️ Restoring layout:', { type: restoredLayout.type, hasChildren: !!restoredLayout.children });
+        
+        restoreLayoutState({
+          sidebarWidth: savedState.sidebarWidth,
+          statisticsHeight: savedState.statisticsHeight,
+          sidebarCollapsed: savedState.sidebarCollapsed,
+          splitLayout: restoredLayout,
+          activePaneId: savedState.activePaneId,
+        });
+      } else {
+        // レイアウト情報がない場合は基本的な設定のみ復元
+        restoreLayoutState({
+          sidebarWidth: savedState.sidebarWidth,
+          statisticsHeight: savedState.statisticsHeight,
+          sidebarCollapsed: savedState.sidebarCollapsed,
+          activePaneId: savedState.activePaneId,
+        });
+      }
+
+      console.log('✅ App state restored successfully');
+    } else {
+      console.log('ℹ️ No saved state found, using defaults');
+    }
+  }, [mounted, setSidebarCollapsed, restoreLayoutState, deserializeFileTabs, restoreFilesFromState, deserializeSplitLayout]);
+
+  // 状態変更時にデバウンス保存の設定
+  useEffect(() => {
+    if (!mounted) return;
+
+    // ファイル状態の包括的な保存
+    const serializedFileTabs = serializeFileTabs(fileTabs);
+    const serializedSplitLayout = serializeSplitLayout(splitLayout);
+
+    const currentState: Partial<AppState> = {
+      showNewlineMarkers,
+      showFullWidthSpaces,
+      targetLength,
+      showAdvancedStats,
+      isPreviewVisible,
+      sidebarWidth,
+      statisticsHeight,
+      sidebarCollapsed,
+      activeFileId,
+      activePaneId,
+      fileTabs: serializedFileTabs,
+      fileTabsOrder: fileTabs.map(f => f.id),
+      splitLayout: serializedSplitLayout as unknown as SavedSplitLayout,
+    };
+
+    debouncedSaveState(currentState);
+    console.log('💾 Saving comprehensive app state:', {
+      filesCount: serializedFileTabs.length,
+      activeFileId,
+      activePaneId,
+      splitLayoutType: splitLayout.type,
+      hasChildren: splitLayout.children ? splitLayout.children.length : 0,
+      fileNames: serializedFileTabs.map(f => f.name),
+    });
+    
+    // デバッグ用：localStorage内容を表示
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('charCountPro_appState');
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          console.log('🗄️ Current localStorage state:', {
+            filesCount: parsed.fileTabs?.length || 0,
+            splitLayoutType: parsed.splitLayout?.type,
+            lastSaved: new Date(parsed.lastSaved).toLocaleString(),
+          });
+        } catch (e) {
+          console.warn('Failed to parse localStorage state:', e);
+        }
+      }
+    }
+  }, [
+    mounted,
+    showNewlineMarkers,
+    showFullWidthSpaces,
+    targetLength,
+    showAdvancedStats,
+    isPreviewVisible,
+    sidebarWidth,
+    statisticsHeight,
+    sidebarCollapsed,
+    activeFileId,
+    activePaneId,
+    fileTabs,
+    splitLayout,
+    serializeFileTabs,
+    serializeSplitLayout,
+    debouncedSaveState,
+  ]);
 
   return (
     <div className="h-screen flex bg-slate-50 dark:bg-slate-900 overflow-hidden fixed inset-0">

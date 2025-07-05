@@ -27,6 +27,31 @@ export function useEditorLayout() {
   const resizeRef = useRef<HTMLDivElement>(null);
   const statisticsResizeRef = useRef<HTMLDivElement>(null);
 
+  // 状態復元関数
+  const restoreLayoutState = useCallback((state: {
+    sidebarWidth?: number;
+    statisticsHeight?: number;
+    sidebarCollapsed?: boolean;
+    splitLayout?: SplitLayout;
+    activePaneId?: string;
+  }) => {
+    if (typeof state.sidebarWidth === 'number' && state.sidebarWidth > 200 && state.sidebarWidth < 800) {
+      setSidebarWidth(state.sidebarWidth);
+    }
+    if (typeof state.statisticsHeight === 'number' && state.statisticsHeight > 100 && state.statisticsHeight < 600) {
+      setStatisticsHeight(state.statisticsHeight);
+    }
+    if (typeof state.sidebarCollapsed === 'boolean') {
+      setSidebarCollapsed(state.sidebarCollapsed);
+    }
+    if (state.splitLayout && typeof state.splitLayout === 'object') {
+      setSplitLayout(state.splitLayout);
+    }
+    if (typeof state.activePaneId === 'string') {
+      setActivePaneId(state.activePaneId);
+    }
+  }, []);
+
   // 分割レイアウト管理
   const [splitLayout, setSplitLayout] = useState<SplitLayout>({
     id: "root",
@@ -567,6 +592,52 @@ export function useEditorLayout() {
     });
   }, []);
 
+  // 分割レイアウトを保存用形式に変換
+  const serializeSplitLayout = useCallback((layout: SplitLayout): Record<string, unknown> => {
+    if (layout.type === "pane") {
+      return {
+        id: layout.id,
+        type: "pane",
+        pane: layout.pane ? {
+          id: layout.pane.id,
+          fileIds: [...layout.pane.fileIds],
+          activeFileId: layout.pane.activeFileId,
+        } : null,
+      };
+    } else {
+      return {
+        id: layout.id,
+        type: "split",
+        direction: layout.direction,
+        children: layout.children?.map(child => serializeSplitLayout(child)) || [],
+        sizes: layout.sizes ? [...layout.sizes] : undefined,
+      };
+    }
+  }, []);
+
+  // 保存形式からレイアウトを復元
+  const deserializeSplitLayout = useCallback((saved: Record<string, unknown>): SplitLayout => {
+    if (saved.type === "pane") {
+      return {
+        id: saved.id as string,
+        type: "pane",
+        pane: saved.pane ? {
+          id: (saved.pane as Record<string, unknown>).id as string,
+          fileIds: [...((saved.pane as Record<string, unknown>).fileIds as string[])],
+          activeFileId: (saved.pane as Record<string, unknown>).activeFileId as string | null,
+        } : { id: saved.id as string, fileIds: [], activeFileId: null },
+      };
+    } else {
+      return {
+        id: saved.id as string,
+        type: "split",
+        direction: saved.direction as SplitDirection,
+        children: (saved.children as Record<string, unknown>[])?.map((child: Record<string, unknown>) => deserializeSplitLayout(child)) || [],
+        sizes: saved.sizes ? [...(saved.sizes as number[])] : undefined,
+      };
+    }
+  }, []);
+
   return {
     // State
     sidebarWidth,
@@ -599,5 +670,10 @@ export function useEditorLayout() {
     updateSplitSizes,
     findPane,
     cleanupInvalidFileIds,
+
+    // 状態復元
+    restoreLayoutState,
+    serializeSplitLayout,
+    deserializeSplitLayout,
   };
 }

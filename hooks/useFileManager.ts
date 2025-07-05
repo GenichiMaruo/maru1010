@@ -404,6 +404,19 @@ export const useFileManager = () => {
     );
   }, []);
 
+  // 外部からのファイル復元機能
+  const restoreFilesFromState = useCallback((savedFiles: FileTab[], savedActiveFileId: string | null) => {
+    if (savedFiles && savedFiles.length > 0) {
+      setFileTabs(savedFiles);
+      if (savedActiveFileId) {
+        setActiveFileId(savedActiveFileId);
+      }
+      // ローカルストレージにも保存
+      saveFilesToStorage(savedFiles, savedActiveFileId || savedFiles[0].id);
+      console.log('Files restored from app state:', savedFiles.length, 'files');
+    }
+  }, []);
+
   return {
     fileTabs,
     activeFileId,
@@ -421,6 +434,7 @@ export const useFileManager = () => {
     isRestoredFromStorage,
     resetRestoredFlag,
     reorderFiles,
+    restoreFilesFromState,
     editorWindows,
     createWindow,
     closeWindow,
