@@ -36,12 +36,12 @@ const Header = () => {
       </Button>
       <Button asChild variant="link" className="p-2">
         <Link
-          href="/pico88"
+          href="/projects"
           className="hover:text-blue-500 dark:hover:text-blue-400 transition-colors duration-200 flex items-center gap-1
                      text-gray-700 dark:text-gray-200"
         >
           <FaMicrochip />
-          <span className="hidden sm:block">PICO-88</span>
+          <span className="hidden sm:block">Projects</span>
         </Link>
       </Button>
       <Button asChild variant="link" className="p-2">
