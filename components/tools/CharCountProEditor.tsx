@@ -46,6 +46,7 @@ import { SplitLayoutRenderer } from "./SplitLayoutRenderer";
 import LinkModal from "./LinkModal";
 import LaTeXExportModal from "./LaTeXExportModal";
 import { CodeLanguageSelectModal } from "./CodeLanguageSelectModal";
+import { KeyboardShortcutsModal } from "./KeyboardShortcutsModal";
 import { CodeBlockSettingsPanel } from "./CodeBlockSettingsPanel";
 import { TableOperationsPanel } from "./TableOperationsPanel";
 import { FontSizeExtension, VisibilityExtension } from "./extensions";
@@ -1330,25 +1331,11 @@ export default function CharCountProEditor() {
         </div>
       </div>
 
-      {/* キーボードショートカットパネル */}
-      {isShortcutsVisible && (
-        <div className="absolute top-0 left-0 right-0 bottom-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white dark:bg-slate-800 rounded-lg p-6 max-w-2xl max-h-[80vh] overflow-y-auto">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-slate-900 dark:text-white">
-                Keyboard Shortcuts
-              </h3>
-              <button
-                onClick={() => setIsShortcutsVisible(false)}
-                className="text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200"
-              >
-                ✕
-              </button>
-            </div>
-            {/* ショートカット一覧がここに入る */}
-          </div>
-        </div>
-      )}
+      {/* キーボードショートカットモーダル */}
+      <KeyboardShortcutsModal
+        isOpen={isShortcutsVisible}
+        onClose={() => setIsShortcutsVisible(false)}
+      />
 
       {/* リンクモーダル */}
       <LinkModal
