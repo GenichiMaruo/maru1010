@@ -22,6 +22,7 @@ interface CodeBlockSettingsPanelProps {
 // よく使われるプログラミング言語のリスト（設定パネル用）
 const COMMON_LANGUAGES = [
   { value: "plaintext", label: "Plain Text" },
+  { value: "diff", label: "Diff" },
   { value: "javascript", label: "JavaScript" },
   { value: "typescript", label: "TypeScript" },
   { value: "python", label: "Python" },
@@ -106,73 +107,79 @@ export function CodeBlockSettingsPanel({
   }
 
   return (
-    <div className="p-4 bg-slate-50 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700">
-      <div className="flex items-center justify-between mb-3">
-        <h3 className="text-sm font-medium text-slate-900 dark:text-white">
-          コードブロック設定
-        </h3>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={onClose}
-          className="h-6 w-6 p-0"
-        >
-          ×
-        </Button>
-      </div>
+    <div className="px-2 py-1 bg-slate-50 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700">
+      <div className="flex gap-1.5 items-center justify-between">
+        {/* 左側：設定項目 */}
+        <div className="flex gap-1.5 items-center">
+          {/* 言語選択 */}
+          <div className="flex items-center gap-1">
+            <Label
+              htmlFor="language-select"
+              className="text-xs text-slate-700 dark:text-slate-300 whitespace-nowrap"
+            >
+              言語:
+            </Label>
+            <Select
+              value={
+                COMMON_LANGUAGES.some((lang) => lang.value === currentLanguage)
+                  ? currentLanguage
+                  : "custom"
+              }
+              onValueChange={handleLanguageSelect}
+            >
+              <SelectTrigger className="w-28 h-5 text-xs">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {COMMON_LANGUAGES.map((lang) => (
+                  <SelectItem key={lang.value} value={lang.value}>
+                    {lang.label}
+                  </SelectItem>
+                ))}
+                <SelectItem value="custom">カスタム...</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
 
-      <div className="space-y-3">
-        <div>
-          <Label htmlFor="language-select" className="text-sm">
-            プログラミング言語
-          </Label>
-          <Select
-            value={
-              COMMON_LANGUAGES.some((lang) => lang.value === currentLanguage)
-                ? currentLanguage
-                : "custom"
-            }
-            onValueChange={handleLanguageSelect}
-          >
-            <SelectTrigger className="w-full mt-1">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {COMMON_LANGUAGES.map((lang) => (
-                <SelectItem key={lang.value} value={lang.value}>
-                  {lang.label}
-                </SelectItem>
-              ))}
-              <SelectItem value="custom">カスタム言語...</SelectItem>
-            </SelectContent>
-          </Select>
+          {/* カスタム言語入力 */}
+          {(!COMMON_LANGUAGES.some((lang) => lang.value === currentLanguage) ||
+            customLanguage) && (
+            <div className="flex items-center gap-1">
+              <Label
+                htmlFor="custom-language"
+                className="text-xs text-slate-700 dark:text-slate-300 whitespace-nowrap"
+              >
+                カスタム:
+              </Label>
+              <Input
+                id="custom-language"
+                value={customLanguage || currentLanguage}
+                onChange={(e) => handleCustomLanguageChange(e.target.value)}
+                placeholder="言語名..."
+                className="w-20 h-5 text-xs"
+              />
+            </div>
+          )}
         </div>
 
-        {/* カスタム言語入力 */}
-        {(!COMMON_LANGUAGES.some((lang) => lang.value === currentLanguage) ||
-          customLanguage) && (
-          <div>
-            <Label htmlFor="custom-language" className="text-sm">
-              カスタム言語名
-            </Label>
-            <Input
-              id="custom-language"
-              value={customLanguage || currentLanguage}
-              onChange={(e) => handleCustomLanguageChange(e.target.value)}
-              placeholder="言語名を入力..."
-              className="mt-1"
-            />
-          </div>
-        )}
-
-        <div className="flex gap-2 pt-2">
+        {/* 右側：アクションボタン */}
+        <div className="flex gap-1 items-center">
           <Button
             variant="outline"
             size="sm"
             onClick={removeCodeBlock}
-            className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:text-red-300 dark:hover:bg-red-950"
+            className="h-5 text-xs px-1.5 text-red-600 hover:text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:text-red-300 dark:hover:bg-red-950"
           >
-            コードブロックを解除
+            解除
+          </Button>
+
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onClose}
+            className="h-5 w-5 p-0 text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200"
+          >
+            ×
           </Button>
         </div>
       </div>

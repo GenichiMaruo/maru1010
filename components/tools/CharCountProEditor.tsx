@@ -17,6 +17,27 @@ import Image from "@tiptap/extension-image";
 import Link from "@tiptap/extension-link";
 import Mathematics from "@tiptap/extension-mathematics";
 import { common, createLowlight } from "lowlight";
+import { toHtml } from "hast-util-to-html";
+import javascript from "highlight.js/lib/languages/javascript";
+import typescript from "highlight.js/lib/languages/typescript";
+import python from "highlight.js/lib/languages/python";
+import java from "highlight.js/lib/languages/java";
+import cpp from "highlight.js/lib/languages/cpp";
+import csharp from "highlight.js/lib/languages/csharp";
+import php from "highlight.js/lib/languages/php";
+import ruby from "highlight.js/lib/languages/ruby";
+import go from "highlight.js/lib/languages/go";
+import rust from "highlight.js/lib/languages/rust";
+import swift from "highlight.js/lib/languages/swift";
+import kotlin from "highlight.js/lib/languages/kotlin";
+import scala from "highlight.js/lib/languages/scala";
+import css from "highlight.js/lib/languages/css";
+import html from "highlight.js/lib/languages/xml";
+import json from "highlight.js/lib/languages/json";
+import yaml from "highlight.js/lib/languages/yaml";
+import bash from "highlight.js/lib/languages/bash";
+import sql from "highlight.js/lib/languages/sql";
+import markdown from "highlight.js/lib/languages/markdown";
 
 // Custom components and hooks
 import { Sidebar } from "./sidebar/Sidebar";
@@ -169,6 +190,33 @@ export default function CharCountProEditor() {
     deserializeSplitLayout,
   } = layout;
 
+  // 拡張されたlowlightインスタンスを作成
+  const extendedLowlight = createLowlight(common);
+
+  // 追加の言語を登録
+  extendedLowlight.register("javascript", javascript);
+  extendedLowlight.register("typescript", typescript);
+  extendedLowlight.register("python", python);
+  extendedLowlight.register("java", java);
+  extendedLowlight.register("cpp", cpp);
+  extendedLowlight.register("csharp", csharp);
+  extendedLowlight.register("php", php);
+  extendedLowlight.register("ruby", ruby);
+  extendedLowlight.register("go", go);
+  extendedLowlight.register("rust", rust);
+  extendedLowlight.register("swift", swift);
+  extendedLowlight.register("kotlin", kotlin);
+  extendedLowlight.register("scala", scala);
+  extendedLowlight.register("css", css);
+  extendedLowlight.register("html", html);
+  extendedLowlight.register("xml", html); // htmlエイリアス
+  extendedLowlight.register("json", json);
+  extendedLowlight.register("yaml", yaml);
+  extendedLowlight.register("bash", bash);
+  extendedLowlight.register("shell", bash); // bashエイリアス
+  extendedLowlight.register("sql", sql);
+  extendedLowlight.register("markdown", markdown);
+
   // エディター設定
   const editor = useEditor({
     extensions: [
@@ -180,7 +228,7 @@ export default function CharCountProEditor() {
       Strike,
       FontSizeExtension,
       CodeBlockLowlight.configure({
-        lowlight: createLowlight(common),
+        lowlight: extendedLowlight,
         defaultLanguage: "plaintext",
         HTMLAttributes: {
           class: "hljs",
@@ -338,6 +386,8 @@ export default function CharCountProEditor() {
       if (activeFileId) {
         setCurrentEditingFileId(activeFileId);
       }
+      // diff行のスタイリングを適用
+      processDiffBlocks();
     },
     immediatelyRender: false,
   });
@@ -881,6 +931,144 @@ export default function CharCountProEditor() {
     serializeSplitLayout,
     debouncedSaveState,
   ]);
+
+  // diff行のスタイリングを処理する関数
+  const processDiffBlocks = useCallback(() => {
+    // DOM内のdiff言語のコードブロックを検索
+    const diffBlocks = document.querySelectorAll(
+      "pre.language-diff code, pre.hljs.language-diff code"
+    );
+
+    diffBlocks.forEach((codeBlock) => {
+      const text = codeBlock.textContent || "";
+      const lines = text.split("\n");
+
+      // diff内の言語を検出する関数
+      const detectLanguageFromDiff = (lines: string[]): string | null => {
+        for (const line of lines) {
+          // ファイル拡張子から言語を推測
+          if (line.startsWith("+++") || line.startsWith("---")) {
+            const match = line.match(
+              /\.(js|ts|jsx|tsx|py|java|cpp|c|cs|php|rb|go|rs|swift|kt|scala|css|html|json|yaml|yml|sh|sql|md)(\s|$)/
+            );
+            if (match) {
+              const ext = match[1].toLowerCase();
+              const languageMap: Record<string, string> = {
+                js: "javascript",
+                jsx: "javascript",
+                ts: "typescript",
+                tsx: "typescript",
+                py: "python",
+                java: "java",
+                cpp: "cpp",
+                c: "cpp",
+                cs: "csharp",
+                php: "php",
+                rb: "ruby",
+                go: "go",
+                rs: "rust",
+                swift: "swift",
+                kt: "kotlin",
+                scala: "scala",
+                css: "css",
+                html: "html",
+                json: "json",
+                yaml: "yaml",
+                yml: "yaml",
+                sh: "bash",
+                sql: "sql",
+                md: "markdown",
+              };
+              return languageMap[ext] || null;
+            }
+          }
+        }
+        return null;
+      };
+
+      const detectedLanguage = detectLanguageFromDiff(lines);
+
+      // 各行を処理してスタイリングを適用
+      let processedHtml = "";
+      lines.forEach((line, index) => {
+        const trimmedLine = line.trim();
+        let lineClass = "";
+        let contentToHighlight = line;
+
+        if (trimmedLine.startsWith("+")) {
+          lineClass = "diff-addition";
+          contentToHighlight = line.substring(1); // +を除去
+        } else if (trimmedLine.startsWith("-")) {
+          lineClass = "diff-deletion";
+          contentToHighlight = line.substring(1); // -を除去
+        } else if (
+          trimmedLine.startsWith("@@") ||
+          trimmedLine.startsWith("index ") ||
+          trimmedLine.startsWith("---") ||
+          trimmedLine.startsWith("+++")
+        ) {
+          lineClass = "diff-header";
+        }
+
+        let highlightedContent = "";
+
+        // diff行でない場合や、言語が検出された場合のみシンタックスハイライトを適用
+        if (
+          lineClass &&
+          lineClass !== "diff-header" &&
+          detectedLanguage &&
+          extendedLowlight.registered(detectedLanguage)
+        ) {
+          try {
+            const result = extendedLowlight.highlight(
+              detectedLanguage,
+              contentToHighlight.trim()
+            );
+            const prefix = lineClass === "diff-addition" ? "+" : "-";
+
+            // hast-util-to-htmlを使用してHTMLに変換
+            const htmlContent = toHtml(result);
+            highlightedContent = `${prefix}${htmlContent}`;
+          } catch {
+            // ハイライトに失敗した場合は元のテキストを使用
+            highlightedContent = line
+              .replace(/&/g, "&amp;")
+              .replace(/</g, "&lt;")
+              .replace(/>/g, "&gt;");
+          }
+        } else {
+          highlightedContent = line
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;");
+        }
+
+        if (lineClass) {
+          processedHtml += `<span class="${lineClass}">${highlightedContent}</span>`;
+        } else {
+          processedHtml += highlightedContent;
+        }
+
+        if (index < lines.length - 1) {
+          processedHtml += "\n";
+        }
+      });
+
+      // HTMLを更新
+      if (codeBlock.innerHTML !== processedHtml) {
+        codeBlock.innerHTML = processedHtml;
+      }
+    });
+  }, [extendedLowlight]);
+
+  // エディターが更新されたときにdiff処理を実行
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      processDiffBlocks();
+    }, 100); // 少し遅延してDOMの更新を待つ
+
+    return () => clearTimeout(timer);
+  }, [processDiffBlocks]);
 
   return (
     <div className="h-screen flex bg-slate-50 dark:bg-slate-900 overflow-hidden fixed inset-0">

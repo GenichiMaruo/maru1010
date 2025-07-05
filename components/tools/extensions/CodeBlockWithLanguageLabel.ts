@@ -82,7 +82,7 @@ export const CodeBlockWithLanguageLabel =
           "data-language": language || "text",
           class: `hljs ${languageClass}`.trim(),
         }),
-        ["code", {}, 0],
+        ["code", { class: `language-${language || "text"}` }, 0],
       ];
     },
 
