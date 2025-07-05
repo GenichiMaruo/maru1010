@@ -40,20 +40,33 @@ import {
   downloadLaTeXFile,
   type LaTeXExportOptions,
 } from "@/utils/latexExport";
-import { saveAppState, loadAppState, clearAppState, debounce } from "@/utils/appStateManager";
-import type { AppState, SavedFileTab, SavedSplitLayout } from "@/utils/appStateManager";
+import {
+  saveAppState,
+  loadAppState,
+  clearAppState,
+  debounce,
+} from "@/utils/appStateManager";
+import type {
+  AppState,
+  SavedFileTab,
+  SavedSplitLayout,
+} from "@/utils/appStateManager";
 import { marked } from "marked";
 
 // デバッグ用：グローバルに状態クリア機能を追加
-if (typeof window !== 'undefined') {
-  (window as typeof window & { clearCharCountProState: () => void }).clearCharCountProState = () => {
+if (typeof window !== "undefined") {
+  (
+    window as typeof window & { clearCharCountProState: () => void }
+  ).clearCharCountProState = () => {
     clearAppState();
-    localStorage.removeItem('char-count-pro-files');
-    localStorage.removeItem('char-count-pro-active-file');
-    console.log('🗑️ CharCountPro state cleared. Please reload the page.');
+    localStorage.removeItem("char-count-pro-files");
+    localStorage.removeItem("char-count-pro-active-file");
+    console.log("🗑️ CharCountPro state cleared. Please reload the page.");
     window.location.reload();
   };
-  console.log('💡 Debug: Use window.clearCharCountProState() to clear all saved state');
+  console.log(
+    "💡 Debug: Use window.clearCharCountProState() to clear all saved state"
+  );
 }
 
 export default function CharCountProEditor() {
@@ -379,7 +392,7 @@ export default function CharCountProEditor() {
     console.log("📊 Setting character count target:", { paneId, fileId });
     // 文字数カウントの対象ファイルを変更（分割エディタの表示は変更しない）
     setCurrentEditingFileId(fileId);
-    
+
     // 注意：setActiveFileIdは呼ばない（分割エディタの表示ファイルが変わってしまうため）
     // activeFileIdは文字数カウントとサイドバー表示にのみ影響し、
     // 分割エディタの表示ファイルには影響しない
@@ -388,7 +401,10 @@ export default function CharCountProEditor() {
   // メインエディタがクリックされた時の処理
   const handleMainEditorClick = useCallback(() => {
     if (activeFileId) {
-      console.log("📊 Main editor clicked, setting stats target to:", activeFileId);
+      console.log(
+        "📊 Main editor clicked, setting stats target to:",
+        activeFileId
+      );
       setCurrentEditingFileId(activeFileId);
     }
   }, [activeFileId]);
@@ -396,7 +412,7 @@ export default function CharCountProEditor() {
   // 現在編集中ファイルの変更をログ出力
   useEffect(() => {
     if (currentEditingFileId) {
-      const editingFile = fileTabs.find(f => f.id === currentEditingFileId);
+      const editingFile = fileTabs.find((f) => f.id === currentEditingFileId);
       console.log("📊 Character count target changed:", {
         fileId: currentEditingFileId,
         fileName: editingFile?.name,
@@ -484,7 +500,7 @@ export default function CharCountProEditor() {
 
   // ファイル状態のシリアライゼーション（早期定義）
   const serializeFileTabs = useCallback((tabs: typeof fileTabs) => {
-    return tabs.map(tab => ({
+    return tabs.map((tab) => ({
       id: tab.id,
       name: tab.name,
       content: tab.content,
@@ -494,7 +510,7 @@ export default function CharCountProEditor() {
   }, []);
 
   const deserializeFileTabs = useCallback((savedTabs: SavedFileTab[]) => {
-    return savedTabs.map(tab => ({
+    return savedTabs.map((tab) => ({
       id: tab.id,
       name: tab.name,
       content: tab.content,
@@ -618,49 +634,72 @@ export default function CharCountProEditor() {
   // エディターの現在のテキストから統計を計算（現在編集中のファイルから取得）
   const getCurrentEditorText = useCallback((): string => {
     if (!currentEditingFileId) return "";
-    
+
     // 現在編集中のファイルの内容を取得
     const editingFile = fileTabs.find((f) => f.id === currentEditingFileId);
     if (!editingFile) return "";
-    
+
     // そのファイルを表示しているエディターインスタンスを探す
     for (const [paneId, editorInstance] of paneEditors.entries()) {
-      const pane = getAllPanes().find(p => p.id === paneId);
-      if (pane && pane.activeFileId === currentEditingFileId && editorInstance) {
-        console.log("📊 Getting text from pane editor:", paneId, "for file:", currentEditingFileId);
+      const pane = getAllPanes().find((p) => p.id === paneId);
+      if (
+        pane &&
+        pane.activeFileId === currentEditingFileId &&
+        editorInstance
+      ) {
+        console.log(
+          "📊 Getting text from pane editor:",
+          paneId,
+          "for file:",
+          currentEditingFileId
+        );
         return editorInstance.getText();
       }
     }
-    
+
     // メインエディターを確認
     if (activeFileId === currentEditingFileId && editor) {
-      console.log("📊 Getting text from main editor for file:", currentEditingFileId);
+      console.log(
+        "📊 Getting text from main editor for file:",
+        currentEditingFileId
+      );
       return editor.getText();
     }
-    
+
     // エディターが見つからない場合は、ファイルの保存済み内容から計算
-    console.log("📊 Getting text from file content (no active editor) for file:", currentEditingFileId);
+    console.log(
+      "📊 Getting text from file content (no active editor) for file:",
+      currentEditingFileId
+    );
     // HTMLタグを除去してプレーンテキストを取得
-    const tempDiv = document.createElement('div');
+    const tempDiv = document.createElement("div");
     tempDiv.innerHTML = editingFile.content;
-    return tempDiv.textContent || tempDiv.innerText || '';
-  }, [currentEditingFileId, fileTabs, paneEditors, getAllPanes, activeFileId, editor]);
+    return tempDiv.textContent || tempDiv.innerText || "";
+  }, [
+    currentEditingFileId,
+    fileTabs,
+    paneEditors,
+    getAllPanes,
+    activeFileId,
+    editor,
+  ]);
 
   // 基本統計計算（現在編集中のファイルから計算）
-  const stats = currentEditingFileId && fileTabs.find(f => f.id === currentEditingFileId)
-    ? calculateTextStats(getCurrentEditorText())
-    : {
-        characters: 0,
-        charactersNoSpaces: 0,
-        words: 0,
-        sentences: 0,
-        paragraphs: 0,
-        lines: 0,
-        bytes: 0,
-        readingTime: 0,
-        syllables: 0,
-        readabilityScore: 0,
-      };
+  const stats =
+    currentEditingFileId && fileTabs.find((f) => f.id === currentEditingFileId)
+      ? calculateTextStats(getCurrentEditorText())
+      : {
+          characters: 0,
+          charactersNoSpaces: 0,
+          words: 0,
+          sentences: 0,
+          paragraphs: 0,
+          lines: 0,
+          bytes: 0,
+          readingTime: 0,
+          syllables: 0,
+          readabilityScore: 0,
+        };
 
   const targetProgress =
     targetLength > 0 ? (stats.characters / targetLength) * 100 : 0;
@@ -686,43 +725,61 @@ export default function CharCountProEditor() {
 
     const savedState = loadAppState();
     if (savedState) {
-      console.log('🔄 Loading saved app state:', {
+      console.log("🔄 Loading saved app state:", {
         filesCount: savedState.fileTabs?.length || 0,
         activeFileId: savedState.activeFileId,
         activePaneId: savedState.activePaneId,
         splitLayoutType: savedState.splitLayout?.type,
-        lastSaved: savedState.lastSaved ? new Date(savedState.lastSaved).toLocaleString() : 'unknown',
+        lastSaved: savedState.lastSaved
+          ? new Date(savedState.lastSaved).toLocaleString()
+          : "unknown",
       });
-      
+
       // UI状態の復元
-      if (typeof savedState.showNewlineMarkers === 'boolean') {
+      if (typeof savedState.showNewlineMarkers === "boolean") {
         setShowNewlineMarkers(savedState.showNewlineMarkers);
       }
-      if (typeof savedState.showFullWidthSpaces === 'boolean') {
+      if (typeof savedState.showFullWidthSpaces === "boolean") {
         setShowFullWidthSpaces(savedState.showFullWidthSpaces);
       }
-      if (typeof savedState.targetLength === 'number') {
+      if (typeof savedState.targetLength === "number") {
         setTargetLength(savedState.targetLength);
       }
-      if (typeof savedState.showAdvancedStats === 'boolean') {
+      if (typeof savedState.showAdvancedStats === "boolean") {
         setShowAdvancedStats(savedState.showAdvancedStats);
       }
-      if (typeof savedState.isPreviewVisible === 'boolean') {
+      if (typeof savedState.isPreviewVisible === "boolean") {
         setIsPreviewVisible(savedState.isPreviewVisible);
       }
 
       // ファイル状態の復元
-      if (savedState.fileTabs && Array.isArray(savedState.fileTabs) && savedState.fileTabs.length > 0) {
+      if (
+        savedState.fileTabs &&
+        Array.isArray(savedState.fileTabs) &&
+        savedState.fileTabs.length > 0
+      ) {
         const restoredFiles = deserializeFileTabs(savedState.fileTabs);
         restoreFilesFromState(restoredFiles, savedState.activeFileId || null);
-        console.log('📂 Restored files:', restoredFiles.map(f => ({ id: f.id, name: f.name, contentLength: f.content.length })));
+        console.log(
+          "📂 Restored files:",
+          restoredFiles.map((f) => ({
+            id: f.id,
+            name: f.name,
+            contentLength: f.content.length,
+          }))
+        );
       }
 
       // レイアウト状態の復元
       if (savedState.splitLayout) {
-        const restoredLayout = deserializeSplitLayout(savedState.splitLayout as unknown as Record<string, unknown>);
-        console.log('🖼️ Restoring layout:', { type: restoredLayout.type, hasChildren: !!restoredLayout.children });
-        
+        const restoredLayout = deserializeSplitLayout(
+          savedState.splitLayout as unknown as Record<string, unknown>
+        );
+        console.log("🖼️ Restoring layout:", {
+          type: restoredLayout.type,
+          hasChildren: !!restoredLayout.children,
+        });
+
         restoreLayoutState({
           sidebarWidth: savedState.sidebarWidth,
           statisticsHeight: savedState.statisticsHeight,
@@ -740,11 +797,18 @@ export default function CharCountProEditor() {
         });
       }
 
-      console.log('✅ App state restored successfully');
+      console.log("✅ App state restored successfully");
     } else {
-      console.log('ℹ️ No saved state found, using defaults');
+      console.log("ℹ️ No saved state found, using defaults");
     }
-  }, [mounted, setSidebarCollapsed, restoreLayoutState, deserializeFileTabs, restoreFilesFromState, deserializeSplitLayout]);
+  }, [
+    mounted,
+    setSidebarCollapsed,
+    restoreLayoutState,
+    deserializeFileTabs,
+    restoreFilesFromState,
+    deserializeSplitLayout,
+  ]);
 
   // 状態変更時にデバウンス保存の設定
   useEffect(() => {
@@ -766,33 +830,33 @@ export default function CharCountProEditor() {
       activeFileId,
       activePaneId,
       fileTabs: serializedFileTabs,
-      fileTabsOrder: fileTabs.map(f => f.id),
+      fileTabsOrder: fileTabs.map((f) => f.id),
       splitLayout: serializedSplitLayout as unknown as SavedSplitLayout,
     };
 
     debouncedSaveState(currentState);
-    console.log('💾 Saving comprehensive app state:', {
+    console.log("💾 Saving comprehensive app state:", {
       filesCount: serializedFileTabs.length,
       activeFileId,
       activePaneId,
       splitLayoutType: splitLayout.type,
       hasChildren: splitLayout.children ? splitLayout.children.length : 0,
-      fileNames: serializedFileTabs.map(f => f.name),
+      fileNames: serializedFileTabs.map((f) => f.name),
     });
-    
+
     // デバッグ用：localStorage内容を表示
-    if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('charCountPro_appState');
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("charCountPro_appState");
       if (saved) {
         try {
           const parsed = JSON.parse(saved);
-          console.log('🗄️ Current localStorage state:', {
+          console.log("🗄️ Current localStorage state:", {
             filesCount: parsed.fileTabs?.length || 0,
             splitLayoutType: parsed.splitLayout?.type,
             lastSaved: new Date(parsed.lastSaved).toLocaleString(),
           });
         } catch (e) {
-          console.warn('Failed to parse localStorage state:', e);
+          console.warn("Failed to parse localStorage state:", e);
         }
       }
     }

@@ -353,7 +353,12 @@ export function SplitEditorPane({
       handleClick: () => {
         // エディタがクリックされた時、文字数カウントの対象をこのファイルに設定
         if (activeFile && onEditorClick) {
-          console.log("📝 Split editor clicked, setting stats target to:", activeFile.id, "in pane:", pane.id);
+          console.log(
+            "📝 Split editor clicked, setting stats target to:",
+            activeFile.id,
+            "in pane:",
+            pane.id
+          );
           onEditorClick(activeFile.id);
         }
       },
@@ -426,7 +431,12 @@ export function SplitEditorPane({
     onFocus: () => {
       // エディターがフォーカスされた時、文字数カウントの対象をこのファイルに設定
       if (activeFile && onEditorClick) {
-        console.log("🎯 Split editor focused, setting stats target to:", activeFile.id, "in pane:", pane.id);
+        console.log(
+          "🎯 Split editor focused, setting stats target to:",
+          activeFile.id,
+          "in pane:",
+          pane.id
+        );
         onEditorClick(activeFile.id);
       }
     },
