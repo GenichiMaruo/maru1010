@@ -241,9 +241,7 @@ export default function CharCountProEditor() {
         spellcheck: "false",
       },
       handleClick: () => {
-        if (activeFileId) {
-          setCurrentEditingFileId(activeFileId);
-        }
+        handleMainEditorClick();
       },
       handleDOMEvents: {
         // composition events（IME入力）を適切に処理
@@ -309,9 +307,7 @@ export default function CharCountProEditor() {
       },
     },
     onFocus: () => {
-      if (activeFileId) {
-        setCurrentEditingFileId(activeFileId);
-      }
+      handleMainEditorClick();
     },
     onCreate: () => {
       // エディター作成時にも現在編集中のファイルを設定
@@ -377,6 +373,37 @@ export default function CharCountProEditor() {
     activePaneId,
     paneEditors,
   ]);
+
+  // エディターがクリックされた時の文字数カウント対象変更処理
+  const handleEditorClick = useCallback((paneId: string, fileId: string) => {
+    console.log("📊 Setting character count target:", { paneId, fileId });
+    // 文字数カウントの対象ファイルを変更（分割エディタの表示は変更しない）
+    setCurrentEditingFileId(fileId);
+    
+    // 注意：setActiveFileIdは呼ばない（分割エディタの表示ファイルが変わってしまうため）
+    // activeFileIdは文字数カウントとサイドバー表示にのみ影響し、
+    // 分割エディタの表示ファイルには影響しない
+  }, []);
+
+  // メインエディタがクリックされた時の処理
+  const handleMainEditorClick = useCallback(() => {
+    if (activeFileId) {
+      console.log("📊 Main editor clicked, setting stats target to:", activeFileId);
+      setCurrentEditingFileId(activeFileId);
+    }
+  }, [activeFileId]);
+
+  // 現在編集中ファイルの変更をログ出力
+  useEffect(() => {
+    if (currentEditingFileId) {
+      const editingFile = fileTabs.find(f => f.id === currentEditingFileId);
+      console.log("📊 Character count target changed:", {
+        fileId: currentEditingFileId,
+        fileName: editingFile?.name,
+        contentLength: editingFile?.content.length,
+      });
+    }
+  }, [currentEditingFileId, fileTabs]);
 
   // エディターがマウントされた後の初期化
   useEffect(() => {
@@ -588,29 +615,52 @@ export default function CharCountProEditor() {
     }
   };
 
-  // エディターの現在のテキストから統計を計算
+  // エディターの現在のテキストから統計を計算（現在編集中のファイルから取得）
   const getCurrentEditorText = useCallback((): string => {
-    const currentEditor = activeEditorInstance || editor;
-    if (!currentEditor) return "";
-    return currentEditor.getText();
-  }, [activeEditorInstance, editor]);
+    if (!currentEditingFileId) return "";
+    
+    // 現在編集中のファイルの内容を取得
+    const editingFile = fileTabs.find((f) => f.id === currentEditingFileId);
+    if (!editingFile) return "";
+    
+    // そのファイルを表示しているエディターインスタンスを探す
+    for (const [paneId, editorInstance] of paneEditors.entries()) {
+      const pane = getAllPanes().find(p => p.id === paneId);
+      if (pane && pane.activeFileId === currentEditingFileId && editorInstance) {
+        console.log("📊 Getting text from pane editor:", paneId, "for file:", currentEditingFileId);
+        return editorInstance.getText();
+      }
+    }
+    
+    // メインエディターを確認
+    if (activeFileId === currentEditingFileId && editor) {
+      console.log("📊 Getting text from main editor for file:", currentEditingFileId);
+      return editor.getText();
+    }
+    
+    // エディターが見つからない場合は、ファイルの保存済み内容から計算
+    console.log("📊 Getting text from file content (no active editor) for file:", currentEditingFileId);
+    // HTMLタグを除去してプレーンテキストを取得
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = editingFile.content;
+    return tempDiv.textContent || tempDiv.innerText || '';
+  }, [currentEditingFileId, fileTabs, paneEditors, getAllPanes, activeFileId, editor]);
 
-  // 基本統計計算（現在編集中のエディターの内容から直接計算）
-  const stats =
-    activeEditorInstance || editor
-      ? calculateTextStats(getCurrentEditorText())
-      : {
-          characters: 0,
-          charactersNoSpaces: 0,
-          words: 0,
-          sentences: 0,
-          paragraphs: 0,
-          lines: 0,
-          bytes: 0,
-          readingTime: 0,
-          syllables: 0,
-          readabilityScore: 0,
-        };
+  // 基本統計計算（現在編集中のファイルから計算）
+  const stats = currentEditingFileId && fileTabs.find(f => f.id === currentEditingFileId)
+    ? calculateTextStats(getCurrentEditorText())
+    : {
+        characters: 0,
+        charactersNoSpaces: 0,
+        words: 0,
+        sentences: 0,
+        paragraphs: 0,
+        lines: 0,
+        bytes: 0,
+        readingTime: 0,
+        syllables: 0,
+        readabilityScore: 0,
+      };
 
   const targetProgress =
     targetLength > 0 ? (stats.characters / targetLength) * 100 : 0;
@@ -950,6 +1000,7 @@ export default function CharCountProEditor() {
                 onTabMove={moveTabBetweenPanes}
                 onUpdateSplitSizes={updateSplitSizes}
                 onEditorReady={handleEditorReady}
+                onEditorClick={handleEditorClick}
                 showNewlineMarkers={showNewlineMarkers}
                 showFullWidthSpaces={showFullWidthSpaces}
               />

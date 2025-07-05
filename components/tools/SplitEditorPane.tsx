@@ -42,6 +42,7 @@ interface SplitEditorPaneProps {
     targetIndex?: number
   ) => void;
   onEditorReady?: (paneId: string, editor: Editor | null) => void;
+  onEditorClick?: (fileId: string) => void;
   showNewlineMarkers?: boolean;
   showFullWidthSpaces?: boolean;
 }
@@ -59,6 +60,7 @@ export function SplitEditorPane({
   onTabReorder,
   onTabMove,
   onEditorReady,
+  onEditorClick,
   showNewlineMarkers = false,
   showFullWidthSpaces = false,
 }: SplitEditorPaneProps) {
@@ -348,6 +350,13 @@ export function SplitEditorPane({
         style: `line-height: 1.6; padding: 1rem; min-height: 100%;`,
         spellcheck: "false",
       },
+      handleClick: () => {
+        // エディタがクリックされた時、文字数カウントの対象をこのファイルに設定
+        if (activeFile && onEditorClick) {
+          console.log("📝 Split editor clicked, setting stats target to:", activeFile.id, "in pane:", pane.id);
+          onEditorClick(activeFile.id);
+        }
+      },
       handleDOMEvents: {
         // composition events（IME入力）を適切に処理
         compositionstart: () => false,
@@ -413,6 +422,13 @@ export function SplitEditorPane({
     },
     onCreate: ({ editor }) => {
       onEditorReady?.(pane.id, editor);
+    },
+    onFocus: () => {
+      // エディターがフォーカスされた時、文字数カウントの対象をこのファイルに設定
+      if (activeFile && onEditorClick) {
+        console.log("🎯 Split editor focused, setting stats target to:", activeFile.id, "in pane:", pane.id);
+        onEditorClick(activeFile.id);
+      }
     },
     onUpdate: ({ editor }) => {
       if (activeFile?.id) {

@@ -26,6 +26,7 @@ interface SplitLayoutRendererProps {
   ) => void;
   onUpdateSplitSizes: (splitId: string, sizes: number[]) => void;
   onEditorReady?: (paneId: string, editor: Editor | null) => void;
+  onEditorClick?: (paneId: string, fileId: string) => void;
   showNewlineMarkers?: boolean;
   showFullWidthSpaces?: boolean;
   className?: string;
@@ -45,6 +46,7 @@ export function SplitLayoutRenderer({
   onTabMove,
   onUpdateSplitSizes,
   onEditorReady,
+  onEditorClick,
   showNewlineMarkers = false,
   showFullWidthSpaces = false,
   className = "",
@@ -71,6 +73,7 @@ export function SplitLayoutRenderer({
             }
             onTabMove={onTabMove}
             onEditorReady={onEditorReady}
+            onEditorClick={(fileId) => onEditorClick?.(pane.id, fileId)}
             showNewlineMarkers={showNewlineMarkers}
             showFullWidthSpaces={showFullWidthSpaces}
           />
@@ -106,6 +109,7 @@ export function SplitLayoutRenderer({
       onTabMove,
       onUpdateSplitSizes,
       onEditorReady,
+      onEditorClick,
       showNewlineMarkers,
       showFullWidthSpaces,
     ]
