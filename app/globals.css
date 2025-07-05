@@ -999,7 +999,7 @@ body,
 }
 
 /* より強力な制御：最初のp要素以外を完全に隠す */
-.tiptap-editor li.task-item p:nth-child(n+2) {
+.tiptap-editor li.task-item p:nth-child(n + 2) {
   position: absolute !important;
   left: -9999px !important;
   visibility: hidden !important;
@@ -1021,14 +1021,18 @@ body,
   flex-shrink: 0 !important;
   flex-grow: 0 !important;
   flex-basis: 1rem !important;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
   align-self: flex-start !important;
   z-index: 999 !important;
   pointer-events: auto !important;
 }
 
 /* チェックボックス自体を直接ターゲット - 最優先でクリック可能に */
-.tiptap-editor ul[data-type="taskList"] li[data-type="taskItem"] input[type="checkbox"],
+.tiptap-editor
+  ul[data-type="taskList"]
+  li[data-type="taskItem"]
+  input[type="checkbox"],
 .tiptap-editor .task-list .task-item input[type="checkbox"],
 .tiptap-editor li.task-item input[type="checkbox"] {
   appearance: none !important;
@@ -1052,7 +1056,10 @@ body,
   order: -1 !important; /* flexで最初に配置 */
 }
 
-.tiptap-editor ul[data-type="taskList"] li[data-type="taskItem"] input[type="checkbox"]:hover,
+.tiptap-editor
+  ul[data-type="taskList"]
+  li[data-type="taskItem"]
+  input[type="checkbox"]:hover,
 .tiptap-editor .task-list .task-item input[type="checkbox"]:hover,
 .tiptap-editor li.task-item input[type="checkbox"]:hover {
   border-color: #3b82f6 !important;
@@ -1061,7 +1068,10 @@ body,
   transform: scale(1.05) !important;
 }
 
-.tiptap-editor ul[data-type="taskList"] li[data-type="taskItem"] input[type="checkbox"]:checked,
+.tiptap-editor
+  ul[data-type="taskList"]
+  li[data-type="taskItem"]
+  input[type="checkbox"]:checked,
 .tiptap-editor .task-list .task-item input[type="checkbox"]:checked,
 .tiptap-editor li.task-item input[type="checkbox"]:checked {
   background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;
@@ -1071,7 +1081,10 @@ body,
   transform: scale(1.05) !important;
 }
 
-.tiptap-editor ul[data-type="taskList"] li[data-type="taskItem"] input[type="checkbox"]:checked::before,
+.tiptap-editor
+  ul[data-type="taskList"]
+  li[data-type="taskItem"]
+  input[type="checkbox"]:checked::before,
 .tiptap-editor .task-list .task-item input[type="checkbox"]:checked::before,
 .tiptap-editor li.task-item input[type="checkbox"]:checked::before {
   content: "✓" !important;
@@ -1165,7 +1178,6 @@ body,
   height: 80% !important;
 }
 
-
 .tiptap-editor li[data-type="taskItem"] input[type="checkbox"]:checked {
   background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;
   border-color: #2563eb !important;
@@ -1173,8 +1185,6 @@ body,
     0 4px 12px rgba(59, 130, 246, 0.15) !important;
   transform: scale(1.05) !important;
 }
-
-
 
 /* チェックマークアニメーション */
 @keyframes checkmark-pop {
@@ -1266,33 +1276,47 @@ body,
   background: rgba(34, 197, 94, 0.03) !important;
 }
 
-.dark .tiptap-editor li[data-type="taskItem"]:has(input[type="checkbox"]:checked) {
+.dark
+  .tiptap-editor
+  li[data-type="taskItem"]:has(input[type="checkbox"]:checked) {
   background: rgba(34, 197, 94, 0.08) !important;
 }
 
-.tiptap-editor li[data-type="taskItem"]:has(input[type="checkbox"]:checked)::before {
+.tiptap-editor
+  li[data-type="taskItem"]:has(input[type="checkbox"]:checked)::before {
   background: #22c55e !important;
   height: 80% !important;
 }
 
-.tiptap-editor li[data-type="taskItem"]:has(input[type="checkbox"]:checked) > div {
+.tiptap-editor
+  li[data-type="taskItem"]:has(input[type="checkbox"]:checked)
+  > div {
   opacity: 0.65 !important;
   transition: all 0.3s ease !important;
 }
 
-.tiptap-editor li[data-type="taskItem"]:has(input[type="checkbox"]:checked) label {
+.tiptap-editor
+  li[data-type="taskItem"]:has(input[type="checkbox"]:checked)
+  label {
   opacity: 0.65 !important;
   transition: all 0.3s ease !important;
 }
 
-.tiptap-editor li[data-type="taskItem"]:has(input[type="checkbox"]:checked) label span:not(:empty) {
+.tiptap-editor
+  li[data-type="taskItem"]:has(input[type="checkbox"]:checked)
+  label
+  span:not(:empty) {
   text-decoration: line-through !important;
   text-decoration-color: #9ca3af !important;
   text-decoration-thickness: 2px !important;
   color: #6b7280 !important;
 }
 
-.dark .tiptap-editor li[data-type="taskItem"]:has(input[type="checkbox"]:checked) label span:not(:empty) {
+.dark
+  .tiptap-editor
+  li[data-type="taskItem"]:has(input[type="checkbox"]:checked)
+  label
+  span:not(:empty) {
   text-decoration-color: #6b7280 !important;
   color: #9ca3af !important;
 }
@@ -1305,7 +1329,10 @@ body,
   position: relative !important;
 }
 
-.dark .tiptap-editor li[data-type="taskItem"]:has(input[type="checkbox"]:checked) p {
+.dark
+  .tiptap-editor
+  li[data-type="taskItem"]:has(input[type="checkbox"]:checked)
+  p {
   text-decoration-color: #6b7280 !important;
   color: #9ca3af !important;
 }
@@ -1315,7 +1342,9 @@ body,
   animation: task-complete 0.6s ease-out !important;
 }
 
-.dark .tiptap-editor li[data-type="taskItem"]:has(input[type="checkbox"]:checked) {
+.dark
+  .tiptap-editor
+  li[data-type="taskItem"]:has(input[type="checkbox"]:checked) {
   animation: task-complete-dark 0.6s ease-out !important;
 }
 
