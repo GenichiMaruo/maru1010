@@ -642,11 +642,11 @@ body,
 }
 
 .tiptap-editor .hljs-deletion {
-  background: #ffeef0 !important;
+  background: rgba(239, 68, 68, 0.15) !important;
 }
 
 .tiptap-editor .hljs-addition {
-  background: #f0fff4 !important;
+  background: rgba(16, 185, 129, 0.15) !important;
 }
 
 .tiptap-editor .hljs-emphasis {
@@ -728,11 +728,11 @@ body,
 }
 
 .dark .tiptap-editor .hljs-deletion {
-  background: #490202 !important;
+  background: rgba(239, 68, 68, 0.2) !important;
 }
 
 .dark .tiptap-editor .hljs-addition {
-  background: #04260f !important;
+  background: rgba(16, 185, 129, 0.2) !important;
 }
 
 .dark .tiptap-editor .hljs-emphasis {
@@ -1059,7 +1059,8 @@ body,
   overflow: hidden !important;
   font-family: "Monaco", "Menlo", "Ubuntu Mono", monospace !important;
   font-size: 0.875rem !important;
-  line-height: 1.5 !important;
+  line-height: 1.3 !important;
+  padding: 0 !important;
 }
 
 .dark .tiptap-editor pre.hljs.language-diff {
@@ -1067,59 +1068,96 @@ body,
   border-color: #334155 !important;
 }
 
-/* diff行のスタイリング */
+/* diff行のスタイリング - パディングを削除して行全体を使用 */
 .tiptap-editor pre.hljs.language-diff code {
   display: block !important;
   white-space: pre !important;
   padding: 0 !important;
+  margin: 0 !important;
 }
 
-/* diff行のクラス定義 */
+/* diff行のクラス定義 - 完全に親要素の端まで拡張、連続行を繋げる */
 .tiptap-editor pre.hljs.language-diff code .diff-addition {
-  background: rgba(34, 197, 94, 0.1) !important;
-  border-left: 3px solid #22c55e !important;
-  color: #166534 !important;
-  padding: 0.25rem 0.75rem !important;
+  background: rgba(16, 185, 129, 0.15) !important;
+  border-left: 4px solid #10b981 !important;
+  color: #065f46 !important;
+  padding: 0.5rem 1rem !important;
   display: block !important;
   margin: 0 !important;
+  margin-left: -1rem !important;
+  margin-right: -1rem !important;
+  padding-left: calc(1rem + 4px) !important;
+  padding-right: 1rem !important;
+  width: calc(100% + 2rem) !important;
+  box-sizing: border-box !important;
+  position: relative !important;
+}
+
+/* 連続する追加行の間を完全に繋げる - 行間を詰める */
+.tiptap-editor pre.hljs.language-diff code .diff-addition + .diff-addition {
+  margin-top: 0 !important;
+  border-top: none !important;
+  padding-top: 0.125rem !important;
 }
 
 .tiptap-editor pre.hljs.language-diff code .diff-deletion {
-  background: rgba(239, 68, 68, 0.1) !important;
-  border-left: 3px solid #ef4444 !important;
-  color: #dc2626 !important;
-  padding: 0.25rem 0.75rem !important;
+  background: rgba(239, 68, 68, 0.15) !important;
+  border-left: 4px solid #f87171 !important;
+  color: #991b1b !important;
+  padding: 0.5rem 1rem !important;
   display: block !important;
   margin: 0 !important;
+  margin-left: -1rem !important;
+  margin-right: -1rem !important;
+  padding-left: calc(1rem + 4px) !important;
+  padding-right: 1rem !important;
+  width: calc(100% + 2rem) !important;
+  box-sizing: border-box !important;
+  position: relative !important;
+}
+
+/* 連続する削除行の間を完全に繋げる - 行間を詰める */
+.tiptap-editor pre.hljs.language-diff code .diff-deletion + .diff-deletion {
+  margin-top: 0 !important;
+  border-top: none !important;
+  padding-top: 0.125rem !important;
 }
 
 .tiptap-editor pre.hljs.language-diff code .diff-header {
-  background: rgba(107, 114, 128, 0.1) !important;
-  border-left: 3px solid #6b7280 !important;
-  color: #6b7280 !important;
+  background: rgba(107, 114, 128, 0.15) !important;
+  border-left: 4px solid #6b7280 !important;
+  color: #374151 !important;
   font-weight: 600 !important;
-  padding: 0.25rem 0.75rem !important;
+  padding: 0.5rem 1rem !important;
   display: block !important;
   margin: 0 !important;
+  margin-left: -1rem !important;
+  margin-right: -1rem !important;
+  padding-left: calc(1rem + 4px) !important;
+  padding-right: 1rem !important;
+  width: calc(100% + 2rem) !important;
+  box-sizing: border-box !important;
 }
 
-/* ダークモード用 */
-.dark .tiptap-editor pre.hljs.language-diff code .diff-addition {
-  background: rgba(34, 197, 94, 0.15) !important;
-  color: #4ade80 !important;
-  border-left-color: #22c55e !important;
-}
-
-.dark .tiptap-editor pre.hljs.language-diff code .diff-deletion {
+/* より具体的なセレクタでdiff行の色を強制的に上書き */
+.tiptap-editor pre.hljs.language-diff .hljs-deletion {
   background: rgba(239, 68, 68, 0.15) !important;
-  color: #f87171 !important;
-  border-left-color: #ef4444 !important;
+  color: #991b1b !important;
 }
 
-.dark .tiptap-editor pre.hljs.language-diff code .diff-header {
-  background: rgba(107, 114, 128, 0.15) !important;
-  color: #9ca3af !important;
-  border-left-color: #6b7280 !important;
+.tiptap-editor pre.hljs.language-diff .hljs-addition {
+  background: rgba(16, 185, 129, 0.15) !important;
+  color: #065f46 !important;
+}
+
+.dark .tiptap-editor pre.hljs.language-diff .hljs-deletion {
+  background: rgba(239, 68, 68, 0.2) !important;
+  color: #f87171 !important;
+}
+
+.dark .tiptap-editor pre.hljs.language-diff .hljs-addition {
+  background: rgba(16, 185, 129, 0.2) !important;
+  color: #34d399 !important;
 }
 
 /* diff内のシンタックスハイライト */
@@ -1131,7 +1169,7 @@ body,
 
 .tiptap-editor pre.hljs.language-diff code .diff-addition .hljs-string,
 .tiptap-editor pre.hljs.language-diff code .diff-deletion .hljs-string {
-  color: #10b981 !important;
+  color: #059669 !important;
 }
 
 .tiptap-editor pre.hljs.language-diff code .diff-addition .hljs-comment,
@@ -1184,4 +1222,14 @@ body,
 .dark .tiptap-editor pre.hljs.language-diff code .diff-addition .hljs-variable,
 .dark .tiptap-editor pre.hljs.language-diff code .diff-deletion .hljs-variable {
   color: #f87171 !important;
+}
+
+/* 異なるタイプの行の間にスペースを追加 */
+.tiptap-editor pre.hljs.language-diff code .diff-addition + .diff-deletion,
+.tiptap-editor pre.hljs.language-diff code .diff-deletion + .diff-addition,
+.tiptap-editor pre.hljs.language-diff code .diff-header + .diff-addition,
+.tiptap-editor pre.hljs.language-diff code .diff-header + .diff-deletion,
+.tiptap-editor pre.hljs.language-diff code .diff-addition + .diff-header,
+.tiptap-editor pre.hljs.language-diff code .diff-deletion + .diff-header {
+  margin-top: 0.25rem !important;
 }
