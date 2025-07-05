@@ -56,6 +56,8 @@ interface ToolbarProps {
   // Modal states
   isCodeBlockMenuVisible: boolean;
   setIsCodeBlockMenuVisible: (visible: boolean) => void;
+  isCodeLanguageSelectVisible: boolean;
+  setIsCodeLanguageSelectVisible: (visible: boolean) => void;
   isTableMenuVisible: boolean;
   setIsTableMenuVisible: (visible: boolean) => void;
   isPreviewVisible: boolean;
@@ -88,6 +90,8 @@ export function Toolbar({
   editor,
   isCodeBlockMenuVisible,
   setIsCodeBlockMenuVisible,
+  isCodeLanguageSelectVisible, // eslint-disable-line @typescript-eslint/no-unused-vars
+  setIsCodeLanguageSelectVisible,
   isTableMenuVisible,
   setIsTableMenuVisible,
   isPreviewVisible,
@@ -560,30 +564,18 @@ export function Toolbar({
               tooltip={
                 editor?.isActive("codeBlock")
                   ? "Exit Code Block (Ctrl+Alt+C)"
-                  : "Code Block (Ctrl+Alt+C)"
+                  : "Insert Code Block (Ctrl+Alt+C)"
               }
               onClick={() => {
-                console.log("🔧 CodeBlock:", {
-                  focused: editor?.isFocused,
-                  active: editor?.isActive("codeBlock"),
-                  beforeToggle: true,
-                });
-
                 const wasActive = editor?.isActive("codeBlock");
-                editor?.chain().focus().toggleCodeBlock().run();
 
-                // 状態変更後のログ
-                setTimeout(() => {
-                  console.log("🔧 CodeBlock After:", {
-                    wasActive,
-                    nowActive: editor?.isActive("codeBlock"),
-                    afterToggle: true,
-                  });
-                }, 10);
-
-                // コードブロックが解除されたら、設定メニューを閉じる
                 if (wasActive) {
+                  // コードブロックを解除
+                  editor?.chain().focus().toggleCodeBlock().run();
                   setIsCodeBlockMenuVisible(false);
+                } else {
+                  // 言語選択モーダルを開く
+                  setIsCodeLanguageSelectVisible(true);
                 }
               }}
               isActive={editor?.isActive("codeBlock")}

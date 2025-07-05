@@ -24,6 +24,9 @@ import { Toolbar } from "./toolbar/Toolbar";
 import { SplitLayoutRenderer } from "./SplitLayoutRenderer";
 import LinkModal from "./LinkModal";
 import LaTeXExportModal from "./LaTeXExportModal";
+import { CodeLanguageSelectModal } from "./CodeLanguageSelectModal";
+import { CodeBlockSettingsPanel } from "./CodeBlockSettingsPanel";
+import { TableOperationsPanel } from "./TableOperationsPanel";
 import { FontSizeExtension, VisibilityExtension } from "./extensions";
 import { useFileManager } from "@/hooks/useFileManager";
 import { useEditorOperations } from "@/hooks/useEditorOperations";
@@ -38,9 +41,6 @@ import {
   type LaTeXExportOptions,
 } from "@/utils/latexExport";
 import { marked } from "marked";
-
-// コードブロック用のlowlightインスタンスを作成
-const lowlight = createLowlight(common);
 
 export default function CharCountProEditor() {
   const [mounted, setMounted] = useState(false);
@@ -70,6 +70,8 @@ export default function CharCountProEditor() {
   const [isSearchVisible] = useState(false);
   const [isTableMenuVisible, setIsTableMenuVisible] = useState(false);
   const [isCodeBlockMenuVisible, setIsCodeBlockMenuVisible] = useState(false);
+  const [isCodeLanguageSelectVisible, setIsCodeLanguageSelectVisible] =
+    useState(false);
   const [isPreviewVisible, setIsPreviewVisible] = useState(false);
   const [isShortcutsVisible, setIsShortcutsVisible] = useState(false);
   const [isLatexExportModalVisible, setIsLatexExportModalVisible] =
@@ -144,16 +146,48 @@ export default function CharCountProEditor() {
       Strike,
       FontSizeExtension,
       CodeBlockLowlight.configure({
-        lowlight,
+        lowlight: createLowlight(common),
         defaultLanguage: "plaintext",
+        HTMLAttributes: {
+          class: "hljs",
+        },
+      }).extend({
+        renderHTML({ node, HTMLAttributes }) {
+          const language = node.attrs.language || "text";
+
+          return [
+            "pre",
+            {
+              ...HTMLAttributes,
+              "data-language": language,
+              class: `hljs language-${language}`,
+            },
+            ["code", {}, 0],
+          ];
+        },
       }),
       // テーブル関連の拡張機能
       Table.configure({
         resizable: true,
+        HTMLAttributes: {
+          class: "table-wrapper",
+        },
       }),
-      TableRow,
-      TableHeader,
-      TableCell,
+      TableRow.configure({
+        HTMLAttributes: {
+          class: "table-row",
+        },
+      }),
+      TableHeader.configure({
+        HTMLAttributes: {
+          class: "table-header",
+        },
+      }),
+      TableCell.configure({
+        HTMLAttributes: {
+          class: "table-cell",
+        },
+      }),
       // タスクリスト関連の拡張機能
       TaskList,
       TaskItem.configure({
@@ -602,6 +636,8 @@ export default function CharCountProEditor() {
           editor={activeEditorInstance || editor}
           isCodeBlockMenuVisible={isCodeBlockMenuVisible}
           setIsCodeBlockMenuVisible={setIsCodeBlockMenuVisible}
+          isCodeLanguageSelectVisible={isCodeLanguageSelectVisible}
+          setIsCodeLanguageSelectVisible={setIsCodeLanguageSelectVisible}
           isTableMenuVisible={isTableMenuVisible}
           setIsTableMenuVisible={setIsTableMenuVisible}
           isPreviewVisible={isPreviewVisible}
@@ -665,18 +701,18 @@ export default function CharCountProEditor() {
         )}
 
         {/* テーブル操作パネル */}
-        {isTableMenuVisible && editor?.isActive("table") && (
-          <div className="p-3 bg-slate-50 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700">
-            {/* テーブル操作ボタンがここに入る */}
-          </div>
-        )}
+        <TableOperationsPanel
+          editor={activeEditorInstance || editor}
+          isVisible={isTableMenuVisible}
+          onClose={() => setIsTableMenuVisible(false)}
+        />
 
         {/* コードブロック設定パネル */}
-        {isCodeBlockMenuVisible && editor?.isActive("codeBlock") && (
-          <div className="p-3 bg-slate-50 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700">
-            {/* コードブロック設定がここに入る */}
-          </div>
-        )}
+        <CodeBlockSettingsPanel
+          editor={activeEditorInstance || editor}
+          isVisible={isCodeBlockMenuVisible}
+          onClose={() => setIsCodeBlockMenuVisible(false)}
+        />
 
         {/* エディター本体 */}
         <div className="flex-1 relative bg-white dark:bg-slate-900 min-h-0 min-w-0 overflow-hidden">
@@ -939,6 +975,208 @@ export default function CharCountProEditor() {
           text-indent: 0 !important;
         }
 
+        /* ===== Syntax Highlighting Colors ===== */
+
+        /* GitHub-like theme for light mode */
+        .tiptap-editor .hljs-comment,
+        .tiptap-editor .hljs-quote {
+          color: #6a737d !important;
+          font-style: italic !important;
+        }
+
+        .tiptap-editor .hljs-keyword,
+        .tiptap-editor .hljs-selector-tag,
+        .tiptap-editor .hljs-subst {
+          color: #d73a49 !important;
+          font-weight: bold !important;
+        }
+
+        .tiptap-editor .hljs-number,
+        .tiptap-editor .hljs-literal,
+        .tiptap-editor .hljs-variable,
+        .tiptap-editor .hljs-template-variable,
+        .tiptap-editor .hljs-tag .hljs-attr {
+          color: #005cc5 !important;
+        }
+
+        .tiptap-editor .hljs-string,
+        .tiptap-editor .hljs-doctag {
+          color: #032f62 !important;
+        }
+
+        .tiptap-editor .hljs-title,
+        .tiptap-editor .hljs-section,
+        .tiptap-editor .hljs-selector-id {
+          color: #6f42c1 !important;
+          font-weight: bold !important;
+        }
+
+        .tiptap-editor .hljs-subst {
+          font-weight: normal !important;
+        }
+
+        .tiptap-editor .hljs-type,
+        .tiptap-editor .hljs-class .hljs-title {
+          color: #d73a49 !important;
+          font-weight: bold !important;
+        }
+
+        .tiptap-editor .hljs-tag,
+        .tiptap-editor .hljs-name,
+        .tiptap-editor .hljs-attribute {
+          color: #22863a !important;
+          font-weight: normal !important;
+        }
+
+        .tiptap-editor .hljs-regexp,
+        .tiptap-editor .hljs-link {
+          color: #e36209 !important;
+        }
+
+        .tiptap-editor .hljs-symbol,
+        .tiptap-editor .hljs-bullet {
+          color: #005cc5 !important;
+        }
+
+        .tiptap-editor .hljs-built_in,
+        .tiptap-editor .hljs-builtin-name {
+          color: #005cc5 !important;
+        }
+
+        .tiptap-editor .hljs-meta {
+          color: #005cc5 !important;
+        }
+
+        .tiptap-editor .hljs-deletion {
+          background: #ffeef0 !important;
+        }
+
+        .tiptap-editor .hljs-addition {
+          background: #f0fff4 !important;
+        }
+
+        .tiptap-editor .hljs-emphasis {
+          font-style: italic !important;
+        }
+
+        .tiptap-editor .hljs-strong {
+          font-weight: bold !important;
+        }
+
+        /* Dark mode colors */
+        .dark .tiptap-editor .hljs-comment,
+        .dark .tiptap-editor .hljs-quote {
+          color: #8b949e !important;
+          font-style: italic !important;
+        }
+
+        .dark .tiptap-editor .hljs-keyword,
+        .dark .tiptap-editor .hljs-selector-tag,
+        .dark .tiptap-editor .hljs-subst {
+          color: #ff7b72 !important;
+          font-weight: bold !important;
+        }
+
+        .dark .tiptap-editor .hljs-number,
+        .dark .tiptap-editor .hljs-literal,
+        .dark .tiptap-editor .hljs-variable,
+        .dark .tiptap-editor .hljs-template-variable,
+        .dark .tiptap-editor .hljs-tag .hljs-attr {
+          color: #79c0ff !important;
+        }
+
+        .dark .tiptap-editor .hljs-string,
+        .dark .tiptap-editor .hljs-doctag {
+          color: #a5d6ff !important;
+        }
+
+        .dark .tiptap-editor .hljs-title,
+        .dark .tiptap-editor .hljs-section,
+        .dark .tiptap-editor .hljs-selector-id {
+          color: #d2a8ff !important;
+          font-weight: bold !important;
+        }
+
+        .dark .tiptap-editor .hljs-subst {
+          font-weight: normal !important;
+        }
+
+        .dark .tiptap-editor .hljs-type,
+        .dark .tiptap-editor .hljs-class .hljs-title {
+          color: #ff7b72 !important;
+          font-weight: bold !important;
+        }
+
+        .dark .tiptap-editor .hljs-tag,
+        .dark .tiptap-editor .hljs-name,
+        .dark .tiptap-editor .hljs-attribute {
+          color: #7ee787 !important;
+          font-weight: normal !important;
+        }
+
+        .dark .tiptap-editor .hljs-regexp,
+        .dark .tiptap-editor .hljs-link {
+          color: #ffa657 !important;
+        }
+
+        .dark .tiptap-editor .hljs-symbol,
+        .dark .tiptap-editor .hljs-bullet {
+          color: #79c0ff !important;
+        }
+
+        .dark .tiptap-editor .hljs-built_in,
+        .dark .tiptap-editor .hljs-builtin-name {
+          color: #79c0ff !important;
+        }
+
+        .dark .tiptap-editor .hljs-meta {
+          color: #79c0ff !important;
+        }
+
+        .dark .tiptap-editor .hljs-deletion {
+          background: #490202 !important;
+        }
+
+        .dark .tiptap-editor .hljs-addition {
+          background: #04260f !important;
+        }
+
+        .dark .tiptap-editor .hljs-emphasis {
+          font-style: italic !important;
+        }
+
+        .dark .tiptap-editor .hljs-strong {
+          font-weight: bold !important;
+        }
+
+        /* ===== Language Label Styles ===== */
+        .tiptap-editor pre[data-language] {
+          position: relative !important;
+        }
+
+        .tiptap-editor pre[data-language]::before {
+          content: attr(data-language) !important;
+          position: absolute !important;
+          top: 0.5rem !important;
+          right: 0.5rem !important;
+          background: rgba(0, 0, 0, 0.1) !important;
+          color: rgba(0, 0, 0, 0.6) !important;
+          padding: 0.2rem 0.5rem !important;
+          border-radius: 0.25rem !important;
+          font-size: 0.75rem !important;
+          font-weight: 500 !important;
+          text-transform: uppercase !important;
+          letter-spacing: 0.05em !important;
+          z-index: 10 !important;
+          pointer-events: none !important;
+          user-select: none !important;
+        }
+
+        .dark .tiptap-editor pre[data-language]::before {
+          background: rgba(255, 255, 255, 0.1) !important;
+          color: rgba(255, 255, 255, 0.6) !important;
+        }
+
         /* コードブロック内の全ての段落とテキストの左端統一 */
         .tiptap-editor pre *,
         .tiptap-editor pre p,
@@ -984,6 +1222,7 @@ export default function CharCountProEditor() {
           border-collapse: collapse !important;
           width: 100% !important;
           margin: 1em 0 !important;
+          table-layout: fixed !important; /* 固定レイアウト */
         }
 
         .tiptap-editor th,
@@ -991,11 +1230,47 @@ export default function CharCountProEditor() {
           border: 1px solid rgba(148, 163, 184, 0.3) !important;
           padding: 0.5em !important;
           text-align: left !important;
+          word-wrap: break-word !important; /* 長いテキストを折り返し */
+          overflow-wrap: break-word !important;
+          vertical-align: top !important;
+          min-width: 120px !important; /* 最小幅を設定 */
         }
 
         .tiptap-editor th {
           background: rgba(148, 163, 184, 0.1) !important;
           font-weight: bold !important;
+        }
+
+        /* テーブルセルの編集可能状態でのスタイル */
+        .tiptap-editor table p {
+          margin: 0 !important;
+          padding: 0 !important;
+        }
+
+        /* テーブルのリサイズ可能な列 */
+        .tiptap-editor .tableWrapper {
+          overflow-x: auto !important;
+          margin: 1em 0 !important;
+        }
+
+        .tiptap-editor .resize-cursor {
+          cursor: col-resize !important;
+        }
+
+        /* テーブルの選択状態のスタイル */
+        .tiptap-editor .selectedCell {
+          background: rgba(59, 130, 246, 0.2) !important;
+        }
+
+        /* テーブルのホバー状態 */
+        .tiptap-editor table:hover {
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+        }
+
+        /* テーブルのアクティブな状態 */
+        .tiptap-editor table .has-focus {
+          outline: 2px solid rgba(59, 130, 246, 0.5) !important;
+          outline-offset: 2px !important;
         }
 
         .tiptap-editor .task-list {
@@ -1087,6 +1362,18 @@ export default function CharCountProEditor() {
           background: rgba(203, 213, 225, 0.4);
         }
       `}</style>
+
+      {/* 言語選択モーダル */}
+      <CodeLanguageSelectModal
+        isOpen={isCodeLanguageSelectVisible}
+        onClose={() => setIsCodeLanguageSelectVisible(false)}
+        onSelect={(language) => {
+          const currentEditor = activeEditorInstance || editor;
+          if (currentEditor) {
+            currentEditor.chain().focus().toggleCodeBlock({ language }).run();
+          }
+        }}
+      />
     </div>
   );
 }
