@@ -348,6 +348,57 @@ export function SplitEditorPane({
         style: `line-height: 1.6; padding: 1rem; min-height: 100%;`,
         spellcheck: "false",
       },
+      handleKeyDown: (view, event) => {
+        // Tabキーの処理
+        if (event.key === "Tab") {
+          event.preventDefault();
+
+          const { state } = view;
+          const { selection } = state;
+
+          // リストアイテム内での処理
+          if (
+            state.schema.nodes.listItem &&
+            selection.$from.node(-2)?.type === state.schema.nodes.listItem
+          ) {
+            if (event.shiftKey) {
+              // Shift+Tab: リストのインデント解除
+              return false; // デフォルトの動作を許可
+            } else {
+              // Tab: リストのインデント
+              return false; // デフォルトの動作を許可
+            }
+          }
+
+          // タスクリスト内での処理
+          if (
+            state.schema.nodes.taskItem &&
+            selection.$from.node(-2)?.type === state.schema.nodes.taskItem
+          ) {
+            if (event.shiftKey) {
+              // Shift+Tab: タスクリストのインデント解除
+              return false; // デフォルトの動作を許可
+            } else {
+              // Tab: タスクリストのインデント
+              return false; // デフォルトの動作を許可
+            }
+          }
+
+          if (event.shiftKey) {
+            // Shift+Tab: 通常のインデント解除（他の要素で使用される場合）
+            return false; // デフォルトの動作を許可
+          } else {
+            // Tab: タブ文字を挿入
+            const { dispatch } = view;
+            const tabText = "\t"; // タブ文字
+            const tr = state.tr.insertText(tabText);
+            dispatch(tr);
+            return true; // イベントを処理済みとする
+          }
+        }
+
+        return false; // その他のキーはデフォルトの動作
+      },
     },
     onCreate: ({ editor }) => {
       onEditorReady?.(pane.id, editor);
