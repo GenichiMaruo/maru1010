@@ -193,7 +193,18 @@ export default function CharCountProEditor() {
           setCurrentEditingFileId(activeFileId);
         }
       },
+      handleDOMEvents: {
+        // composition events（IME入力）を適切に処理
+        compositionstart: () => false,
+        compositionupdate: () => false,
+        compositionend: () => false,
+        // input events（絵文字を含む）を適切に処理
+        input: () => false,
+      },
       handleKeyDown: (view, event) => {
+        // 絵文字を含むUnicode文字の入力をサポート
+        // 特殊文字（絵文字、アクセント文字など）の入力を妨げないようにする
+
         // Tabキーの処理
         if (event.key === "Tab") {
           event.preventDefault();
@@ -828,6 +839,9 @@ export default function CharCountProEditor() {
           -moz-tab-size: 4 !important;
           max-width: 100% !important;
           min-width: 0 !important;
+          font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+            "Helvetica Neue", Arial, "Noto Color Emoji", "Apple Color Emoji",
+            "Segoe UI Emoji", "Segoe UI Symbol", sans-serif !important;
         }
 
         .tiptap-editor .ProseMirror {
@@ -837,6 +851,7 @@ export default function CharCountProEditor() {
           max-width: 100% !important;
           min-width: 0 !important;
           overflow-wrap: break-word !important;
+          font-family: inherit !important;
         }
 
         .tiptap-editor p {
@@ -845,7 +860,7 @@ export default function CharCountProEditor() {
 
         .tiptap-editor ul,
         .tiptap-editor ol {
-          padding-left: 1.5em !important;
+          padding-left: 1.25rem !important;
           margin: 0.5em 0 !important;
         }
 
@@ -861,6 +876,88 @@ export default function CharCountProEditor() {
           overflow-x: auto !important;
           max-width: 100% !important;
           white-space: pre !important;
+          position: relative !important;
+        }
+
+        /* コードブロック内のProseMirror要素の位置調整 */
+        .tiptap-editor pre .ProseMirror {
+          padding: 0 !important;
+          margin: 0 !important;
+          background: transparent !important;
+          font-family: "Fira Code", "Monaco", "Menlo", "Ubuntu Mono", monospace !important;
+          font-size: 0.9em !important;
+          line-height: 1.5 !important;
+          text-indent: 0 !important;
+        }
+
+        /* コードブロック内のProseMirrorの直接の子要素 */
+        .tiptap-editor pre .ProseMirror > * {
+          margin: 0 !important;
+          text-indent: 0 !important;
+          margin-left: 0 !important;
+        }
+
+        /* コードブロック内の行の統一された位置設定 */
+        .tiptap-editor pre p {
+          margin: 0 !important;
+          line-height: 1.5 !important;
+          text-indent: 0 !important;
+        }
+
+        /* コードブロック内のテキストノードの位置統一 */
+        .tiptap-editor pre * {
+          margin: 0 !important;
+          text-indent: 0 !important;
+        }
+
+        /* コードブロック内の最初の行と他の行の位置を完全に統一 */
+        .tiptap-editor pre p:first-child {
+          margin: 0 !important;
+          text-indent: 0 !important;
+        }
+
+        /* コードブロック内での全ての子要素の位置リセット */
+        .tiptap-editor pre > * {
+          margin: 0 !important;
+          text-indent: 0 !important;
+          display: block !important;
+        }
+
+        /* CodeBlockLowlight拡張機能用の追加スタイル */
+        .tiptap-editor .hljs {
+          background: transparent !important;
+          padding: 0 !important;
+          margin: 0 !important;
+          display: block !important;
+          overflow-x: visible !important;
+          text-indent: 0 !important;
+        }
+
+        /* コードブロック内でのhljsクラス内の要素統一 */
+        .tiptap-editor .hljs * {
+          margin: 0 !important;
+          text-indent: 0 !important;
+        }
+
+        /* コードブロック内の全ての段落とテキストの左端統一 */
+        .tiptap-editor pre *,
+        .tiptap-editor pre p,
+        .tiptap-editor pre span,
+        .tiptap-editor pre div {
+          text-align: left !important;
+          text-indent: 0 !important;
+          margin-left: 0 !important;
+        }
+
+        /* コードブロック内での改行の統一 */
+        .tiptap-editor pre br {
+          line-height: 1.5 !important;
+        }
+
+        /* コードブロック内のスパン要素の位置統一 */
+        .tiptap-editor pre span {
+          display: inline !important;
+          vertical-align: baseline !important;
         }
 
         .tiptap-editor code {

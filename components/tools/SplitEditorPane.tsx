@@ -348,7 +348,18 @@ export function SplitEditorPane({
         style: `line-height: 1.6; padding: 1rem; min-height: 100%;`,
         spellcheck: "false",
       },
+      handleDOMEvents: {
+        // composition events（IME入力）を適切に処理
+        compositionstart: () => false,
+        compositionupdate: () => false,
+        compositionend: () => false,
+        // input events（絵文字を含む）を適切に処理
+        input: () => false,
+      },
       handleKeyDown: (view, event) => {
+        // 絵文字を含むUnicode文字の入力をサポート
+        // 特殊文字（絵文字、アクセント文字など）の入力を妨げないようにする
+
         // Tabキーの処理
         if (event.key === "Tab") {
           event.preventDefault();
