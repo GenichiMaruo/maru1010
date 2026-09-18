@@ -3,11 +3,11 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useEditor, Editor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
-import TextStyle from "@tiptap/extension-text-style";
+import { TextStyle } from "@tiptap/extension-text-style";
 import Underline from "@tiptap/extension-underline";
 import Strike from "@tiptap/extension-strike";
 import CodeBlockLowlight from "@tiptap/extension-code-block-lowlight";
-import Table from "@tiptap/extension-table";
+import { Table } from "@tiptap/extension-table";
 import TableRow from "@tiptap/extension-table-row";
 import TableCell from "@tiptap/extension-table-cell";
 import TableHeader from "@tiptap/extension-table-header";
