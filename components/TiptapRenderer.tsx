@@ -20,7 +20,7 @@ const TiptapRenderer: React.FC<TiptapRendererProps> = ({
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
-        history: false,
+        undoRedo: false,
         dropcursor: false,
         gapcursor: false,
       }),

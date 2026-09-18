@@ -16,7 +16,7 @@ export function useEditorSync(
       // エディターが作成され、アクティブファイルが存在する場合は内容を設定
       const currentContent = editor.getHTML();
       if (currentContent !== activeFile.content) {
-        editor.commands.setContent(activeFile.content, false);
+        editor.commands.setContent(activeFile.content, { emitUpdate: false });
       }
     }
   }, [editor, activeFile]); // エディターまたはアクティブファイルが変更された時に実行
@@ -25,7 +25,7 @@ export function useEditorSync(
   useLayoutEffect(() => {
     if (editor && activeFile && isRestoredFromStorage) {
       // 復元時は同期的に即座にエディター内容を設定
-      editor.commands.setContent(activeFile.content, false);
+      editor.commands.setContent(activeFile.content, { emitUpdate: false });
       // フラグをリセットして一度だけ実行されるようにする
       resetRestoredFlag();
     }
@@ -53,7 +53,9 @@ export function useEditorSync(
             const isContentDifferent = currentContent !== activeFile.content;
 
             if (isContentDifferent) {
-              editor.commands.setContent(activeFile.content, false);
+              editor.commands.setContent(activeFile.content, {
+                emitUpdate: false,
+              });
             }
           }
         }, 100); // 100ms遅延

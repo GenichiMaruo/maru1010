@@ -62,7 +62,7 @@ import { ExternalLink } from "lucide-react";
 // Tiptap imports
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
-import TextStyleExtension from "@tiptap/extension-text-style";
+import { TextStyle as TextStyleExtension } from "@tiptap/extension-text-style";
 import HardBreak from "@tiptap/extension-hard-break";
 import Underline from "@tiptap/extension-underline";
 import { Extension, RawCommands, CommandProps } from "@tiptap/core";

@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { X, Minus, Maximize2 } from "lucide-react";
 import { EditorContent, useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
-import TextStyle from "@tiptap/extension-text-style";
+import { TextStyle } from "@tiptap/extension-text-style";
 import Underline from "@tiptap/extension-underline";
 import { EditorWindow, FileTab } from "@/hooks/useFileManager";
 
