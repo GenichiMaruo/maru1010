@@ -27,6 +27,7 @@ const TiptapRenderer: React.FC<TiptapRendererProps> = ({
     ],
     content: htmlContent,
     editable: false,
+    immediatelyRender: false,
   });
 
   if (!editor) {
