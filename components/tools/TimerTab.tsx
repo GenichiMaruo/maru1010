@@ -1,460 +1,165 @@
-// TimerTab.tsx
 "use client";
 
-import { useState, useEffect, useRef, useCallback, useMemo } from "react";
-import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-} from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
-import { Play, Pause, RotateCcw, BellRing, AlarmClock } from "lucide-react";
-import { formatTimerTime } from "@/utils/formatTime";
-import ScrollPicker from "@/components/ui/scroll-picker";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-import React from "react";
+import { useCallback, useEffect, useRef } from "react";
+import { BellRing, Pause, Play, RotateCcw } from "lucide-react";
+import { useCountdown } from "@/hooks/useCountdown";
+import { useShortcuts } from "@/hooks/useShortcuts";
+import { useSoundPlayer } from "@/hooks/useSoundPlayer";
+import { useStoredState } from "@/hooks/useStoredState";
+import { durationToMs, formatClock, type Duration } from "@/utils/formatTime";
+import { ToolShell } from "@/components/tools/shared/ToolShell";
+import { ToolButton } from "@/components/tools/shared/ToolButton";
+import { TimeDisplay } from "@/components/tools/shared/TimeDisplay";
+import { DurationPicker } from "@/components/tools/shared/DurationPicker";
+import { notifyIfHidden, requestNotificationPermission } from "@/components/tools/shared/notify";
+import { cn } from "@/lib/utils";
 
-const generateNumberRange = (start: number, end: number): number[] => {
-  return Array.from({ length: end - start + 1 }, (_, i) => start + i);
-};
+const HINTS = [
+  { keys: ["Space"], label: "start/pause" },
+  { keys: ["R"], label: "reset" },
+];
 
-type ActivePickerType = "h" | "m" | "s" | null;
+const QUICK: { label: string; value: Duration }[] = [
+  { label: "1m", value: { h: 0, m: 1, s: 0 } },
+  { label: "3m", value: { h: 0, m: 3, s: 0 } },
+  { label: "5m", value: { h: 0, m: 5, s: 0 } },
+  { label: "10m", value: { h: 0, m: 10, s: 0 } },
+  { label: "25m", value: { h: 0, m: 25, s: 0 } },
+];
+
+const DEFAULT_DURATION: Duration = { h: 0, m: 1, s: 0 };
+
+const TONE = { idle: "idle", running: "run", paused: "pause", finished: "done" } as const;
 
 export default function TimerTab() {
-  const [initialTime, setInitialTime] = useState({ h: 0, m: 1, s: 0 });
-  const [timeLeft, setTimeLeft] = useState(initialTime.m * 60 + initialTime.s);
-  const [isRunning, setIsRunning] = useState(false);
-  const [showVisualAlarm, setShowVisualAlarm] = useState(false); // Changed from showAlarm
-  const intervalRef = useRef<NodeJS.Timeout | null>(null);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
+  // 最後に使った時間を覚えておく
+  const [duration, setDuration] = useStoredState("maru1010.timer.duration", DEFAULT_DURATION);
+  const durationMs = durationToMs(duration);
+  const sound = useSoundPlayer();
+  const cancelAlarmRef = useRef<() => void>(() => {});
 
-  const [activePicker, setActivePicker] = useState<ActivePickerType>(null);
-  const highlightTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const cardRef = useRef<HTMLDivElement>(null);
-
-  const hoursValues = useMemo(() => generateNumberRange(0, 23), []);
-  const minutesValues = useMemo(() => generateNumberRange(0, 59), []);
-  const secondsValues = useMemo(() => generateNumberRange(0, 59), []);
-  const pickerOrder: ActivePickerType[] = useMemo(() => ["h", "m", "s"], []);
-
-  const getTotalInitialSeconds = useCallback(() => {
-    return initialTime.h * 3600 + initialTime.m * 60 + initialTime.s;
-  }, [initialTime]);
-
-  // This determines if the settings pickers should be visible
-  const showSettings =
-    !isRunning && timeLeft === getTotalInitialSeconds() && !showVisualAlarm;
-
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      audioRef.current = new Audio("/sounds/timer-chime.mp3");
+  const handleFinish = useCallback(() => {
+    // 予約した音が鳴らない状態（iOS で中断された等）なら、ここで鳴らし直す
+    if (!sound.isRunning()) {
+      sound.unlock().then((ok) => ok && sound.play("chime"));
     }
-  }, []);
+    notifyIfHidden("タイマーが終了しました");
+  }, [sound]);
 
-  // Main timer logic
-  useEffect(() => {
-    if (isRunning && timeLeft > 0) {
-      targetTimeRef.current = Date.now() + timeLeft * 1000; // Define targetTimeRef below
-      intervalRef.current = setInterval(() => {
-        const now = Date.now();
-        const remainingMilliseconds = Math.max(0, targetTimeRef.current - now);
-        const newTimeLeftSeconds = Math.ceil(remainingMilliseconds / 1000);
-        setTimeLeft(newTimeLeftSeconds);
+  const timer = useCountdown(durationMs, handleFinish);
+  const { status } = timer;
 
-        if (remainingMilliseconds <= 0) {
-          setIsRunning(false);
-          setShowVisualAlarm(true); // Trigger visual alarm
-          audioRef.current
-            ?.play()
-            .catch((e) => console.warn("Audio play failed:", e));
-          if (Notification.permission === "granted") {
-            new Notification("Timer Finished!");
-          }
-        }
-      }, 250);
-    } else {
-      if (intervalRef.current) clearInterval(intervalRef.current);
-    }
-    return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
-    };
-  }, [isRunning, timeLeft]);
+  useEffect(() => () => cancelAlarmRef.current(), []);
 
-  const targetTimeRef = useRef<number>(0);
+  const reset = useCallback(() => {
+    cancelAlarmRef.current();
+    sound.stopAll();
+    timer.reset();
+  }, [sound, timer]);
 
-  useEffect(() => {
-    if (!isRunning && !showVisualAlarm) {
-      setTimeLeft(getTotalInitialSeconds());
-    }
-  }, [initialTime, getTotalInitialSeconds, showVisualAlarm, isRunning]);
-
-  const handleTimeChange = useCallback(
-    (unit: "h" | "m" | "s", newValue: number) => {
-      setInitialTime((prev) => ({ ...prev, [unit]: newValue }));
-      if (
-        !isRunning &&
-        timeLeft === getTotalInitialSeconds() &&
-        !showVisualAlarm
-      ) {
-        setActivePicker(unit);
-        if (highlightTimeoutRef.current)
-          clearTimeout(highlightTimeoutRef.current);
-        highlightTimeoutRef.current = setTimeout(
-          () => setActivePicker(null),
-          3000
-        );
-      }
-    },
-    [isRunning, timeLeft, getTotalInitialSeconds, showVisualAlarm]
-  );
-
-  const handleReset = useCallback(() => {
-    setIsRunning(false);
-    setShowVisualAlarm(false); // Turn off visual alarm
-    setTimeLeft(getTotalInitialSeconds());
-    setActivePicker(null);
-    audioRef.current?.pause();
-    if (audioRef.current) audioRef.current.currentTime = 0;
-  }, [getTotalInitialSeconds]);
-
-  const handleStartPause = useCallback(() => {
-    if (showVisualAlarm) {
-      // If alarm is showing, treat as reset/dismiss
-      handleReset();
+  const toggle = useCallback(() => {
+    if (status === "running") {
+      timer.pause();
+      cancelAlarmRef.current();
       return;
     }
-    const totalInitialSec = getTotalInitialSeconds();
-    if (
-      totalInitialSec === 0 &&
-      !isRunning &&
-      timeLeft === 0 &&
-      !(!isRunning && timeLeft === getTotalInitialSeconds() && !showVisualAlarm)
-    )
+    if (status === "finished") {
+      reset();
       return;
-
-    if (timeLeft > 0 || (!isRunning && totalInitialSec > 0)) {
-      setIsRunning((prevIsRunning) => !prevIsRunning);
-      if (!isRunning) setActivePicker(null);
     }
-    if (Notification.permission === "default") {
-      Notification.requestPermission();
-    }
-  }, [
-    timeLeft,
-    getTotalInitialSeconds,
-    isRunning,
-    showVisualAlarm,
-    handleReset,
-  ]); // Added handleReset
+    const startedAt = performance.now();
+    const remaining = timer.start();
+    if (remaining === null) return;
+    requestNotificationPermission();
+    // iOS 対策：ボタン操作の中で AudioContext を再開してから、終了時刻に音を予約する
+    sound.unlock().then(() => {
+      cancelAlarmRef.current();
+      cancelAlarmRef.current = sound.play("chime", { delayMs: remaining - (performance.now() - startedAt) });
+    });
+  }, [status, timer, reset, sound]);
 
-  const clearActivityHighlight = useCallback(() => setActivePicker(null), []);
-  const resetActivityTimer = useCallback(() => {
-    if (highlightTimeoutRef.current) clearTimeout(highlightTimeoutRef.current);
-    highlightTimeoutRef.current = setTimeout(clearActivityHighlight, 3000);
-  }, [clearActivityHighlight]);
+  useShortcuts({ Space: toggle, KeyR: reset });
 
-  useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      const targetTagName = (event.target as HTMLElement)?.tagName;
-      if (
-        targetTagName === "INPUT" ||
-        targetTagName === "TEXTAREA" ||
-        (event.target as HTMLElement)?.isContentEditable
-      )
-        return;
-
-      if (event.code === "Space") {
-        event.preventDefault();
-        handleStartPause();
-      } else if (event.key === "r" || event.key === "R") {
-        event.preventDefault();
-        handleReset();
-      }
-
-      const currentShowSettings =
-        !isRunning && timeLeft === getTotalInitialSeconds() && !showVisualAlarm;
-      if (currentShowSettings) {
-        if (event.code === "ArrowLeft") {
-          event.preventDefault();
-          setActivePicker((prev) => {
-            const currentIdx = prev ? pickerOrder.indexOf(prev) : -1;
-            const nextIdx =
-              (currentIdx - 1 + pickerOrder.length) % pickerOrder.length;
-            return pickerOrder[nextIdx];
-          });
-          resetActivityTimer();
-        } else if (event.code === "ArrowRight") {
-          event.preventDefault();
-          setActivePicker((prev) => {
-            const currentIdx = prev
-              ? pickerOrder.indexOf(prev)
-              : pickerOrder.length - 1;
-            const nextIdx = (currentIdx + 1) % pickerOrder.length;
-            return pickerOrder[nextIdx];
-          });
-          resetActivityTimer();
-        } else if (event.code === "ArrowUp" || event.code === "ArrowDown") {
-          if (activePicker) {
-            event.preventDefault();
-            let currentValues: number[];
-            let currentValue: number;
-            if (activePicker === "h") {
-              currentValues = hoursValues;
-              currentValue = initialTime.h;
-            } else if (activePicker === "m") {
-              currentValues = minutesValues;
-              currentValue = initialTime.m;
-            } else {
-              currentValues = secondsValues;
-              currentValue = initialTime.s;
-            }
-            const currentIndex = currentValues.indexOf(currentValue);
-            const newIndex =
-              event.code === "ArrowUp"
-                ? (currentIndex - 1 + currentValues.length) %
-                  currentValues.length
-                : (currentIndex + 1) % currentValues.length;
-            handleTimeChange(activePicker, currentValues[newIndex]);
-          } else {
-            event.preventDefault();
-            setActivePicker(pickerOrder[0]);
-            resetActivityTimer();
-          }
-        }
-      }
-    };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => {
-      window.removeEventListener("keydown", handleKeyDown);
-      if (highlightTimeoutRef.current)
-        clearTimeout(highlightTimeoutRef.current);
-    };
-  }, [
-    handleStartPause,
-    handleReset,
-    isRunning,
-    timeLeft,
-    getTotalInitialSeconds,
-    showVisualAlarm,
-    activePicker,
-    pickerOrder,
-    hoursValues,
-    minutesValues,
-    secondsValues,
-    initialTime,
-    handleTimeChange,
-    resetActivityTimer,
-  ]);
+  const finished = status === "finished";
+  const ratio = durationMs > 0 ? timer.remainingMs / durationMs : 0;
+  const display = finished ? formatClock(timer.overtimeMs) : formatClock(timer.remainingMs, "ceil");
 
   return (
-    <Card
-      ref={cardRef}
-      tabIndex={-1}
-      className="w-full max-w-md lg:max-w-xl mx-auto bg-slate-800/60 backdrop-blur-xl border border-slate-700/50 shadow-2xl rounded-2xl text-slate-50 flex flex-col outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2 focus:ring-offset-slate-900"
+    <ToolShell
+      file="timer.ts"
+      mode={{ idle: "ready", running: "running", paused: "paused", finished: "time up" }[status]}
+      tone={TONE[status]}
+      info={finished ? "+ overtime" : `total ${formatClock(durationMs)}`}
+      hints={HINTS}
     >
-      <CardHeader className="pt-5 pb-3">
-        <AlarmClock
-          size={32}
-          className={`mx-auto transition-all duration-300 ease-in-out ${
-            showVisualAlarm ? "text-yellow-400 animate-ping" : "text-sky-300"
-          }`}
+      <div className="flex flex-col items-center">
+        {finished && <BellRing aria-hidden="true" className="mb-2 h-7 w-7 animate-bounce text-syntax-tag" />}
+        <TimeDisplay
+          main={display}
+          prefix={finished ? "+" : undefined}
+          className={cn("text-6xl sm:text-7xl", finished && "text-syntax-tag")}
         />
-      </CardHeader>
-      <CardContent className="flex flex-col items-center space-y-4 px-4 md:px-6 lg:px-8 pb-6 flex-grow">
-        {/* 1. Time Left Display - Now at the top of content */}
-        <div
-          className={`text-5xl lg:text-6xl font-mono tabular-nums select-none transition-colors duration-300 ${
-            showVisualAlarm ? "text-yellow-400 animate-pulse" : "text-slate-100"
-          } ${showSettings ? "pt-0" : "pt-2"}`} // Adjust top padding based on settings visibility
-        >
-          {formatTimerTime(timeLeft)}
-        </div>
+      </div>
 
-        {/* Optional: Explicit Alarm Bell Icon if needed, or rely on header icon */}
-        {showVisualAlarm && !isRunning && timeLeft === 0 && (
-          <BellRing
-            size={36}
-            className="text-yellow-400 opacity-75 my-1 animate-bounce"
-          />
+      <div className="mt-6 h-1.5 overflow-hidden rounded-full bg-secondary" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(ratio * 100)}>
+        <div
+          className={cn(
+            "h-full rounded-full transition-[width] duration-100 ease-linear",
+            ratio > 0.2 ? "bg-syntax-type" : "bg-syntax-number"
+          )}
+          style={{ width: `${ratio * 100}%` }}
+        />
+      </div>
+
+      <div className="mt-8 grid grid-cols-2 gap-2 sm:mx-auto sm:max-w-xs">
+        <ToolButton
+          variant="primary"
+          size="lg"
+          onClick={toggle}
+          disabled={durationMs === 0 && status === "idle"}
+          icon={status === "running" ? <Pause /> : <Play />}
+          kbd="␣"
+        >
+          {{ idle: "start", running: "pause", paused: "resume", finished: "dismiss" }[status]}
+        </ToolButton>
+        <ToolButton size="lg" variant="danger" onClick={reset} disabled={status === "idle"} icon={<RotateCcw />} kbd="R">
+          reset
+        </ToolButton>
+      </div>
+
+      {/* 時間の設定は止まっているときだけ */}
+      <div
+        className={cn(
+          "grid transition-all duration-300 ease-out",
+          status === "idle" ? "mt-8 grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
         )}
-
-        {/* 2. Progress Bar */}
-        <Progress
-          value={
-            timeLeft > 0 && getTotalInitialSeconds() > 0
-              ? (timeLeft / getTotalInitialSeconds()) * 100
-              : isRunning && getTotalInitialSeconds() === 0
-              ? 100
-              : 0
-          }
-          className="w-full h-2.5 bg-slate-700/80 rounded-full [&>div]:bg-sky-400"
-        />
-
-        {/* 3. Buttons */}
-        <div className="flex w-full sm:w-auto sm:space-x-3 flex-col sm:flex-row space-y-3 sm:space-y-0">
-          <Button
-            onClick={handleStartPause}
-            size="lg"
-            disabled={
-              getTotalInitialSeconds() === 0 &&
-              !isRunning &&
-              timeLeft === 0 &&
-              !showVisualAlarm
-            }
-            className="w-full sm:w-auto bg-sky-500/10 hover:bg-sky-500/20 border-sky-500/30 text-sky-300 hover:text-sky-200 transition-colors duration-200 rounded-lg disabled:opacity-60 disabled:cursor-not-allowed"
-          >
-            {isRunning ? (
-              <Pause className="mr-2 h-5 w-5" />
-            ) : (
-              <Play className="mr-2 h-5 w-5" />
-            )}
-            {isRunning ? "Pause" : showVisualAlarm ? "Dismiss" : "Start"}
-          </Button>
-          <Button
-            onClick={handleReset}
-            size="lg"
-            className="w-full sm:w-auto bg-pink-500/10 hover:bg-pink-500/20 border-pink-500/30 text-pink-300 hover:text-pink-200 transition-colors duration-200 rounded-lg"
-          >
-            <RotateCcw className="mr-2 h-5 w-5" /> Reset
-          </Button>
-        </div>
-
-        {/* 4. Time Settings UI (Animated open/close) - Now at the bottom of content */}
-        <div
-          className={`w-full transition-all duration-500 ease-in-out overflow-hidden grid ${
-            showSettings
-              ? "grid-rows-[1fr] opacity-100 pt-6 pb-2"
-              : "grid-rows-[0fr] opacity-0" // Added pt-6, pb-2 for spacing when open
-          }`}
-          aria-hidden={!showSettings}
-        >
-          <div className="overflow-hidden min-h-0">
-            <div className="flex space-x-1 sm:space-x-2 items-center justify-center w-full">
-              {(["h", "m", "s"] as const).map((unit, idx) => (
-                <React.Fragment key={unit}>
-                  <div className="flex flex-col items-center w-[calc(100%/3-0.5rem)] sm:w-[calc(100%/3-1rem)] max-w-[5rem] sm:max-w-[6rem]">
-                    <ScrollPicker
-                      label={
-                        unit === "h"
-                          ? "Hours"
-                          : unit === "m"
-                          ? "Minutes"
-                          : "Seconds"
-                      }
-                      values={
-                        unit === "h"
-                          ? hoursValues
-                          : unit === "m"
-                          ? minutesValues
-                          : secondsValues
-                      }
-                      currentValue={initialTime[unit]}
-                      onChange={(newVal) => handleTimeChange(unit, newVal)}
-                    />
-                    <span className="mt-1 text-xs text-slate-400 capitalize">
-                      {unit === "h"
-                        ? "Hours"
-                        : unit === "m"
-                        ? "Minutes"
-                        : "Seconds"}
-                    </span>
-                  </div>
-                  {idx < 2 && (
-                    <span className="text-2xl lg:text-3xl text-slate-500 pb-5 shrink-0">
-                      :
-                    </span>
-                  )}
-                </React.Fragment>
+        inert={status !== "idle"}
+      >
+        <div className="min-h-0 overflow-hidden">
+          <div className="border-t border-border pt-6">
+            <DurationPicker value={duration} onChange={setDuration} label="タイマー" />
+            <div className="mt-5 flex flex-wrap justify-center gap-1.5">
+              {QUICK.map(({ label, value }) => (
+                <ToolButton
+                  key={label}
+                  size="sm"
+                  variant={durationToMs(value) === durationMs ? "primary" : "outline"}
+                  onClick={() => setDuration(value)}
+                >
+                  {label}
+                </ToolButton>
               ))}
             </div>
           </div>
         </div>
-      </CardContent>
-      <div className="text-center text-xs text-slate-400 mt-0 pb-0 gap-0">
-        効果音素材：
-        <a
-          href="https://otologic.jp/"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="underline hover:text-slate-300 transition-colors"
-        >
-          OtoLogic
-        </a>
       </div>
 
-      <CardFooter className="hidden lg:flex justify-center items-center pt-3 pb-0 border-t border-slate-700/50 mt-auto">
-        <TooltipProvider delayDuration={100}>
-          <Tooltip>
-            <TooltipTrigger className="flex items-center space-x-2 text-xs text-slate-400 opacity-80 cursor-default p-1 rounded-md hover:bg-slate-700/50 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-sky-500">
-              <span className="border border-slate-600 bg-slate-700/50 px-2 py-0.5 rounded shadow-sm">
-                SPACE
-              </span>
-              <span className="text-slate-500">/</span>
-              <span className="border border-slate-600 bg-slate-700/50 px-1.5 py-0.5 rounded shadow-sm">
-                R
-              </span>
-              <span className="text-slate-500">·</span>
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="lucide lucide-arrow-left-right"
-              >
-                <polyline points="17 11 21 7 17 3" />
-                <path d="M3 7h18" />
-                <polyline points="7 21 3 17 7 13" />
-                <path d="M21 17H3" />
-              </svg>
-              <span className="text-slate-500">/</span>
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="lucide lucide-arrow-up-down"
-              >
-                <path d="m21 16-4 4-4-4" />
-                <path d="M17 20V4" />
-                <path d="m3 8 4-4 4 4" />
-                <path d="M7 4v16" />
-              </svg>
-            </TooltipTrigger>
-            <TooltipContent className="bg-slate-800 text-white border-slate-700 shadow-xl">
-              <p>
-                <span className="font-semibold">[SPACE]:</span>{" "}
-                Start/Pause/Dismiss
-              </p>
-              <p>
-                <span className="font-semibold">[R]:</span> Reset Timer
-              </p>
-              <p>
-                <span className="font-semibold">[←][→]:</span> Select Picker
-              </p>
-              <p>
-                <span className="font-semibold">[↑][↓]:</span> Change Time
-              </p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-      </CardFooter>
-    </Card>
+      <p className="mt-8 text-center text-[11px] text-muted-foreground">
+        効果音素材：
+        <a href="https://otologic.jp/" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2 hover:text-foreground">
+          OtoLogic
+        </a>
+      </p>
+    </ToolShell>
   );
 }

@@ -1,33 +1,23 @@
 // utils/formatTime.ts
-export const formatTime = (timeInMilliseconds: number): string => {
-  // ミリ秒を1/100秒単位に変換 (小数点以下2桁表示のため)
-  const centiseconds = Math.floor(timeInMilliseconds / 10) % 100;
 
-  const totalSeconds = Math.floor(timeInMilliseconds / 1000);
-  const seconds = totalSeconds % 60;
-  const minutes = Math.floor(totalSeconds / 60) % 60;
+const pad = (n: number) => String(n).padStart(2, "0");
+
+/** ストップウォッチ表示用：{ main: "mm:ss"（1時間以上は "h:mm:ss"）, fraction: "cc"(1/100秒) } */
+export function splitStopwatch(ms: number): { main: string; fraction: string } {
+  const safe = Math.max(0, ms);
+  const centiseconds = Math.floor(safe / 10) % 100;
+  const totalSeconds = Math.floor(safe / 1000);
   const hours = Math.floor(totalSeconds / 3600);
-
-  // 各単位を2桁の文字列にフォーマット (例: 5 -> "05")
-  const paddedHours = String(hours).padStart(2, "0");
-  const paddedMinutes = String(minutes).padStart(2, "0");
-  const paddedSeconds = String(seconds).padStart(2, "0");
-  const paddedCentiseconds = String(centiseconds).padStart(2, "0");
-
-  let formattedTime = "";
-
-  if (hours > 0) {
-    formattedTime += `${paddedHours}:`;
-  }
-
-  formattedTime += `${paddedMinutes}:${paddedSeconds}.${paddedCentiseconds}`;
-
-  return formattedTime;
-};
-
-export function formatTimerTime(timeInSeconds: number): string {
-  const seconds = String(timeInSeconds % 60).padStart(2, "0");
-  const minutes = String(Math.floor(timeInSeconds / 60) % 60).padStart(2, "0");
-  const hours = String(Math.floor(timeInSeconds / 3600)).padStart(2, "0");
-  return `${hours}:${minutes}:${seconds}`;
+  const main = `${hours > 0 ? `${hours}:` : ""}${pad(Math.floor(totalSeconds / 60) % 60)}:${pad(totalSeconds % 60)}`;
+  return { main, fraction: pad(centiseconds) };
 }
+
+/** "hh:mm:ss"。round="ceil" はカウントダウン向け（残り 0.2 秒は 1 秒と表示し、0 になった瞬間に終わる） */
+export function formatClock(ms: number, round: "ceil" | "floor" = "floor"): string {
+  const totalSeconds = Math.max(0, round === "ceil" ? Math.ceil(ms / 1000) : Math.floor(ms / 1000));
+  return `${pad(Math.floor(totalSeconds / 3600))}:${pad(Math.floor(totalSeconds / 60) % 60)}:${pad(totalSeconds % 60)}`;
+}
+
+export type Duration = { h: number; m: number; s: number };
+
+export const durationToMs = ({ h, m, s }: Duration) => ((h * 60 + m) * 60 + s) * 1000;

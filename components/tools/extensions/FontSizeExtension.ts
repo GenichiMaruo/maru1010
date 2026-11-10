@@ -14,12 +14,15 @@ declare module "@tiptap/core" {
 export const FontSizeExtension = Extension.create<{
   types?: string[];
   sizes?: string[];
+  /** true（既定）なら選択範囲があるときだけ適用する。false ならカーソル位置以降の入力にも効く */
+  requireSelection?: boolean;
 }>({
   name: "fontSize",
   addOptions() {
     return {
       types: ["textStyle"],
       sizes: ["12", "14", "16", "18", "20", "24"],
+      requireSelection: true,
     };
   },
   addGlobalAttributes() {
@@ -50,7 +53,7 @@ export const FontSizeExtension = Extension.create<{
         ({ chain, state }) => {
           // 選択範囲がある場合のみフォントサイズを適用
           const { from, to } = state.selection;
-          if (from === to) {
+          if (this.options.requireSelection && from === to) {
             // 選択範囲がない場合は何もしない
             return false;
           }
@@ -61,7 +64,7 @@ export const FontSizeExtension = Extension.create<{
         ({ chain, state }) => {
           // 選択範囲がある場合のみフォントサイズを解除
           const { from, to } = state.selection;
-          if (from === to) {
+          if (this.options.requireSelection && from === to) {
             // 選択範囲がない場合は何もしない
             return false;
           }
