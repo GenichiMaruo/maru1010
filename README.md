@@ -18,10 +18,12 @@
 
 以下の手順でローカル開発環境を構築できます。
 
+Node.js 22 以上を使用してください（検証環境：Node.js 24）。
+
 ### 1. 依存関係のインストール
 
 ```bash
-npm install
+npm ci
 ```
 
 ### 2. 開発サーバーの起動
@@ -49,8 +51,8 @@ npm run start
 ```csharp
 .
 ├── components/      # 再利用可能なUIコンポーネント
-├── pages/           # Next.jsのルーティングページ
-├── styles/          # TailwindやグローバルCSS
+├── app/             # App Routerのページ・グローバルCSS
+├── lib/             # 共通処理・制作物データの型と抽出
 ├── public/          # 静的ファイル
 └── ...
 ```
@@ -61,7 +63,15 @@ UIは shadcn/ui をカスタマイズして構築
 
 スタイリングは Tailwind CSS をベースに構成
 
-必要に応じて tailwind.config.js を編集してユーティリティを拡張可能
+Tailwind CSS 4 のテーマは app/globals.css で設定
+
+制作物は `app/(main)/portfolio/projects.json` で管理します。トップページ・プロジェクト紹介・ポートフォリオで共通の情報を使用します。公開資料と更新時の注意点は [2026年11月の更新記録](docs/content-refresh-2026-11.md) を参照してください。
+
+```bash
+npm run typecheck
+npm run lint
+npm audit
+```
 
 ご質問・不具合報告等がありましたら maru1010.com よりご連絡ください。
 
