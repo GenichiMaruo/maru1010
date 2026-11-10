@@ -1,422 +1,142 @@
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
-import {
-  FaMicrochip,
-  FaPencilAlt,
-  FaGithub,
-  FaPlay,
-  FaChartBar,
-  FaKeyboard,
-  FaCode,
-  FaCogs,
-  FaRocket,
-  FaDesktop,
-  FaFileCode,
-  FaMarkdown,
-} from "react-icons/fa";
+import { ArrowUpRight } from "lucide-react";
+import { FaGithub } from "react-icons/fa";
+import { ProjectArtwork } from "@/components/ProjectArtwork";
+import { PageHeader } from "@/components/PageHeader";
+import { TechTags } from "@/components/TechTags";
+import { featuredProjects } from "@/lib/projects";
+
+export const metadata: Metadata = {
+  title: "プロジェクト紹介 | maru1010.com",
+  description: "Singulo、Worldgen Assist、NandTick、RenDot、PICO-88など、WebアプリとMinecraft MODの制作物を紹介します。",
+};
+
+const notes: Record<string, string> = {
+  worldgenassist:
+    "信頼できる参加者向けの実験的な Beta です。計算支援は初期状態で無効。有効化する構成では参加クライアントにシードが共有されます。",
+  "singulo-arsenal": "Minecraft 1.21.1 / NeoForge、Singulo 本体 0.16 系向けの Beta。",
+};
+
+const primaryAction =
+  "inline-flex items-center gap-1.5 rounded-md bg-foreground px-3.5 py-2 font-mono text-xs text-background transition-opacity hover:opacity-85";
+const secondaryAction =
+  "inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-3.5 py-2 font-mono text-xs text-foreground transition-colors hover:border-foreground/40";
 
 export default function ProjectsPage() {
-  const projects = [
-    {
-      id: "pico88",
-      title: "PICO-88 シミュレータ",
-      subtitle: "8ビットコンピュータシミュレータ",
-      description:
-        "ブラウザで動作する本格的な8ビットコンピュータシミュレータ。アセンブリ言語でプログラミングを学べます。",
-      longDescription:
-        "PICO-88は、教育目的で開発された8ビットコンピュータのシミュレータです。実際のCPUアーキテクチャを忠実に再現し、アセンブリ言語プログラミングの基礎から応用まで学習できます。レジスタ、メモリ、I/Oの概念を視覚的に理解できる設計になっています。",
-      icon: FaMicrochip,
-      gradient: "from-blue-500 to-purple-600",
-      bgGradient:
-        "from-blue-50 to-purple-50 dark:from-blue-900/70 dark:to-purple-900/70",
-      borderColor: "border-blue-200 dark:border-blue-700",
-      technologies: [
-        {
-          name: "TypeScript",
-          color:
-            "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
-        },
-        {
-          name: "React",
-          color:
-            "bg-cyan-100 text-cyan-800 dark:bg-cyan-900 dark:text-cyan-200",
-        },
-        {
-          name: "Next.js",
-          color:
-            "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200",
-        },
-        {
-          name: "Assembly",
-          color:
-            "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
-        },
-        {
-          name: "CPU Simulation",
-          color:
-            "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200",
-        },
-      ],
-      features: [
-        { icon: FaDesktop, text: "リアルタイムCPU状態表示" },
-        { icon: FaCode, text: "アセンブリコードエディタ" },
-        { icon: FaCogs, text: "ステップ実行とデバッグ" },
-        { icon: FaFileCode, text: "豊富なサンプルプログラム" },
-      ],
-      links: [
-        {
-          type: "demo",
-          url: "https://pico88.maru1010.com",
-          text: "デモを試す",
-          external: true,
-        },
-        {
-          type: "detail",
-          url: "/pico88",
-          text: "詳細ページ",
-          external: false,
-        },
-      ],
-      github: ["https://github.com/GenichiMaruo/pico-88"],
-    },
-    {
-      id: "char-count-pro",
-      title: "CHAR COUNT PRO",
-      subtitle: "高機能マークダウンエディタ",
-      description:
-        "リアルタイム文字数カウント、diff表示、タスク管理機能を備えた次世代テキストエディタです。",
-      longDescription:
-        "CHAR COUNT PROは、ライターや開発者のために設計された高機能なマークダウンエディタです。リアルタイムでの文字数・単語数カウント、変更差分の視覚化、タスクリスト管理など、テキスト作業を効率化する機能を豊富に搭載しています。",
-      icon: FaPencilAlt,
-      gradient: "from-green-500 to-blue-500",
-      bgGradient:
-        "from-green-50 to-blue-50 dark:from-green-900/70 dark:to-blue-900/70",
-      borderColor: "border-green-200 dark:border-green-700",
-      technologies: [
-        {
-          name: "TypeScript",
-          color:
-            "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
-        },
-        {
-          name: "React",
-          color:
-            "bg-cyan-100 text-cyan-800 dark:bg-cyan-900 dark:text-cyan-200",
-        },
-        {
-          name: "Tiptap",
-          color:
-            "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200",
-        },
-        {
-          name: "Tailwind CSS",
-          color:
-            "bg-teal-100 text-teal-800 dark:bg-teal-900 dark:text-teal-200",
-        },
-        {
-          name: "shadcn/ui",
-          color:
-            "bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-200",
-        },
-      ],
-      features: [
-        { icon: FaChartBar, text: "リアルタイム統計表示" },
-        { icon: FaMarkdown, text: "リッチマークダウン対応" },
-        { icon: FaKeyboard, text: "豊富なキーボードショートカット" },
-        { icon: FaRocket, text: "高速・軽量動作" },
-      ],
-      links: [
-        {
-          type: "demo",
-          url: "/tools/char-count-pro",
-          text: "今すぐ使う",
-          external: false,
-        },
-        {
-          type: "detail",
-          url: "/tools",
-          text: "ツール一覧",
-          external: false,
-        },
-      ],
-      github: ["https://github.com/GenichiMaruo/maru1010"],
-    },
-  ];
-
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-20 px-4">
-      <div className="max-w-6xl mx-auto">
-        {/* ヘッダーセクション */}
-        <div className="text-center mb-12 mt-16">
-          <h1 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-4">
-            プロジェクト紹介
-          </h1>
-          <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto mb-4">
-            技術への情熱から生まれた、実用的で教育的なWebアプリケーション。
-            <br />
-            ここでは「なぜ作ったか」「どんな技術を使ったか」「どこにこだわったか」など、開発者視点のストーリーも交えて紹介します。
-          </p>
-          <div className="flex flex-wrap justify-center gap-2 mt-4">
-            <Badge className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
-              TypeScript
-            </Badge>
-            <Badge className="bg-cyan-100 text-cyan-800 dark:bg-cyan-900 dark:text-cyan-200">
-              React
-            </Badge>
-            <Badge className="bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200">
-              Next.js
-            </Badge>
-            <Badge className="bg-teal-100 text-teal-800 dark:bg-teal-900 dark:text-teal-200">
-              Tailwind CSS
-            </Badge>
-            <Badge className="bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-200">
-              shadcn/ui
-            </Badge>
-          </div>
-        </div>
+    <div className="mx-auto max-w-5xl px-4 pb-24 pt-28 sm:px-6">
+      <PageHeader
+        command="ls ./projects"
+        title="公開中のプロジェクト"
+        lead="公開している Web アプリと Minecraft MOD です。"
+      />
 
-        {/* プロジェクト一覧 */}
-        <div className="space-y-16">
-          {projects.map((project) => (
-            <Card
-              key={project.id}
-              className={`overflow-hidden ${project.borderColor} hover:shadow-2xl transition-all duration-500 hover:scale-[1.02]`}
-            >
-              <div className={`bg-gradient-to-r ${project.bgGradient}`}>
-                <CardContent className="p-8">
-                  <div className="grid lg:grid-cols-2 gap-8 items-start">
-                    {/* 左側：プロジェクト情報 */}
-                    <div className="space-y-6">
-                      <div className="flex items-start gap-4">
-                        <div
-                          className={`p-4 bg-gradient-to-r ${project.gradient} text-white rounded-xl shadow-lg`}
-                        >
-                          <project.icon className="h-8 w-8" />
-                        </div>
-                        <div>
-                          <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-1">
-                            {project.title}
-                          </h2>
-                          <p className="text-lg text-gray-600 dark:text-gray-300 font-medium">
-                            {project.subtitle}
-                          </p>
-                        </div>
-                      </div>
+      <nav aria-label="プロジェクトへのショートカット" className="mt-8 flex flex-wrap gap-x-4 gap-y-1.5 font-mono text-sm">
+        {featuredProjects.map((project) => (
+          <a key={project.id} href={`#${project.id}`} className="text-syntax-type underline-offset-4 hover:underline">
+            {project.id ?? project.title}/
+          </a>
+        ))}
+      </nav>
 
-                      <p className="text-gray-700 dark:text-gray-200 leading-relaxed">
-                        {project.description}
-                      </p>
+      <div className="mt-12 space-y-8">
+        {featuredProjects.map((project, index) => (
+          <article key={project.id} id={project.id} className="scroll-mt-20 overflow-hidden rounded-lg border border-border bg-card">
+            {/* エディタのタブ風ヘッダー */}
+            <header className="flex flex-wrap items-center justify-between gap-2 border-b border-border bg-secondary/60 px-4 py-2 font-mono text-xs">
+              <p className="text-muted-foreground">
+                <span className="text-syntax-comment">{String(index + 1).padStart(2, "0")}</span>
+                <span className="mx-2 text-border">|</span>
+                ~/projects/<span className="text-foreground">{project.id}</span>
+              </p>
+              <p className="flex items-center gap-2">
+                <span className="text-muted-foreground">{project.category}</span>
+                {project.status && (
+                  <span className="rounded-full border border-brand/40 px-2 py-0.5 text-brand">{project.status}</span>
+                )}
+              </p>
+            </header>
 
-                      <div className="bg-white/60 dark:bg-gray-800/60 rounded-lg p-4">
-                        <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed mb-2">
-                          {project.longDescription}
-                        </p>
-                        {/* 開発背景・こだわり */}
-                        {project.id === "pico88" && (
-                          <>
-                            <h4 className="font-semibold text-blue-700 dark:text-blue-300 mt-4 mb-1">
-                              開発背景・こだわり
-                            </h4>
-                            <ul className="list-disc pl-5 text-sm text-gray-700 dark:text-gray-200 space-y-1">
-                              <li>
-                                「CPUの仕組みを体感的に学べる教材がほしい」という思いから開発。
-                              </li>
-                              <li>
-                                UI/UXは「レトロ感」と「直感的操作」を両立。
-                              </li>
-                              <li>
-                                アセンブリの実行ステップやレジスタ変化をリアルタイムで可視化。
-                              </li>
-                            </ul>
-                            <h4 className="font-semibold text-blue-700 dark:text-blue-300 mt-4 mb-1">
-                              技術選定理由
-                            </h4>
-                            <ul className="list-disc pl-5 text-sm text-gray-700 dark:text-gray-200 space-y-1">
-                              <li>
-                                TypeScript＋Reactで「状態管理」と「UI描画」を柔軟に実装。
-                              </li>
-                              <li>
-                                Next.jsでSSR/SSG対応し、学習教材としても高速表示。
-                              </li>
-                            </ul>
-                            <h4 className="font-semibold text-blue-700 dark:text-blue-300 mt-4 mb-1">
-                              今後の展望
-                            </h4>
-                            <ul className="list-disc pl-5 text-sm text-gray-700 dark:text-gray-200 space-y-1">
-                              <li>
-                                より多くのCPU命令セットやI/Oデバイスの追加。
-                              </li>
-                              <li>ユーザー投稿型のサンプルプログラム集。</li>
-                            </ul>
-                          </>
-                        )}
-                        {project.id === "char-count-pro" && (
-                          <>
-                            <h4 className="font-semibold text-green-700 dark:text-green-300 mt-4 mb-1">
-                              開発背景・こだわり
-                            </h4>
-                            <ul className="list-disc pl-5 text-sm text-gray-700 dark:text-gray-200 space-y-1">
-                              <li>
-                                「文章執筆やコーディングをもっと快適にしたい」という思いから開発。
-                              </li>
-                              <li>
-                                リアルタイムでの文字数・差分・タスク管理を一画面で実現。
-                              </li>
-                              <li>
-                                エディタ部分はTiptap＋TailwindでカスタムUIを徹底追求。
-                              </li>
-                            </ul>
-                            <h4 className="font-semibold text-green-700 dark:text-green-300 mt-4 mb-1">
-                              技術選定理由
-                            </h4>
-                            <ul className="list-disc pl-5 text-sm text-gray-700 dark:text-gray-200 space-y-1">
-                              <li>
-                                Tiptapで「拡張性」と「リッチな編集体験」を両立。
-                              </li>
-                              <li>
-                                shadcn/uiでモダンなダイアログやボタンを実装。
-                              </li>
-                            </ul>
-                            <h4 className="font-semibold text-green-700 dark:text-green-300 mt-4 mb-1">
-                              今後の展望
-                            </h4>
-                            <ul className="list-disc pl-5 text-sm text-gray-700 dark:text-gray-200 space-y-1">
-                              <li>
-                                LaTeX・PDFエクスポートやAI校正支援の追加。
-                              </li>
-                              <li>
-                                カスタムショートカットやテーマ切替の強化。
-                              </li>
-                            </ul>
-                          </>
-                        )}
-                      </div>
-
-                      {/* 技術スタック */}
-                      <div>
-                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
-                          使用技術
-                        </h3>
-                        <div className="flex flex-wrap gap-2">
-                          {project.technologies.map((tech, techIndex) => (
-                            <Badge
-                              key={techIndex}
-                              className={`${tech.color} border-0 px-3 py-1`}
-                            >
-                              {tech.name}
-                            </Badge>
-                          ))}
-                        </div>
-                      </div>
-
-                      {/* アクションボタン */}
-                      <div className="flex flex-wrap gap-3 pt-4">
-                        {project.links.map((link, linkIndex) => (
-                          <Button
-                            key={linkIndex}
-                            asChild
-                            className={
-                              link.type === "demo"
-                                ? `bg-gradient-to-r ${project.gradient} hover:shadow-lg text-white border-0`
-                                : "variant-outline"
-                            }
-                          >
-                            {link.external ? (
-                              <a
-                                href={link.url}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="flex items-center gap-2"
-                              >
-                                <FaPlay className="h-4 w-4" />
-                                {link.text}
-                              </a>
-                            ) : (
-                              <Link
-                                href={link.url}
-                                className="flex items-center gap-2"
-                              >
-                                <FaPlay className="h-4 w-4" />
-                                {link.text}
-                              </Link>
-                            )}
-                          </Button>
-                        ))}
-                      </div>
+            <div className="grid gap-6 p-5 md:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] md:gap-8 md:p-6">
+              <div>
+                <div className="overflow-hidden rounded-md border border-border">
+                  {project.imageUrl ? (
+                    <div className="relative aspect-[4/3]">
+                      <Image src={project.imageUrl} alt={`${project.title}の画面`} fill className="object-cover" sizes="(min-width: 768px) 40vw, 100vw" />
                     </div>
-
-                    {/* 右側：機能一覧 */}
-                    <div className="space-y-4">
-                      <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                        主な機能
-                      </h3>
-                      <div className="grid gap-3">
-                        {project.features.map((feature, featureIndex) => (
-                          <div
-                            key={featureIndex}
-                            className="flex items-center gap-3 p-3 bg-white/60 dark:bg-gray-800/60 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700"
-                          >
-                            <feature.icon className="h-5 w-5 text-gray-600 dark:text-gray-400" />
-                            <span className="text-sm font-medium text-gray-700 dark:text-gray-200">
-                              {feature.text}
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-
-                      {/* GitHubリンク */}
-                      {project.github && project.github.length > 0 ? (
-                        <Button
-                          asChild
-                          variant="outline"
-                          className="w-full pt-4"
-                        >
-                          <a
-                            href={project.github[0]}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="flex items-center gap-2"
-                          >
-                            <FaGithub className="h-4 w-4 mr-2" />
-                            ソースコード
-                          </a>
-                        </Button>
-                      ) : (
-                        <Button
-                          variant="outline"
-                          className="w-full pt-4"
-                          disabled
-                        >
-                          <FaGithub className="h-4 w-4 mr-2" />
-                          ソースコード（準備中）
-                        </Button>
-                      )}
-                    </div>
-                  </div>
-                </CardContent>
+                  ) : (
+                    <ProjectArtwork id={project.id} />
+                  )}
+                </div>
+                <div className="mt-4">
+                  <TechTags technologies={project.technologies} />
+                </div>
               </div>
-            </Card>
-          ))}
-        </div>
 
-        {/* フッターCTA */}
-        <div className="text-center mt-16 p-8 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/30 dark:to-purple-900/30 rounded-2xl">
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
-            他のプロジェクトも見てみませんか？
-          </h2>
-          <p className="text-gray-600 dark:text-gray-300 mb-6">
-            ポートフォリオページで更多くのプロジェクトをご覧いただけます
-          </p>
-          <Button
-            asChild
-            className="bg-gradient-to-r from-blue-500 to-purple-600 text-white"
-          >
-            <Link href="/portfolio">ポートフォリオを見る</Link>
-          </Button>
-        </div>
+              <div className="flex flex-col">
+                <h2 className="font-mono text-2xl font-semibold tracking-tight text-foreground">{project.title}</h2>
+                <p className="mt-3 text-base leading-relaxed text-foreground/85">{project.description}</p>
+
+                {project.features && (
+                  <ul className="mt-5 space-y-2 text-sm leading-relaxed text-muted-foreground">
+                    {project.features.map((feature) => (
+                      <li key={feature} className="flex gap-2.5">
+                        <span aria-hidden="true" className="font-mono text-brand">+</span>
+                        {feature}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+
+                {project.id && notes[project.id] && (
+                  <p className="mt-5 rounded-md border-l-2 border-syntax-number bg-secondary/60 px-3 py-2 text-sm leading-relaxed text-muted-foreground">
+                    <span className="font-mono text-syntax-number">NOTE: </span>
+                    {notes[project.id]}
+                  </p>
+                )}
+
+                <div className="mt-6 flex flex-wrap gap-2.5">
+                  {project.link?.map((url) => (
+                    <Link key={url} href={url} className={primaryAction} {...(url.startsWith("https://") ? { target: "_blank", rel: "noopener noreferrer" } : {})}>
+                      {project.category === "Minecraft MOD" ? "配布ページ" : "アプリを開く"}
+                      <ArrowUpRight className="h-3.5 w-3.5" />
+                    </Link>
+                  ))}
+                  {project.github?.map((url) => (
+                    <a key={url} href={url} target="_blank" rel="noopener noreferrer" className={secondaryAction}>
+                      <FaGithub className="h-3.5 w-3.5" />
+                      ソースコード
+                    </a>
+                  ))}
+                  {project.id === "pico88" && (
+                    <Link href="/pico88" className={secondaryAction}>詳しい使い方</Link>
+                  )}
+                </div>
+
+                {project.sources && (
+                  <p className="mt-5 font-mono text-[11px] leading-relaxed text-syntax-comment">
+                    {"// "}
+                    {project.sources.map((source) => (
+                      <a key={source.url} href={source.url} target="_blank" rel="noopener noreferrer" className="mr-3 underline underline-offset-4 hover:text-foreground">
+                        {source.label}
+                      </a>
+                    ))}
+                    確認日 {project.verifiedAt}
+                  </p>
+                )}
+              </div>
+            </div>
+          </article>
+        ))}
       </div>
+
+      <p className="mt-14 font-mono text-sm text-muted-foreground">
+        <span className="text-brand">$</span> ハッカソンや過去の制作物は{" "}
+        <Link href="/portfolio" className="text-syntax-keyword underline underline-offset-4">portfolio/</Link>
+        {" "}にあります。
+      </p>
     </div>
   );
 }

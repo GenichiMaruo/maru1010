@@ -75,7 +75,7 @@ HLT             ; プログラム終了`;
   ];
 
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-900 transition-colors duration-300 ease-in-out">
+    <div className="min-h-svh bg-white dark:bg-gray-900 transition-colors duration-300 ease-in-out">
       {/* Grid Background Pattern */}
       <div className="absolute inset-0 opacity-5 dark:opacity-10">
         <div className="grid-pattern"></div>
@@ -113,7 +113,7 @@ HLT             ; プログラム終了`;
               </Button>
               <Button asChild variant="outline" size="lg">
                 <Link
-                  href="https://github.com/MaruoGenIchi/PICO-88"
+                  href="https://github.com/GenichiMaruo/pico-88"
                   target="_blank"
                   rel="noopener noreferrer"
                 >
@@ -362,7 +362,7 @@ HLT             ; プログラム終了`;
               </Button>
               <Button asChild variant="outline" size="lg">
                 <Link
-                  href="https://github.com/MaruoGenIchi/PICO-88"
+                  href="https://github.com/GenichiMaruo/pico-88"
                   target="_blank"
                   rel="noopener noreferrer"
                 >

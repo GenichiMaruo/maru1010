@@ -1,5 +1,177 @@
 [
   {
+    "id": "singulo",
+    "title": "Singulo",
+    "category": "Minecraft MOD",
+    "status": "公開中",
+    "description": "熱電発電からブラックホールの運用、宇宙の創造へ。工場づくりと遺構探索を組み合わせた、物理学を題材にした Minecraft 工業 MOD。",
+    "technologies": [
+      "Java",
+      "NeoForge",
+      "Forge",
+      "Minecraft"
+    ],
+    "features": [
+      "5段階の技術発展と大型装置の建造",
+      "ブラックホール発電・重力操作・ワームホール物流",
+      "遺構の探索とアンドロイドによる作業の自動化"
+    ],
+    "details": "**プロダクト概要**\n\n資源の加工や発電から始め、極低温・量子・時間・特異点の技術へ進む Minecraft 工業 MOD。工場の発展と旧文明の遺構探索がつながる構成です。\n\n**主な機能**\n\n- 冷却塔や粒子加速器などの大型装置と、建造を助けるホロ投影機\n- 回転ブラックホールを使った発電と、重力・時間を扱う道具\n- 遠隔拠点をつなぐワームホールと、作業を任せられるアンドロイド\n- 最終目標として宇宙を生み出す「創世炉」\n\n**対応環境**\n\nMinecraft 1.21.1 は NeoForge、1.20.1 は Forge / NeoForge に対応。物理学をモチーフとしたゲームであり、現実の物理を完全再現するシミュレータではありません。導入条件と配布ファイルは公開 README・CurseForge を参照してください。",
+    "link": [
+      "https://www.curseforge.com/minecraft/mc-mods/singulo"
+    ],
+    "github": [
+      "https://github.com/GenichiMaruo/Singulo"
+    ],
+    "repositoryCreatedAt": "2026-10-07",
+    "verifiedAt": "2026-11-10",
+    "featured": true,
+    "sources": [
+      {
+        "label": "公開 README",
+        "url": "https://github.com/GenichiMaruo/Singulo/blob/1.21.1/README.md"
+      }
+    ]
+  },
+  {
+    "id": "singulo-arsenal",
+    "title": "Singulo Arsenal",
+    "category": "Minecraft MOD",
+    "status": "Beta",
+    "description": "Singulo の武器・防具アドオン。超伝導や縮退圧などの物理現象をモチーフに、3セットの防具と4種の武器を追加。",
+    "technologies": [
+      "Java",
+      "NeoForge",
+      "Minecraft"
+    ],
+    "features": [
+      "物理現象を能力と外観に反映した装備",
+      "立体メッシュによる武器・防具の描画",
+      "FE による充電と日本語・英語への対応"
+    ],
+    "details": "**プロダクト概要**\n\n工業 MOD「Singulo」の素材と加工設備を使い、新しい武器・防具を制作できるアドオンです。公開 README では初回 Beta の 0.1.0 として紹介されています。\n\n**主な機能**\n\n- マイスナー・縮退圧・コラプサーの3系統の防具\n- クエンチ・セイバー、カシミール刃、潮汐断裁刃、降着ジェット砲\n- 磁束ピン止めやジェット噴射など、装備ごとの操作と能力\n- 立体モデル、FE 充電、日本語・英語の表示\n\n**対応環境**\n\nMinecraft 1.21.1 / NeoForge / Java 21、Singulo 本体 0.16 系が必要です。1.20.1 は将来対応方針で、現時点の対応版には含めていません。",
+    "link": [
+      "https://github.com/GenichiMaruo/Singulo-Arsenal/releases"
+    ],
+    "github": [
+      "https://github.com/GenichiMaruo/Singulo-Arsenal"
+    ],
+    "repositoryCreatedAt": "2026-10-20",
+    "verifiedAt": "2026-11-10",
+    "featured": true,
+    "sources": [
+      {
+        "label": "公開 README",
+        "url": "https://github.com/GenichiMaruo/Singulo-Arsenal/blob/1.21.1/README.md"
+      }
+    ]
+  },
+  {
+    "id": "worldgenassist",
+    "title": "Worldgen Assist",
+    "category": "Minecraft MOD",
+    "status": "Beta / 実験的",
+    "description": "プレイヤーの PC で地形生成の計算を分担する Minecraft MOD。サーバーがワールドの管理を保ちながら、参加クライアントの計算資源を活用。",
+    "technologies": [
+      "Java",
+      "Fabric",
+      "Forge",
+      "NeoForge",
+      "分散処理"
+    ],
+    "features": [
+      "クライアントによる地形密度計算の分担",
+      "サーバー側の結果検証と通常生成へのフォールバック",
+      "ローダー別の導入資料と検証記録を公開"
+    ],
+    "details": "**プロダクト概要**\n\nMinecraft の新しい地形を生成するとき、地形密度などの中間計算をプレイヤーの PC に分担させる MOD です。受け取った計算結果をサーバーが確認し、ブロック配置・構造物・保存などのワールド管理はサーバー側で行います。\n\n**主な実装**\n\n- Overworld・Nether・End の対応する新規地形の計算支援\n- 計算結果の検証、タイムアウトや切断時の通常生成への復帰\n- クライアントの参加設定、ローダー別の配布と検証記録\n\n**公開版の位置づけ**\n\nMinecraft 26.3 / Java 25 向けの Beta。Fabric・Forge・NeoForge に対応しています。信頼できる参加者を対象とし、支援機能は初期状態で無効です。有効化する構成では参加クライアントへシードが共有されます。性能はハードウェアや設定に依存するため、一律の高速化はうたっていません。",
+    "link": [
+      "https://github.com/GenichiMaruo/WorldgenAssist/releases"
+    ],
+    "github": [
+      "https://github.com/GenichiMaruo/WorldgenAssist"
+    ],
+    "repositoryCreatedAt": "2026-08-31",
+    "verifiedAt": "2026-11-10",
+    "featured": true,
+    "sources": [
+      {
+        "label": "公開 README",
+        "url": "https://github.com/GenichiMaruo/WorldgenAssist/blob/main/README.md"
+      }
+    ]
+  },
+  {
+    "id": "nandtick",
+    "title": "NandTick",
+    "category": "学習・シミュレータ",
+    "status": "Web アプリ",
+    "description": "ビット幅と伝搬遅延を扱える論理回路シミュレータ。Canvas 上で回路を組み、信号の変化や階層化した部品の動作をブラウザ内で確認。",
+    "technologies": [
+      "Next.js",
+      "React",
+      "TypeScript",
+      "Canvas",
+      "IndexedDB"
+    ],
+    "features": [
+      "4状態の信号と tick 単位のイベント駆動シミュレーション",
+      "カスタム部品・階層回路・クリティカルパス解析",
+      "RAM・PICO88_DISPLAY・HDL エクスポート"
+    ],
+    "details": "**プロダクト概要**\n\n階層化したデジタル回路を、ビット幅と tick 単位の伝搬遅延を含めて実行する論理回路シミュレータ。回路編集から動作確認、保存までブラウザ内で完結します。\n\n**主な機能**\n\n- Canvas エディタでの配線、分岐、複数選択、コピー、Undo / Redo\n- 0・1・X・Z の4状態と任意幅のバス、幅の整合性検証\n- カスタム部品の階層化と最大遅延・クリティカルパスの解析\n- tick 単位のテストケース、SystemVerilog / Verilog への出力\n- RAM の内容確認、PICO88_DISPLAY のライブ表示\n- IndexedDB への自動保存と JSON の入出力\n\nシミュレーションとファイル解析にはサーバー通信を使用しません。",
+    "link": [
+      "https://nand-tick.maru1010.com"
+    ],
+    "github": [
+      "https://github.com/GenichiMaruo/NandTick"
+    ],
+    "repositoryCreatedAt": "2026-08-30",
+    "verifiedAt": "2026-11-10",
+    "featured": true,
+    "sources": [
+      {
+        "label": "公開 README",
+        "url": "https://github.com/GenichiMaruo/NandTick/blob/main/README.md"
+      }
+    ]
+  },
+  {
+    "id": "rendot",
+    "title": "RenDot",
+    "category": "学習・シミュレータ",
+    "status": "Web アプリ",
+    "description": "8×8のドット絵から圧縮・二進数・誤り検出を学ぶ Web アプリ。自分で描いた絵をデータへ変換し、QR ライクな模様から元の絵へ復元。",
+    "technologies": [
+      "Next.js",
+      "React",
+      "TypeScript",
+      "Tailwind CSS",
+      "shadcn/ui"
+    ],
+    "features": [
+      "ドット絵からランレングス圧縮・二進数への変換",
+      "偶数パリティとビット反転によるエラー検出体験",
+      "独自の25×25形式とカメラによる読み取り"
+    ],
+    "details": "**プロダクト概要**\n\n中高生の授業向けに作られた、データ表現を体験する Web アプリ。8×8ドット絵を起点に、色番号・ランレングス圧縮・二進数・偶数パリティ・QR ライクデータへと変換し、元の絵へ戻します。\n\n**主な機能**\n\n- iPad Safari でのタップ・ドラッグ描画と Undo / Redo\n- 4種類のカラーパレットとサンプル画像\n- 圧縮率の表示と、ビット反転による誤り検出の体験\n- 25×25マスの独自形式、カメラと射影変換による読み取り\n- localStorage への作業状態の保存、ライト / ダークモード\n\n**形式について**\n\nQR ライクデータは学習用の独自形式です。一般的な QR コードとは異なります。カメラによる読み取りには HTTPS または localhost が必要です。",
+    "link": [
+      "https://rendot.maru1010.com"
+    ],
+    "github": [
+      "https://github.com/GenichiMaruo/RenDot"
+    ],
+    "repositoryCreatedAt": "2026-07-14",
+    "verifiedAt": "2026-11-10",
+    "featured": true,
+    "sources": [
+      {
+        "label": "公開 README",
+        "url": "https://github.com/GenichiMaruo/RenDot/blob/main/README.md"
+      }
+    ]
+  },
+  {
     "title": "CHAR COUNT PRO",
     "description": "リアルタイム文字数カウント、diff表示、タスク管理機能を備えた高機能マークダウンエディタ。Tiptapベースのリッチな編集体験と、カスタムUI/UXにこだわったWebアプリ。",
     "technologies": [
@@ -10,10 +182,22 @@
       "Shadcn/ui"
     ],
     "imageUrl": "/portfolio/char-count-pro.png",
-    "link": ["/tools/char-count-pro"],
-    "github": ["https://github.com/GenichiMaruo/maru1010"],
+    "link": [
+      "/tools/char-count-pro"
+    ],
+    "github": [
+      "https://github.com/GenichiMaruo/maru1010"
+    ],
     "details": "\n**プロダクト概要**\n\nCHAR COUNT PROは、ライターや開発者のために設計された高機能なマークダウンエディタです。リアルタイムでの文字数・単語数カウント、変更差分の視覚化、タスクリスト管理など、テキスト作業を効率化する機能を豊富に搭載しています。\n\n**技術的特徴**\n\n- **Tiptapベースのリッチエディタ**: Markdown記法・タスクリスト・数式・コードブロックなど多彩な拡張\n- **リアルタイム統計**: 文字数・単語数・行数・タスク進捗などを即時集計\n- **diff表示**: 編集前後の差分を色分けで可視化\n- **カスタムUI/UX**: Tailwind CSSとshadcn/uiで直感的かつ美しい操作感を実現\n- **LaTeXエクスポート**: 数式や文章をそのままLaTeX形式で出力可能\n\n**成長したこと**\n\n- **エディタ拡張の実装力**: Tiptapのカスタムノード・拡張機能の開発経験\n- **UI/UXデザイン**: ユーザー目線での使いやすさ・美しさの両立\n- **リアルタイム集計・差分処理**: パフォーマンスと正確性を両立した実装\n- **モダンWeb技術の活用**: Next.js, TypeScript, Tailwind CSS, shadcn/uiの実践的な活用\n",
-    "duration": "2025年7月"
+    "duration": "2025年7月",
+    "id": "char-count-pro",
+    "featured": true,
+    "category": "制作支援ツール",
+    "features": [
+      "文字数・単語数などのリアルタイム集計",
+      "Tiptap によるリッチテキスト編集と数式",
+      "変更差分の表示と LaTeX エクスポート"
+    ]
   },
   {
     "title": "PICO-88",
@@ -28,10 +212,22 @@
       "Cloudflare Pages"
     ],
     "imageUrl": "/portfolio/pico-88.png",
-    "link": ["https://pico88.maru1010.com"],
-    "github": ["https://github.com/GenichiMaruo/pico-88"],
+    "link": [
+      "https://pico88.maru1010.com"
+    ],
+    "github": [
+      "https://github.com/GenichiMaruo/pico-88"
+    ],
     "details": "\n**関わったプロダクトの概要**\n\nPICO-88は、教育およびホビー用途を目的として設計された、仮想の8ビットマイクロプロセッサおよびコンピュータアーキテクチャです。1980年代の8ビットコンピュータにインスパイアされながら、現代的な学習環境で使いやすいように設計されています。\n\nWebベースシミュレータにより、ブラウザ上で即座に8ビットコンピューティングの世界を体験でき、コンピュータサイエンスやアセンブリ言語の学習に最適な環境を提供します。\n\n**技術的特徴**\n\n***アーキテクチャ***\n- **8ビットCISC CPU**: 4つの汎用レジスタ(R0-R3)、可変長命令セット(1〜3バイト)、複数のアドレッシングモード\n- **メモリシステム**: 16ビットアドレス空間(64KB)、バンク切り替え機能、専用スタックメモリ(256バイト)\n- **グラフィック機能**: タイルベースのグラフィックシステム、VRAMとフレームバッファの二層構造\n\n***開発環境***\n- **Webベースシミュレータ**: インストール不要でブラウザから即座にアクセス可能\n- **リアルタイムデバッグ**: CPU状態、メモリ、スタックの表示機能\n- **組み込みアセンブラ**: シンタックスハイライト、エラーハンドリング付き\n- **ダークモード対応**: 快適な開発環境を提供\n\n***CI/CDとデプロイメント***\n- **GitHub Actions**: プッシュやプルリクエスト時の自動ビルド・テスト実行\n- **Cloudflare Pages連携**: mainブランチへのマージで本番環境への自動デプロイ\n- **品質保証**: TypeScriptの型チェック、ESLintによるコード品質チェックを自動実行\n- **プレビューデプロイ**: プルリクエスト作成時にプレビュー環境を自動生成し、変更内容の確認を効率化\n- **継続的インテグレーション**: コードの品質を維持しながら迅速な機能追加・バグ修正を実現\n\n**実装した主な機能**\n\n***CPU エミュレータ***\n- レジスタセット(R0-R3, PC, SP, FLAGS, BANK)の実装\n- 命令セットアーキテクチャ(データ転送、算術演算、制御命令など)の完全な実装\n- メモリアクセス制御とバンク切り替え機能\n\n***アセンブラ***\n- アセンブリ言語の構文解析とバイナリコード生成\n- ラベル、定数定義、ディレクティブの対応\n- エラー検出とメッセージ表示機能\n\n***シミュレータUI***\n- リアルタイムでのCPU状態表示\n- メモリビューア、スタック表示\n- ステップ実行・連続実行機能\n- プログラムの読み込み・保存機能\n\n***グラフィックシステム***\n- タイルベースの画面描画システム\n- メモリマップドI/Oによる制御\n- リアルタイム画面更新機能\n\n**開発プロセスと自動化**\n\n***モダンな開発フロー***\nGitHubを中心とした開発フローを構築し、feature ブランチでの開発→プルリクエスト→レビュー→マージという流れで品質を担保しています。CI/CDパイプラインにより、コードの品質チェックからデプロイまでを完全自動化し、手作業によるミスを排除しています。\n\n***自動テストとデプロイ***\nコミット時に自動実行されるテストにより、リグレッションを防止し、常に動作する状態を維持しています。また、Cloudflare Pagesとの連携により、マージ後数分で本番環境に反映され、迅速なフィードバックサイクルを実現しています。\n\n**対象ユーザーと活用用途**\n\n- **学生**: コンピュータサイエンスやアセンブリ言語の学習教材として\n- **教育者**: 低レベルプログラミングの教育ツールとして\n- **ホビイスト**: レトロコンピューティングや8ビットアーキテクチャの探求\n- **開発者**: CPU設計やエミュレータ開発の学習リソースとして\n\n**成長したこと**\n\nこのプロジェクトを通じて、コンピュータアーキテクチャの深い理解と実装スキルを習得しました。特に:\n\n- **低レベルシステム設計**: CPUの動作原理、命令セットアーキテクチャ、メモリ管理の実装\n- **エミュレータ開発**: ハードウェアの動作をソフトウェアで再現する技術\n- **教育ツール設計**: 複雑な概念を分かりやすく伝えるUI/UX設計\n- **Web技術の活用**: Next.jsとTypeScriptを用いた高品質なWebアプリケーション開発\n- **DevOps実践**: CI/CDパイプラインの構築と運用による開発効率化\n- **自動化の価値**: 手作業の排除によるミス削減と開発スピード向上を実感\n\n完全にゼロから設計したオリジナルアーキテクチャであり、仕様策定から実装、ドキュメント作成、そして自動デプロイ環境の構築まで一貫して行うことで、システム全体を俯瞰する能力を大きく向上させることができました。\n",
-    "duration": "2025年6月〜7月"
+    "duration": "2025年6月〜7月",
+    "id": "pico88",
+    "featured": true,
+    "category": "学習・シミュレータ",
+    "features": [
+      "8ビット CPU とアセンブリ言語の学習",
+      "レジスタ・メモリの表示とステップ実行",
+      "ブラウザで使えるエディタとアセンブラ"
+    ]
   },
   {
     "title": "Portfolio Website",
@@ -47,8 +243,12 @@
       "Vercel"
     ],
     "imageUrl": "/portfolio/portfolio-site.png",
-    "link": ["/"],
-    "github": ["https://github.com/GenichiMaruo/maru1010"],
+    "link": [
+      "/"
+    ],
+    "github": [
+      "https://github.com/GenichiMaruo/maru1010"
+    ],
     "details": "\n**関わったプロダクトの概要**\n\n個人のスキルや経験を効果的に発信するためのポートフォリオウェブサイトです。モダンなWeb技術を駆使して、訪問者にとって見やすく、使いやすいサイトを目指しました。単なる作品紹介サイトではなく、実用的なツール機能も搭載した多機能なWebアプリケーションとして設計しています。\n\n**技術的特徴とこだわり**\n\n***フロントエンド技術***\n- **Next.js 15**: 最新のReactフレームワークを採用し、SSGによる高速なページ読み込みを実現\n- **TypeScript**: 型安全性を重視した開発で、バグの少ない堅牢なコードベースを構築\n- **Tailwind CSS**: ユーティリティファーストのCSSフレームワークで効率的なスタイリング\n- **Shadcn/ui**: 一貫性のある美しいUIコンポーネントライブラリの活用\n\n***UI/UXデザイン***\n- **レスポンシブデザイン**: モバイル、タブレット、デスクトップすべてのデバイスで最適な表示を実現\n- **ダークモード対応**: システム設定に応じた自動切り替えと手動切り替えの両方をサポート\n- **アニメーション効果**: スムーズな画面遷移とインタラクションで優れたユーザー体験を提供\n- **アクセシビリティ**: WAIガイドラインに準拠した誰もが使いやすいデザイン\n\n***CI/CDとDevOps***\n- **GitHub Actions**: コード変更時の自動ビルド・テスト・デプロイを実現\n- **Vercel Integration**: GitHubとの連携により、プッシュ後数分で本番環境に自動反映\n- **品質保証**: ESLint、TypeScript型チェック、Prettier による自動コード品質管理\n- **プレビューデプロイ**: プルリクエスト作成時にプレビュー環境を自動生成し、変更内容を事前確認\n- **環境管理**: 開発・ステージング・本番環境の明確な分離と自動デプロイフロー\n- **パフォーマンス監視**: Lighthouse CI による継続的なパフォーマンス測定と改善\n\n**実装した主な機能**\n\n***ポートフォリオ機能***\n- **プロジェクト一覧表示**: JSONファイルベースの動的なプロジェクト管理システム\n- **詳細モーダル**: 各プロジェクトの詳細情報をモーダルウィンドウで表示\n- **技術スタック表示**: 使用技術をバッジ形式で視覚的に表現\n- **外部リンク統合**: GitHub、デモサイト、関連記事への動的リンク生成\n\n***実用ツール集成***\n- **プレゼンテーションタイマー**: 発表時間管理のための多機能タイマー\n- **ストップウォッチ**: 精密な時間計測機能\n- **文字数カウンタ**: リアルタイム文字数・単語数カウント機能\n- **汎用タイマー**: カスタマイズ可能な時間設定とアラート機能\n\n***パフォーマンス最適化***\n- **画像最適化**: Next.jsのImage最適化機能を活用した高速画像読み込み\n- **コード分割**: 必要な部分のみを読み込む効率的なバンドル分割\n- **SEO対応**: メタデータ最適化と構造化データの実装\n- **PWA対応**: オフライン機能とアプリライクな操作感を提供\n\n**開発プロセスと工夫**\n\n***設計思想***\n個人ブランディングを効果的に行うため、清潔感のあるミニマルなデザインを採用しつつ、必要な情報は分かりやすく整理して表示することを重視しました。また、単なる静的サイトではなく、実際に使えるツール機能を組み込むことで、訪問者にとって価値のあるサイトを目指しました。\n\n***コンポーネント設計***\n再利用可能なコンポーネントを意識した設計を行い、保守性と拡張性を確保しました。特にUI要素は統一感を持たせ、ブランドアイデンティティを強化する配色とタイポグラフィを採用しています。\n\n***データ管理***\nプロジェクト情報はJSONファイルで管理し、コンテンツの追加・更新を簡単に行えるシステムを構築しました。これにより、技術的な知識がなくても内容を更新できる仕組みを実現しています。\n\n***自動化による開発効率化***\nGitHub ActionsによるCI/CDパイプラインを構築し、コードのプッシュから本番デプロイまでを完全自動化。これにより、開発に集中でき、手作業によるミスを排除できています。また、自動テストとコード品質チェックにより、高品質なコードを維持しています。\n\n**成長したこと**\n\nこのプロジェクトを通じて、フロントエンド開発の包括的なスキルを習得することができました：\n\n- **モダンWeb技術**: Next.js、TypeScript、Tailwind CSSを用いた実践的な開発経験\n- **UI/UXデザイン**: ユーザー中心設計の考え方とアクセシビリティへの配慮\n- **パフォーマンス最適化**: Webサイトの高速化とSEO対策の実装\n- **プロジェクト管理**: 個人開発における要件定義から公開まで一貫したプロセス管理\n- **DevOps実践**: CI/CDパイプラインの構築と運用による開発効率化\n- **継続的改善**: ユーザーフィードバックを基にした機能追加と改善のサイクル\n- **自動化の価値**: 手作業の排除によるミス削減と継続的デリバリーの実現\n\n特に、自分自身をプレゼンテーションするサイトとして、どのような情報をどのように見せるかを深く考える経験は、今後の開発プロジェクトにおいても貴重な財産となりました。また、CI/CDによる自動化を体験することで、モダンな開発フローの重要性を実感できました。\n",
     "duration": "2024年〜現在（継続開発中）"
   },
@@ -65,16 +265,26 @@
       "Docker"
     ],
     "imageUrl": "/portfolio/online-othello.png",
-    "github": ["https://github.com/GenichiMaruo/OnlineOthello"],
+    "github": [
+      "https://github.com/GenichiMaruo/OnlineOthello"
+    ],
     "duration": "2025年5月"
   },
   {
     "title": "58ハッカソン Happy Shot",
     "description": "動画を送るだけで、最高のベストショットが手に入る！ 詳しくはTopazにて",
-    "technologies": ["Next.js", "Python", "TypeScript"],
+    "technologies": [
+      "Next.js",
+      "Python",
+      "TypeScript"
+    ],
     "imageUrl": "/portfolio/happy-shot.png",
-    "link": ["https://topaz.dev/projects/5ba3d6d5f2818f64236f"],
-    "github": ["https://github.com/yashikota/happy-shot"],
+    "link": [
+      "https://topaz.dev/projects/5ba3d6d5f2818f64236f"
+    ],
+    "github": [
+      "https://github.com/yashikota/happy-shot"
+    ],
     "details": "\n**関わったプロダクトの概要**\n\n動画を送るだけで、最高のベストショットが手に入る！ 詳しくはTopazにて\n\n**チーム体制と役割**\n\nフロントエンド開発1名とバックエンド開発2名で行った。\n\n**やったこと**\n\nバックエンド開発で表情分析以外を担当。顔の向き検出、瞬き検出、各動画フレームのスコア化、動画全体におけるスコアの推移のグラフ化、スコアグラフから良いと思われるフレームの抽出、表情分析との連携、フロントエンドとの通信用APIの整備などを行った。\n\n**成長したこと**\n\n久しぶりのバックエンド担当でうまく実装できないことが多かったが時間内にできる別の方法を模索することで最初に設定した課題を達成することができた。一つの方法に固執せず、柔軟に別の解決策を模索することで、たとえ途中でつまずいても、最終的には大きな課題を乗り越えられることを学んだ。\n\n**実績**\n\nハッカソンでは優秀賞を受賞した。\n",
     "duration": "2025年2月",
     "award": "優秀賞"
@@ -82,7 +292,10 @@
   {
     "title": "ソーシャル・オープンイノベーションチャレンジ2024",
     "description": "「占いと年齢性別推定を用いたパーソナライズド広告の最適化」と題して昨年行った実験の追加検証や、切り口を変えた方法での有効性の検証などを行った。",
-    "technologies": ["Python", "React"],
+    "technologies": [
+      "Python",
+      "React"
+    ],
     "imageUrl": "/portfolio/smile-sindan.png",
     "link": [
       "https://www.oit.ac.jp/labs/is/datascience/msl/soichalle/award.html"
@@ -117,30 +330,45 @@
   {
     "title": "U-22 プログラミング・コンテスト2024",
     "description": "ゲームマスターが撮影した写真のヒントを元に、プレイヤーは同じ場所や構図を探し出しす。そしてゲームマスターの写真に最も似た写真を撮影したプレイヤーが勝利する。",
-    "technologies": ["Vite", "React"],
+    "technologies": [
+      "Vite",
+      "React"
+    ],
     "imageUrl": "/portfolio/scene-hunter.png",
     "link": [
       "https://protopedia.net/prototype/private/76e77efd-35c5-43b3-921b-279979c9eaf1"
     ],
-    "github": ["https://github.com/GenichiMaruo/SceneHunter-front"],
+    "github": [
+      "https://github.com/GenichiMaruo/SceneHunter-front"
+    ],
     "details": "\n**関わったプロダクトの概要**\n\nゲームマスターが撮影した写真のヒントを元に、プレイヤーは同じ場所や構図を探し出しす。そしてゲームマスターの写真に最も似た写真を撮影したプレイヤーが勝利する。\n\n**チーム体制と役割**\n\n自分の役割はフロントエンド全般を担当した。Vite+Reactでの開発は初めての技術スタックだったため、公式ドキュメントやオンラインチュートリアルを参考にしながら学習を進めた。\n",
     "duration": "2024年8月"
   },
   {
     "title": "Minecraft Server Discord Bot",
     "description": "Minecraftサーバーの情報を取得し、Discordに通知したり、Discordからコマンドを受け取ってサーバーを操作するBot。",
-    "technologies": ["Python"],
+    "technologies": [
+      "Python"
+    ],
     "imageUrl": "/portfolio/mcserverbot.png",
-    "github": ["https://github.com/GenichiMaruo/MinecraftServerDiscordBot"],
+    "github": [
+      "https://github.com/GenichiMaruo/MinecraftServerDiscordBot"
+    ],
     "details": "Minecraftサーバーの情報を取得し、Discordに通知したり、Discordからコマンドを受け取ってサーバーを操作するBot。その他サーバー参加ポイントシステムがあり、ポイントを貯めることでゲーム内でのアイテム購入がDiscord上で可能。",
     "duration": "2024年2月"
   },
   {
     "title": "ソフトウェア工学演習 PushIt",
     "description": "2人対戦型のP2Pオンラインゲーム。CUIでありながらGUI風の操作感を目指し、通信遅延補正やマウス対応など高度な工夫を盛り込んだ。",
-    "technologies": ["C", "P2P通信", "独自フレーム同期処理"],
+    "technologies": [
+      "C",
+      "P2P通信",
+      "独自フレーム同期処理"
+    ],
     "imageUrl": "/portfolio/pushit.png",
-    "github": ["https://github.com/GenichiMaruo/PushIt"],
+    "github": [
+      "https://github.com/GenichiMaruo/PushIt"
+    ],
     "details": "\n**関わったプロダクトの概要**\n\nソフトウェア工学演習の授業にて、2Dオンライン対戦ゲーム「PushIt」を開発した。P2P通信による対戦型ゲームで、中央の箱を相手陣地に押し込むことで勝敗が決まる。\n\n**授業内容と開発体制**\n\n仕様書（外部・内部・テスト）を作成後に実装を行う形式で、自分一人で開発を担当した。\n\n**やったこと**\n\n- プレイヤー間の通信ラグをフレーム番号で推定し、相手位置を補正\n- CUI上でも色やマウス入力に対応し、GUI風の操作体験を提供\n- メニュー画面を含む全体設計、仕様書の作成と実装のすべてを担当\n\n**成長したこと**\n\nP2P通信や予測処理といったネットワーク系の実装経験を積み、1人で仕様策定から開発、調整、完成まで一貫して行うスキルが身についた。UIの工夫により、CUIでも快適な操作性を実現した。\n\n**実績**\n\n授業内投票で100人以上の中から3位に選出。",
     "duration": "2023年7月",
     "award": "授業内投票 3位（100名以上中）"
@@ -148,7 +376,10 @@
   {
     "title": "ソーシャル・オープンイノベーションチャレンジ2023",
     "description": "「革新的な次世代技術によるパーソナライズド広告の瞬時展開システム」と題して、デジタルサイネージ前の人物をカメラで認識して年齢、性別推定を行い、その判断によって適切な広告を表示するシステムを開発。",
-    "technologies": ["Python", "React"],
+    "technologies": [
+      "Python",
+      "React"
+    ],
     "imageUrl": "/portfolio/soityare1.png",
     "link": [
       "https://www.oit.ac.jp/labs/is/datascience/msl/soichalle/award.html"
@@ -160,27 +391,40 @@
   {
     "title": "英語による情報技術Ⅰ Snake Game",
     "description": "PythonのGUIライブラリを用いて、クラシックなSnakeゲームをチームで作成。シンプルながらもプレイ可能なゲームを実装した。",
-    "technologies": ["Python", "Tkinter"],
+    "technologies": [
+      "Python",
+      "Tkinter"
+    ],
     "imageUrl": "/portfolio/snakegame.png",
-    "github": ["https://github.com/GenichiMaruo/SnakeGame"],
+    "github": [
+      "https://github.com/GenichiMaruo/SnakeGame"
+    ],
     "details": "\n**関わったプロダクトの概要**\n\n英語による情報技術Ⅰの授業にて、Pythonを用いたSnakeゲームを作成。Tkinterを使ってGUI上で操作可能なゲームを実装した。\n\n**チーム体制と役割**\n\n4人チームで開発を行い、自分は主にコード作成を担当した。\n\n**やったこと**\n\nゲームのロジック構築、画面描画、ユーザー操作への対応（キーボード入力）など、実装全般を担当。Tkinterを用いたGUI開発や、Pythonのクラス設計なども経験した。\n\n**成長したこと**\n\nPythonを使ったGUIアプリケーション開発の基礎を習得し、ゲームの動作やバグを確認しながら何度も改善を重ねる過程で、粘り強く開発を進める力が身についた。また、チームでの開発を通じて、コードの分担やコミュニケーションの重要性も学んだ。\n",
     "duration": "2023年1月"
   },
   {
     "title": "Enigma 再現プログラム",
     "description": "第二次世界大戦時に使用された暗号機「エニグマ」の仕組みをPythonで再現。ローターや初期キーの設定によって暗号化・復号化が可能。",
-    "technologies": ["Python"],
+    "technologies": [
+      "Python"
+    ],
     "imageUrl": "/portfolio/enigma.png",
-    "github": ["https://github.com/GenichiMaruo/Enigma"],
+    "github": [
+      "https://github.com/GenichiMaruo/Enigma"
+    ],
     "details": "\n**関わったプロダクトの概要**\n\n第二次世界大戦時にドイツ軍が使用していた暗号機「エニグマ」の動作をPythonで再現したプログラム。ローターによる文字変換をシミュレートし、暗号化・復号化のプロセスを体験できる。\n\n**構成と使い方**\n\n- `main.py`: テキストファイルを読み込み、暗号変換を行う（出力は `out.txt`）。\n- `main2.py`: 任意の文字列と初期キーを手入力して、即時変換。\n- `setrotor.py`: 任意のシード値によりローター設定ファイル `rotors.txt` を生成。\n\n**技術的特徴**\n\n- エニグマ特有のローターと反射板の仕組みを再現\n- ローターの初期化・順番・シードによって多様な暗号結果が得られる\n- GUI なしでも操作可能な軽量設計\n\n**成長したこと**\n\nエニグマの構造をコードとして抽象化・再現することで、暗号アルゴリズムに対する理解が深まった。小規模ながら、歴史的な技術を自作で体験できる設計力・実装力を養うことができた。",
     "duration": "2022年4月"
   },
   {
     "title": "Minecraft Bot Contest 2021 (学内コンテスト)",
     "description": "Minecraftの敵モブであるゾンビを自動で倒すBotを作成し、その性能を競うコンテスト。",
-    "technologies": ["Python"],
+    "technologies": [
+      "Python"
+    ],
     "imageUrl": "/portfolio/mc-bot-contest.png",
-    "github": ["https://github.com/GenichiMaruo/MinecraftBot"],
+    "github": [
+      "https://github.com/GenichiMaruo/MinecraftBot"
+    ],
     "details": "\n**関わったプロダクトの概要**\n\nMinecraftの敵モブであるゾンビを自動で倒すBotを作成し、その性能を競うコンテスト。\n\n**チーム体制と役割**\n\n自分の役割はプログラミング全般。ゲーム画面のキャプチャ映像をリアルタイムにカスケード分類器にかけてゾンビを判定し攻撃するためマウスカーソルの移動とキーボード入力命令を実行する。\n",
     "duration": "2022年3月",
     "award": "2位"

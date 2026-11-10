@@ -36,19 +36,31 @@ export const toSnakeCase = (words: string[]): string => words.join("_");
 export const toKebabCase = (words: string[]): string => words.join("-");
 
 // 句読点変換
+// 「、」「。」の後ろには半角スペースを入れる。ただし行末・既存の空白の前には入れない
 export const jpToEnPunctuation = (text: string): string =>
-  text.replace(/、/g, ", ").replace(/。/g, ". ");
+  text
+    .replace(/、(?=\s|$)/g, ",")
+    .replace(/、/g, ", ")
+    .replace(/。(?=\s|$)/g, ".")
+    .replace(/。/g, ". ");
 
+// 句読点としての「,」「.」だけを変換する。
+// 3.14 / 1,000 / example.com のように前後が文字で挟まれているものは変えない。
+// 句読点の直後の半角スペースは日本語では不要なので取り除く
 export const enToJpPunctuation = (text: string): string =>
-  text.replace(/,/g, "、").replace(/\./g, "。");
+  text
+    .replace(/,(?=[ \t]|$|\n|[^\d\w])[ \t]?/g, "、")
+    .replace(/\.(?=[ \t]|$|\n)[ \t]?/g, "。");
 
 // コメント削除
 export const removeComments = (text: string, language: string): string => {
   switch (language) {
     case "generic_block_line":
-      return text.replace(/\/\*[\s\S]*?\*\/|\/\/.*/g, "");
+      // 「https://」のように「:」の直後の「//」は URL なのでコメント扱いしない
+      return text.replace(/\/\*[\s\S]*?\*\/|(?<!:)\/\/.*/g, "");
     case "hash_comments":
-      return text.replace(/#.*/g, "");
+      // 行頭か空白の直後の「#」だけをコメントとみなす（#fff や URL の # は残す）
+      return text.replace(/(^|[ \t])#.*/gm, "$1");
     case "html_comments":
       return text.replace(/<!--[\s\S]*?-->/g, "");
     default:

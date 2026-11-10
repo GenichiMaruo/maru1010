@@ -1,197 +1,62 @@
 import runes from "runes2";
 
 export interface TextStats {
-  characters: number;
-  charactersNoSpaces: number;
+  /** 文字数（改行を除く。絵文字や結合文字も見た目の 1 文字と数える） */
+  chars: number;
+  /** 空白・改行を除いた文字数 */
+  charsNoSpaces: number;
+  /** 空白で区切った単語数（英文向け） */
   words: number;
-  sentences: number;
-  paragraphs: number;
+  /** 空でない行の数 */
   lines: number;
+  /** 文の数（。．.!?！？ で区切る） */
+  sentences: number;
+  /** UTF-8 でのバイト数 */
   bytes: number;
-  readingTime: number;
-  syllables: number;
-  readabilityScore: number;
+  /** 400 字詰め原稿用紙の枚数（文字数からの目安） */
+  manuscriptPages: number;
+  /** 読むのにかかる時間（分）。日本語は 500 字/分、英文は 200 語/分で概算 */
+  readingMinutes: number;
 }
 
-export interface LanguageStats {
+export interface CharKinds {
   hiragana: number;
   katakana: number;
   kanji: number;
-  ascii: number;
-  punctuation: number;
-  whitespace: number;
+  alnum: number;
+  other: number;
 }
 
-export interface AdvancedStats {
-  averageWordsPerSentence: number;
-  averageSentencesPerParagraph: number;
-  longestWord: string;
-  mostFrequentWords: Array<{ word: string; count: number }>;
-  wordLengthDistribution: Array<{ length: number; count: number }>;
-  sentenceLengthDistribution: Array<{ length: number; count: number }>;
-  complexityScore: number;
+const JAPANESE = /[぀-ヿ㐀-鿿]/;
+
+/** text は「段落の区切り = 改行 1 つ」のプレーンテキスト */
+export function analyzeText(text: string): TextStats {
+  const body = text.replace(/\n/g, "");
+  const chars = runes(body).length;
+  const trimmed = text.trim();
+  const words = trimmed ? trimmed.split(/\s+/).length : 0;
+  return {
+    chars,
+    charsNoSpaces: runes(body.replace(/[\s　]/g, "")).length,
+    words,
+    lines: text.split("\n").filter((line) => line.trim()).length,
+    sentences: text.split(/[。．.!?！？\n]+/).filter((s) => s.trim()).length,
+    bytes: new TextEncoder().encode(text).length,
+    manuscriptPages: Math.ceil(chars / 400),
+    readingMinutes: chars === 0 ? 0 : Math.max(1, Math.round(JAPANESE.test(text) ? chars / 500 : words / 200)),
+  };
 }
 
-// 音節数推定
-export const estimateSyllables = (text: string): number => {
-  // 日本語の場合はひらがな・カタカナの数
-  const japaneseChars = (text.match(/[\u3040-\u309F\u30A0-\u30FF]/g) || [])
-    .length;
-
-  // 英語の場合は単語から推定
-  const englishWords = text.match(/[a-zA-Z]+/g) || [];
-  const englishSyllables = englishWords.reduce((count, word) => {
-    return (
-      count + Math.max(1, word.toLowerCase().match(/[aeiouy]+/g)?.length || 1)
-    );
-  }, 0);
-
-  return japaneseChars + englishSyllables;
-};
-
-// 読みやすさスコア計算
-export const calculateReadabilityScore = (
-  text: string,
-  sentences: number,
-  words: number,
-  syllables: number
-): number => {
-  if (sentences === 0 || words === 0) return 0;
-
-  const avgWordsPerSentence = words / sentences;
-  const avgSyllablesPerWord = syllables / words;
-
-  // Flesch Reading Ease の簡易版
-  const score =
-    206.835 - 1.015 * avgWordsPerSentence - 84.6 * avgSyllablesPerWord;
-  return Math.max(0, Math.min(100, Math.round(score)));
-};
-
-// 基本統計計算
-export const calculateTextStats = (text: string): TextStats => {
-  // 基本統計
-  const characters = runes(text).length;
-  const charactersNoSpaces = runes(text.replace(/\s/g, "")).length;
-  const words = text.trim() ? text.trim().split(/\s+/).length : 0;
-  const sentences = text.split(/[.!?。！？]/).filter((s) => s.trim()).length;
-  const paragraphs = text.split(/\n\s*\n/).filter((p) => p.trim()).length || 1;
-  const lines = text.split(/\n/).length;
-  const bytes = new TextEncoder().encode(text).length;
-
-  // 読書時間（日本語: 600文字/分、英語: 250語/分）
-  const isJapanese = /[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF]/.test(text);
-  const readingTime = isJapanese
-    ? Math.ceil(characters / 600)
-    : Math.ceil(words / 250);
-
-  // 音節数の推定
-  const syllables = estimateSyllables(text);
-
-  // 読みやすさスコア
-  const readabilityScore = calculateReadabilityScore(
-    text,
-    sentences,
-    words,
-    syllables
-  );
-
-  return {
-    characters,
-    charactersNoSpaces,
-    words,
-    sentences,
-    paragraphs,
-    lines,
-    bytes,
-    readingTime,
-    syllables,
-    readabilityScore,
-  };
-};
-
-// 言語別統計計算
-export const calculateLanguageStats = (text: string): LanguageStats => {
-  return {
-    hiragana: (text.match(/[\u3040-\u309F]/g) || []).length,
-    katakana: (text.match(/[\u30A0-\u30FF]/g) || []).length,
-    kanji: (text.match(/[\u4E00-\u9FAF]/g) || []).length,
-    ascii: (text.match(/[a-zA-Z0-9]/g) || []).length,
-    punctuation: (text.match(/[.,!?;:。、！？；：]/g) || []).length,
-    whitespace: (text.match(/\s/g) || []).length,
-  };
-};
-
-// 詳細統計計算
-export const calculateAdvancedStats = (text: string): AdvancedStats => {
-  const words = text
-    .trim()
-    .split(/\s+/)
-    .filter((word) => word.length > 0);
-  const sentences = text.split(/[.!?。！？]/).filter((s) => s.trim()).length;
-  const paragraphs = text.split(/\n\s*\n/).filter((p) => p.trim()).length || 1;
-
-  // 平均値計算
-  const averageWordsPerSentence = sentences > 0 ? words.length / sentences : 0;
-  const averageSentencesPerParagraph =
-    paragraphs > 0 ? sentences / paragraphs : 0;
-
-  // 最長単語
-  const longestWord = words.reduce(
-    (longest, word) => (word.length > longest.length ? word : longest),
-    ""
-  );
-
-  // 単語頻度分析
-  const wordFreq = new Map<string, number>();
-  words.forEach((word) => {
-    const cleanWord = word.toLowerCase().replace(/[^\w]/g, "");
-    if (cleanWord.length > 2) {
-      // 3文字以上の単語のみ
-      wordFreq.set(cleanWord, (wordFreq.get(cleanWord) || 0) + 1);
-    }
-  });
-
-  const mostFrequentWords = Array.from(wordFreq.entries())
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 10)
-    .map(([word, count]) => ({ word, count }));
-
-  // 単語長分布
-  const wordLengthMap = new Map<number, number>();
-  words.forEach((word) => {
-    const length = runes(word).length;
-    wordLengthMap.set(length, (wordLengthMap.get(length) || 0) + 1);
-  });
-
-  const wordLengthDistribution = Array.from(wordLengthMap.entries())
-    .sort((a, b) => a[0] - b[0])
-    .map(([length, count]) => ({ length, count }));
-
-  // 文長分布
-  const sentenceLengthMap = new Map<number, number>();
-  text.split(/[.!?。！？]/).forEach((sentence) => {
-    const length = sentence.trim().split(/\s+/).length;
-    if (length > 0) {
-      sentenceLengthMap.set(length, (sentenceLengthMap.get(length) || 0) + 1);
-    }
-  });
-
-  const sentenceLengthDistribution = Array.from(sentenceLengthMap.entries())
-    .sort((a, b) => a[0] - b[0])
-    .map(([length, count]) => ({ length, count }));
-
-  // 複雑度スコア（単語の多様性、文の長さの変動など）
-  const uniqueWords = new Set(words.map((w) => w.toLowerCase())).size;
-  const lexicalDiversity = words.length > 0 ? uniqueWords / words.length : 0;
-  const complexityScore = Math.round(lexicalDiversity * 100);
-
-  return {
-    averageWordsPerSentence,
-    averageSentencesPerParagraph,
-    longestWord,
-    mostFrequentWords,
-    wordLengthDistribution,
-    sentenceLengthDistribution,
-    complexityScore,
-  };
-};
+/** 文字種ごとの数（空白・改行は数えない） */
+export function countCharKinds(text: string): CharKinds {
+  const kinds: CharKinds = { hiragana: 0, katakana: 0, kanji: 0, alnum: 0, other: 0 };
+  for (const ch of text) {
+    if (/\s/.test(ch)) continue;
+    if (/[ぁ-ゟ]/.test(ch)) kinds.hiragana++;
+    else if (/[゠-ヿｦ-ﾟ]/.test(ch)) kinds.katakana++;
+    else if (/[㐀-鿿豈-﫿々〆]/.test(ch)) kinds.kanji++;
+    else if (/[A-Za-z0-9Ａ-Ｚａ-ｚ０-９]/.test(ch)) kinds.alnum++;
+    else kinds.other++;
+  }
+  return kinds;
+}

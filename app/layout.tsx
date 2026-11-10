@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import "katex/dist/katex.min.css";
@@ -18,7 +18,19 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "maru1010.com",
   description:
-    "maru1010の個人サイト。制作物やプロジェクトなどをまとめています。",
+    "Genichi Maruo（maru1010）の個人サイト。Webアプリ、学習用シミュレータ、Minecraft MODなどの制作物と開発プロジェクトを紹介しています。",
+};
+
+// iOS Safari：ノッチ・ホームバー側まで描画し（余白は env(safe-area-inset-*) で確保）、
+// アドレスバー周りの色をページの背景色に合わせる
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#f9fafb" },
+    { media: "(prefers-color-scheme: dark)", color: "#111419" },
+  ],
 };
 
 export default function RootLayout({
@@ -29,7 +41,7 @@ export default function RootLayout({
   return (
     <html lang="ja" suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} font-sans antialiased`}
       >
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           {children}
