@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -102,7 +102,7 @@ export default function LaTeXExportModal({
               </SelectContent>
             </Select>
             {options.engine !== recommendedEngine && isJapanese && (
-              <p className="text-sm text-amber-600 dark:text-amber-400">
+              <p className="text-sm text-syntax-number dark:text-syntax-number">
                 日本語文書には{recommendedEngine}が推奨されます
               </p>
             )}
@@ -134,7 +134,7 @@ export default function LaTeXExportModal({
               </SelectContent>
             </Select>
             {options.documentClass !== recommendedClass && isJapanese && (
-              <p className="text-sm text-amber-600 dark:text-amber-400">
+              <p className="text-sm text-syntax-number dark:text-syntax-number">
                 日本語文書には{recommendedClass}が推奨されます
               </p>
             )}
@@ -239,7 +239,7 @@ export default function LaTeXExportModal({
               id="includeTitle"
               checked={options.includeTitle}
               onChange={(e) => updateOption("includeTitle", e.target.checked)}
-              className="rounded border border-slate-300"
+              className="rounded border border-border"
             />
             <Label htmlFor="includeTitle">Include Title Page</Label>
           </div>
@@ -284,7 +284,7 @@ export default function LaTeXExportModal({
                 id="includeToc"
                 checked={options.includeToc}
                 onChange={(e) => updateOption("includeToc", e.target.checked)}
-                className="rounded border border-slate-300"
+                className="rounded border border-border"
               />
               <Label htmlFor="includeToc">Table of Contents</Label>
             </div>
@@ -294,7 +294,7 @@ export default function LaTeXExportModal({
                 id="bibliography"
                 checked={options.bibliography}
                 onChange={(e) => updateOption("bibliography", e.target.checked)}
-                className="rounded border border-slate-300"
+                className="rounded border border-border"
               />
               <Label htmlFor="bibliography">Bibliography</Label>
             </div>
@@ -304,7 +304,7 @@ export default function LaTeXExportModal({
                 id="hyperref"
                 checked={options.hyperref}
                 onChange={(e) => updateOption("hyperref", e.target.checked)}
-                className="rounded border border-slate-300"
+                className="rounded border border-border"
               />
               <Label htmlFor="hyperref">Hyperlinks</Label>
             </div>
@@ -314,7 +314,7 @@ export default function LaTeXExportModal({
                 id="colorlinks"
                 checked={options.colorlinks}
                 onChange={(e) => updateOption("colorlinks", e.target.checked)}
-                className="rounded border border-slate-300"
+                className="rounded border border-border"
               />
               <Label htmlFor="colorlinks">Colored Links</Label>
             </div>

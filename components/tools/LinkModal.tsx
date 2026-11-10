@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -35,18 +35,11 @@ export default function LinkModal({
   hasSelection,
   isEditMode,
 }: LinkModalProps) {
-  const [url, setUrl] = useState("");
-  const [text, setText] = useState("");
+  // 初期値は開くたびに反映する。呼び出し側は開くごとに key を変えて作り直す
+  // （以前は effect の中で setState していたため、一瞬前回の値が見えることがあった）
+  const [url, setUrl] = useState(initialUrl);
+  const [text, setText] = useState(initialText);
   const [urlError, setUrlError] = useState("");
-
-  // モーダルが開かれた時に初期値を設定
-  useEffect(() => {
-    if (isOpen) {
-      setUrl(initialUrl);
-      setText(initialText);
-      setUrlError("");
-    }
-  }, [isOpen, initialUrl, initialText]);
 
   // URLバリデーション
   const validateUrl = (inputUrl: string): boolean => {
@@ -94,14 +87,18 @@ export default function LinkModal({
     if (!validateUrl(url)) {
       return;
     }
-
-    const finalText = text.trim() || url;
-    onSave(url, finalText);
+    // validateUrl が「https://」を補った場合は、補った後の値で保存する
+    // （以前は state の更新前の値を使っていたため、補完前の URL で保存されていた）
+    const finalUrl = !url.includes("://") && !url.startsWith("/") && !url.startsWith("#") ? `https://${url}` : url;
+    // 表示文字が空なら、選択中の文字（無ければ URL）をそのまま使う。判断は呼び出し側に任せる
+    // （以前は空のとき URL を渡していたため、選んだ文字が URL に置き換わっていた）
+    onSave(finalUrl, text.trim());
     onClose();
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
+    // Enter で保存（日本語入力の確定の Enter は除く）。Ctrl/Cmd+Enter も引き続き使える
+    if (e.key === "Enter" && !e.nativeEvent.isComposing && (e.target instanceof HTMLInputElement || e.ctrlKey || e.metaKey)) {
       e.preventDefault();
       handleSave();
     }
@@ -138,7 +135,7 @@ export default function LinkModal({
       <DialogContent className="sm:max-w-[500px]" onKeyDown={handleKeyDown}>
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <FaLink className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+            <FaLink className="w-4 h-4 text-syntax-type dark:text-syntax-type" />
             {isEditMode ? "Edit Link" : "Insert Link"}
           </DialogTitle>
           <DialogDescription>
@@ -165,17 +162,17 @@ export default function LinkModal({
               }}
               placeholder="https://example.com or /page or #section"
               className={`${
-                urlError ? "border-red-500 focus:border-red-500" : ""
+                urlError ? "border-syntax-tag focus:border-syntax-tag" : ""
               }`}
               autoFocus
             />
             {urlError && (
-              <p className="text-sm text-red-600 dark:text-red-400">
+              <p className="text-sm text-syntax-tag dark:text-syntax-tag">
                 {urlError}
               </p>
             )}
             {!urlError && url && (
-              <p className="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1">
+              <p className="text-xs text-muted-foreground dark:text-muted-foreground flex items-center gap-1">
                 <FaExternalLinkAlt className="w-3 h-3" />
                 {getUrlPreview()}
               </p>
@@ -187,7 +184,7 @@ export default function LinkModal({
             <Label htmlFor="text" className="text-sm font-medium">
               Display Text
               {hasSelection && (
-                <span className="text-xs text-slate-500 ml-1">
+                <span className="text-xs text-muted-foreground ml-1">
                   (uses selected text if empty)
                 </span>
               )}
@@ -203,7 +200,7 @@ export default function LinkModal({
               }
             />
             {!hasSelection && !text && url && (
-              <p className="text-xs text-slate-500 dark:text-slate-400">
+              <p className="text-xs text-muted-foreground dark:text-muted-foreground">
                 Will use URL as display text if left empty
               </p>
             )}
@@ -211,14 +208,14 @@ export default function LinkModal({
 
           {/* プレビュー */}
           {url && (
-            <div className="p-3 bg-slate-50 dark:bg-slate-800 rounded-md border">
-              <Label className="text-xs text-slate-600 dark:text-slate-400 uppercase tracking-wide">
+            <div className="p-3 bg-muted dark:bg-secondary rounded-md border">
+              <Label className="text-xs text-muted-foreground dark:text-muted-foreground uppercase tracking-wide">
                 Preview
               </Label>
               <div className="mt-1">
                 <a
                   href="#"
-                  className="text-blue-600 underline hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
+                  className="text-syntax-type underline hover:text-syntax-type dark:text-syntax-type dark:hover:text-syntax-type"
                   onClick={(e) => e.preventDefault()}
                 >
                   {text || (hasSelection ? initialText : url)}
@@ -260,9 +257,9 @@ export default function LinkModal({
         </DialogFooter>
 
         {/* キーボードショートカットヒント */}
-        <div className="text-xs text-slate-500 dark:text-slate-400 border-t pt-2 mt-2">
+        <div className="text-xs text-muted-foreground dark:text-muted-foreground border-t pt-2 mt-2">
           <div className="flex justify-between">
-            <span>Ctrl/Cmd + Enter: Save</span>
+            <span>Enter: Save</span>
             <span>Escape: Cancel</span>
           </div>
         </div>
