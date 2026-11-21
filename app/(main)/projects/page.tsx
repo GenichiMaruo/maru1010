@@ -15,9 +15,19 @@ export const metadata: Metadata = {
 
 const notes: Record<string, string> = {
   worldgenassist:
-    "信頼できる参加者向けの実験的な Beta です。計算支援は初期状態で無効。有効化する構成では参加クライアントにシードが共有されます。",
-  "singulo-arsenal": "Minecraft 1.21.1 / NeoForge、Singulo 本体 0.16 系向けの Beta。",
+    "信頼できる参加者向けです。計算支援は初期状態で無効。有効化する構成では参加クライアントにシードが共有されます。",
+  "singulo-arsenal": "Minecraft 1.21.1 / NeoForge、Singulo 本体 0.16 系向け。",
 };
+
+function ReleaseStage({ status }: { status?: string }) {
+  if (status !== "Beta" && status !== "Beta / 実験的") return null;
+
+  return (
+    <p className="mt-1 font-mono text-xs text-muted-foreground">
+      開発段階: {status === "Beta" ? "Beta" : "Beta（実験的）"}
+    </p>
+  );
+}
 
 const primaryAction =
   "inline-flex items-center gap-1.5 rounded-md bg-foreground px-3.5 py-2 font-mono text-xs text-background transition-opacity hover:opacity-85";
@@ -53,9 +63,7 @@ export default function ProjectsPage() {
               </p>
               <p className="flex items-center gap-2">
                 <span className="text-muted-foreground">{project.category}</span>
-                {project.status && (
-                  <span className="rounded-full border border-brand/40 px-2 py-0.5 text-brand">{project.status}</span>
-                )}
+                <span className="rounded-full border border-brand/40 px-2 py-0.5 text-brand">公開中</span>
               </p>
             </header>
 
@@ -64,7 +72,7 @@ export default function ProjectsPage() {
                 <div className="overflow-hidden rounded-md border border-border">
                   {project.imageUrl ? (
                     <div className="relative aspect-[4/3]">
-                      <Image src={project.imageUrl} alt={`${project.title}の画面`} fill className="object-cover" sizes="(min-width: 768px) 40vw, 100vw" />
+                      <Image src={project.imageUrl} alt={project.imageAlt ?? `${project.title}の画面`} fill className={project.imageAlt ? "bg-secondary object-contain" : "object-cover"} sizes="(min-width: 768px) 40vw, 100vw" />
                     </div>
                   ) : (
                     <ProjectArtwork id={project.id} />
@@ -77,6 +85,7 @@ export default function ProjectsPage() {
 
               <div className="flex flex-col">
                 <h2 className="font-mono text-2xl font-semibold tracking-tight text-foreground">{project.title}</h2>
+                <ReleaseStage status={project.status} />
                 <p className="mt-3 text-base leading-relaxed text-foreground/85">{project.description}</p>
 
                 {project.features && (

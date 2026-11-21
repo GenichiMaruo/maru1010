@@ -61,7 +61,7 @@ export default function Portfolio() {
 
               {selectedProject.imageUrl && (
                 <div className="relative mt-8 aspect-video w-full overflow-hidden rounded-lg border border-border">
-                  <Image src={selectedProject.imageUrl} alt={selectedProject.title} fill className="object-cover" />
+                  <Image src={selectedProject.imageUrl} alt={selectedProject.imageAlt ?? selectedProject.title} fill className="object-cover" />
                 </div>
               )}
 
@@ -144,7 +144,7 @@ function ProjectCard({ project, onClick }: { project: Project; onClick: () => vo
               alt=""
               fill
               sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
-              className="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+              className={project.imageAlt ? "bg-secondary object-contain" : "object-cover transition-transform duration-500 group-hover:scale-[1.03]"}
             />
           </div>
         ) : (

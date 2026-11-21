@@ -1,8 +1,9 @@
-import { CircuitBoard, Blocks, Grid3X3, Network, Orbit, Swords } from "lucide-react";
+import { CircuitBoard, Blocks, Cable, Grid3X3, Network, Orbit, Swords } from "lucide-react";
 
 const artwork = {
   singulo: { Icon: Orbit, color: "text-syntax-keyword", label: "factory / gravity / space" },
   "singulo-arsenal": { Icon: Swords, color: "text-syntax-tag", label: "physics / equipment" },
+  "applied-singulo": { Icon: Cable, color: "text-syntax-type", label: "androids / ME autocrafting" },
   worldgenassist: { Icon: Network, color: "text-syntax-string", label: "terrain / distributed computing" },
   nandtick: { Icon: CircuitBoard, color: "text-syntax-type", label: "logic / circuits / ticks" },
   rendot: { Icon: Grid3X3, color: "text-syntax-number", label: "pixels / bits / encoding" },
