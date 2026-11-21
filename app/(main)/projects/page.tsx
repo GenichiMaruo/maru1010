@@ -64,7 +64,7 @@ export default function ProjectsPage() {
                 <div className="overflow-hidden rounded-md border border-border">
                   {project.imageUrl ? (
                     <div className="relative aspect-[4/3]">
-                      <Image src={project.imageUrl} alt={`${project.title}の画面`} fill className="object-cover" sizes="(min-width: 768px) 40vw, 100vw" />
+                      <Image src={project.imageUrl} alt={project.imageAlt ?? `${project.title}の画面`} fill className={project.imageAlt ? "bg-secondary object-contain" : "object-cover"} sizes="(min-width: 768px) 40vw, 100vw" />
                     </div>
                   ) : (
                     <ProjectArtwork id={project.id} />
