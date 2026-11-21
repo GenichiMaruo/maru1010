@@ -67,6 +67,41 @@
     ]
   },
   {
+    "id": "applied-singulo",
+    "title": "Applied Singulo",
+    "category": "Minecraft MOD",
+    "status": "Beta",
+    "description": "Singulo のアンドロイド作業を Applied Energistics 2 の自動クラフトにつなぐアドオン。ME 端末から製作を依頼し、完成品を ME ネットワークで受け取れます。",
+    "technologies": [
+      "Java",
+      "NeoForge",
+      "Forge",
+      "Minecraft",
+      "Applied Energistics 2"
+    ],
+    "features": [
+      "Android ME Interface を通じて対応する作業台レシピを依頼",
+      "注文ごとに材料を分け、完成品を ME ネットワークに返却",
+      "タンクアップグレードで対応するレシピに ME ストレージから流体を供給"
+    ],
+    "details": "**プロダクト概要**\n\n工業 MOD「Singulo」のアンドロイドと Applied Energistics 2（AE2）を連携させるアドオンです。Android ME Interface を Singulo の作業指令台と ME ネットワークにつなぐと、ME 端末から対応する作業台レシピを依頼できます。\n\n**主な機能**\n\n- 注文ごとに材料を分け、アンドロイドが製作したアイテムを ME ネットワークへ返却\n- タンクアップグレードを使うと、対応するレシピに ME ストレージから流体を供給可能。完成品の出力はアイテムのみです。\n\n**対応環境**\n\nBeta 0.2.0 は Minecraft 1.21.1 / 26.1.2 の NeoForge と、1.20.1 の Forge / NeoForge 向けに配布されています。Singulo 0.21 系と、環境に合う Applied Energistics 2 およびその依存 MOD が必要です。導入条件は各配布ファイルを確認してください。",
+    "link": [
+      "https://www.curseforge.com/minecraft/mc-mods/applied-singulo"
+    ],
+    "github": [
+      "https://github.com/GenichiMaruo/Applied-Singulo"
+    ],
+    "repositoryCreatedAt": "2026-11-13",
+    "verifiedAt": "2026-11-21",
+    "featured": true,
+    "sources": [
+      {
+        "label": "公開 README",
+        "url": "https://github.com/GenichiMaruo/Applied-Singulo/blob/1.21.1/README.md"
+      }
+    ]
+  },
+  {
     "id": "worldgenassist",
     "title": "Worldgen Assist",
     "category": "Minecraft MOD",
